@@ -30,6 +30,7 @@ frontend/extension/dist/
 # Caches
 .cache/
 frontend/website/.vite/
+backend/api/instance/
 
 # Coverage
 .coverage
