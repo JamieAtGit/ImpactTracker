@@ -1,0 +1,841 @@
+{
+  "locations": {
+    "shenzhen_electronics": {
+      "country": "China",
+      "city": "Shenzhen",
+      "region": "Guangdong",
+      "coordinates": {
+        "lat": 22.5431,
+        "lng": 114.0579
+      },
+      "specializations": [
+        "Consumer Electronics",
+        "Smartphones",
+        "IoT Devices",
+        "Components"
+      ],
+      "major_companies": [
+        "Foxconn",
+        "BYD",
+        "Huawei",
+        "DJI"
+      ],
+      "transport_hubs": [
+        "Shenzhen Bao'an Airport",
+        "Yantian Port",
+        "Shekou Port"
+      ],
+      "manufacturing_co2_factor": 1.15,
+      "electricity_grid_intensity": 0.581,
+      "supply_chain_complexity": "very_high",
+      "labor_cost_index": 85,
+      "infrastructure_quality": 9.2,
+      "annual_production_volume": "massive"
+    },
+    "guangzhou_textiles": {
+      "country": "China",
+      "city": "Guangzhou",
+      "region": "Guangdong",
+      "coordinates": {
+        "lat": 23.1291,
+        "lng": 113.2644
+      },
+      "specializations": [
+        "Textiles",
+        "Clothing",
+        "Fashion Accessories",
+        "Leather Goods"
+      ],
+      "major_companies": [
+        "Esquel Group",
+        "Fountain Set",
+        "Lever Style"
+      ],
+      "transport_hubs": [
+        "Guangzhou Baiyun Airport",
+        "Nansha Port",
+        "Huangpu Port"
+      ],
+      "manufacturing_co2_factor": 1.08,
+      "electricity_grid_intensity": 0.581,
+      "supply_chain_complexity": "high",
+      "labor_cost_index": 80,
+      "infrastructure_quality": 8.8,
+      "annual_production_volume": "massive"
+    },
+    "dongguan_manufacturing": {
+      "country": "China",
+      "city": "Dongguan",
+      "region": "Guangdong",
+      "coordinates": {
+        "lat": 23.0489,
+        "lng": 113.7447
+      },
+      "specializations": [
+        "Toys",
+        "Plastic Goods",
+        "Furniture",
+        "Appliances"
+      ],
+      "major_companies": [
+        "Mattel factories",
+        "Hasbro suppliers",
+        "IKEA suppliers"
+      ],
+      "transport_hubs": [
+        "Shenzhen Airport",
+        "Guangzhou Port",
+        "Humen Port"
+      ],
+      "manufacturing_co2_factor": 1.12,
+      "electricity_grid_intensity": 0.581,
+      "supply_chain_complexity": "high",
+      "labor_cost_index": 75,
+      "infrastructure_quality": 8.5,
+      "annual_production_volume": "massive"
+    },
+    "yiwu_small_goods": {
+      "country": "China",
+      "city": "Yiwu",
+      "region": "Zhejiang",
+      "coordinates": {
+        "lat": 29.3142,
+        "lng": 120.0756
+      },
+      "specializations": [
+        "Small Commodities",
+        "Accessories",
+        "Jewelry",
+        "Gifts"
+      ],
+      "major_companies": [
+        "Yiwu International Trade Market",
+        "Small goods manufacturers"
+      ],
+      "transport_hubs": [
+        "Yiwu Airport",
+        "Ningbo Port",
+        "Shanghai Port"
+      ],
+      "manufacturing_co2_factor": 1.05,
+      "electricity_grid_intensity": 0.555,
+      "supply_chain_complexity": "medium",
+      "labor_cost_index": 70,
+      "infrastructure_quality": 8.0,
+      "annual_production_volume": "high"
+    },
+    "suzhou_precision": {
+      "country": "China",
+      "city": "Suzhou",
+      "region": "Jiangsu",
+      "coordinates": {
+        "lat": 31.2989,
+        "lng": 120.5853
+      },
+      "specializations": [
+        "Precision Manufacturing",
+        "Automotive Parts",
+        "Medical Devices"
+      ],
+      "major_companies": [
+        "Bosch",
+        "Continental",
+        "Johnson Controls"
+      ],
+      "transport_hubs": [
+        "Shanghai Pudong Airport",
+        "Shanghai Port",
+        "Suzhou Industrial Park"
+      ],
+      "manufacturing_co2_factor": 1.02,
+      "electricity_grid_intensity": 0.555,
+      "supply_chain_complexity": "very_high",
+      "labor_cost_index": 90,
+      "infrastructure_quality": 9.0,
+      "annual_production_volume": "high"
+    },
+    "stuttgart_engineering": {
+      "country": "Germany",
+      "city": "Stuttgart",
+      "region": "Baden-Württemberg",
+      "coordinates": {
+        "lat": 48.7758,
+        "lng": 9.1829
+      },
+      "specializations": [
+        "Automotive Engineering",
+        "Power Tools",
+        "Precision Instruments"
+      ],
+      "major_companies": [
+        "Bosch",
+        "Mercedes-Benz",
+        "Porsche"
+      ],
+      "transport_hubs": [
+        "Stuttgart Airport",
+        "Frankfurt Airport",
+        "Hamburg Port"
+      ],
+      "manufacturing_co2_factor": 0.68,
+      "electricity_grid_intensity": 0.366,
+      "supply_chain_complexity": "very_high",
+      "labor_cost_index": 150,
+      "infrastructure_quality": 9.8,
+      "annual_production_volume": "high"
+    },
+    "munich_technology": {
+      "country": "Germany",
+      "city": "Munich",
+      "region": "Bavaria",
+      "coordinates": {
+        "lat": 48.1351,
+        "lng": 11.582
+      },
+      "specializations": [
+        "Technology",
+        "Automotive",
+        "Aerospace",
+        "Medical Devices"
+      ],
+      "major_companies": [
+        "BMW",
+        "Siemens",
+        "Infineon"
+      ],
+      "transport_hubs": [
+        "Munich Airport",
+        "Frankfurt Hub",
+        "Stuttgart Connection"
+      ],
+      "manufacturing_co2_factor": 0.65,
+      "electricity_grid_intensity": 0.366,
+      "supply_chain_complexity": "very_high",
+      "labor_cost_index": 155,
+      "infrastructure_quality": 9.8,
+      "annual_production_volume": "high"
+    },
+    "hamburg_logistics": {
+      "country": "Germany",
+      "city": "Hamburg",
+      "region": "Hamburg",
+      "coordinates": {
+        "lat": 53.5511,
+        "lng": 9.9937
+      },
+      "specializations": [
+        "Logistics Hub",
+        "Food Processing",
+        "Maritime Technology"
+      ],
+      "major_companies": [
+        "Airbus",
+        "Unilever",
+        "Beiersdorf"
+      ],
+      "transport_hubs": [
+        "Hamburg Airport",
+        "Port of Hamburg",
+        "European Rail Network"
+      ],
+      "manufacturing_co2_factor": 0.62,
+      "electricity_grid_intensity": 0.366,
+      "supply_chain_complexity": "high",
+      "labor_cost_index": 145,
+      "infrastructure_quality": 9.5,
+      "annual_production_volume": "medium"
+    },
+    "silicon_valley_tech": {
+      "country": "USA",
+      "city": "San Jose",
+      "region": "California",
+      "coordinates": {
+        "lat": 37.3382,
+        "lng": -121.8863
+      },
+      "specializations": [
+        "Technology",
+        "Semiconductors",
+        "Software",
+        "Innovation"
+      ],
+      "major_companies": [
+        "Apple",
+        "Google",
+        "Intel",
+        "NVIDIA"
+      ],
+      "transport_hubs": [
+        "San Francisco Airport",
+        "Oakland Port",
+        "San Jose Airport"
+      ],
+      "manufacturing_co2_factor": 0.75,
+      "electricity_grid_intensity": 0.259,
+      "supply_chain_complexity": "medium",
+      "labor_cost_index": 200,
+      "infrastructure_quality": 9.2,
+      "annual_production_volume": "medium"
+    },
+    "seattle_tech": {
+      "country": "USA",
+      "city": "Seattle",
+      "region": "Washington",
+      "coordinates": {
+        "lat": 47.6062,
+        "lng": -122.3321
+      },
+      "specializations": [
+        "Technology",
+        "Aerospace",
+        "E-commerce",
+        "Cloud Services"
+      ],
+      "major_companies": [
+        "Amazon",
+        "Microsoft",
+        "Boeing"
+      ],
+      "transport_hubs": [
+        "Seattle-Tacoma Airport",
+        "Port of Seattle",
+        "Port of Tacoma"
+      ],
+      "manufacturing_co2_factor": 0.55,
+      "electricity_grid_intensity": 0.155,
+      "supply_chain_complexity": "medium",
+      "labor_cost_index": 180,
+      "infrastructure_quality": 9.0,
+      "annual_production_volume": "medium"
+    },
+    "detroit_manufacturing": {
+      "country": "USA",
+      "city": "Detroit",
+      "region": "Michigan",
+      "coordinates": {
+        "lat": 42.3314,
+        "lng": -83.0458
+      },
+      "specializations": [
+        "Automotive",
+        "Manufacturing",
+        "Tools",
+        "Industrial Equipment"
+      ],
+      "major_companies": [
+        "Ford",
+        "GM",
+        "Stellantis"
+      ],
+      "transport_hubs": [
+        "Detroit Metro Airport",
+        "Port of Detroit",
+        "Great Lakes Shipping"
+      ],
+      "manufacturing_co2_factor": 0.85,
+      "electricity_grid_intensity": 0.423,
+      "supply_chain_complexity": "high",
+      "labor_cost_index": 120,
+      "infrastructure_quality": 8.5,
+      "annual_production_volume": "high"
+    },
+    "austin_tech": {
+      "country": "USA",
+      "city": "Austin",
+      "region": "Texas",
+      "coordinates": {
+        "lat": 30.2672,
+        "lng": -97.7431
+      },
+      "specializations": [
+        "Technology",
+        "Semiconductors",
+        "Clean Energy"
+      ],
+      "major_companies": [
+        "Dell",
+        "IBM",
+        "Samsung Austin"
+      ],
+      "transport_hubs": [
+        "Austin Airport",
+        "Houston Port",
+        "Dallas Connection"
+      ],
+      "manufacturing_co2_factor": 0.82,
+      "electricity_grid_intensity": 0.408,
+      "supply_chain_complexity": "medium",
+      "labor_cost_index": 130,
+      "infrastructure_quality": 8.8,
+      "annual_production_volume": "medium"
+    },
+    "tokyo_precision": {
+      "country": "Japan",
+      "city": "Tokyo",
+      "region": "Kanto",
+      "coordinates": {
+        "lat": 35.6762,
+        "lng": 139.6503
+      },
+      "specializations": [
+        "Precision Electronics",
+        "Automotive",
+        "Robotics"
+      ],
+      "major_companies": [
+        "Sony",
+        "Canon",
+        "Toyota"
+      ],
+      "transport_hubs": [
+        "Narita Airport",
+        "Haneda Airport",
+        "Tokyo Port"
+      ],
+      "manufacturing_co2_factor": 0.78,
+      "electricity_grid_intensity": 0.462,
+      "supply_chain_complexity": "very_high",
+      "labor_cost_index": 140,
+      "infrastructure_quality": 9.5,
+      "annual_production_volume": "high"
+    },
+    "osaka_manufacturing": {
+      "country": "Japan",
+      "city": "Osaka",
+      "region": "Kansai",
+      "coordinates": {
+        "lat": 34.6937,
+        "lng": 135.5023
+      },
+      "specializations": [
+        "Manufacturing",
+        "Chemicals",
+        "Steel",
+        "Machinery"
+      ],
+      "major_companies": [
+        "Panasonic",
+        "Sharp",
+        "Daikin"
+      ],
+      "transport_hubs": [
+        "Kansai Airport",
+        "Osaka Port",
+        "Kobe Port"
+      ],
+      "manufacturing_co2_factor": 0.8,
+      "electricity_grid_intensity": 0.462,
+      "supply_chain_complexity": "high",
+      "labor_cost_index": 135,
+      "infrastructure_quality": 9.3,
+      "annual_production_volume": "high"
+    },
+    "seoul_electronics": {
+      "country": "South Korea",
+      "city": "Seoul",
+      "region": "Seoul Capital Area",
+      "coordinates": {
+        "lat": 37.5665,
+        "lng": 126.978
+      },
+      "specializations": [
+        "Electronics",
+        "Semiconductors",
+        "Display Technology"
+      ],
+      "major_companies": [
+        "Samsung",
+        "LG",
+        "SK Hynix"
+      ],
+      "transport_hubs": [
+        "Incheon Airport",
+        "Busan Port",
+        "Seoul Station"
+      ],
+      "manufacturing_co2_factor": 0.85,
+      "electricity_grid_intensity": 0.459,
+      "supply_chain_complexity": "very_high",
+      "labor_cost_index": 110,
+      "infrastructure_quality": 9.2,
+      "annual_production_volume": "massive"
+    },
+    "taipei_semiconductors": {
+      "country": "Taiwan",
+      "city": "Taipei",
+      "region": "Northern Taiwan",
+      "coordinates": {
+        "lat": 25.033,
+        "lng": 121.5654
+      },
+      "specializations": [
+        "Semiconductors",
+        "Electronics",
+        "Components"
+      ],
+      "major_companies": [
+        "TSMC",
+        "ASUS",
+        "Acer",
+        "Foxconn"
+      ],
+      "transport_hubs": [
+        "Taoyuan Airport",
+        "Kaohsiung Port",
+        "Taichung Port"
+      ],
+      "manufacturing_co2_factor": 0.88,
+      "electricity_grid_intensity": 0.509,
+      "supply_chain_complexity": "very_high",
+      "labor_cost_index": 95,
+      "infrastructure_quality": 9.0,
+      "annual_production_volume": "massive"
+    },
+    "ho_chi_minh_textiles": {
+      "country": "Vietnam",
+      "city": "Ho Chi Minh City",
+      "region": "Southeast Vietnam",
+      "coordinates": {
+        "lat": 10.8231,
+        "lng": 106.6297
+      },
+      "specializations": [
+        "Textiles",
+        "Footwear",
+        "Electronics Assembly"
+      ],
+      "major_companies": [
+        "Nike suppliers",
+        "Adidas suppliers",
+        "Samsung Vietnam"
+      ],
+      "transport_hubs": [
+        "Tan Son Nhat Airport",
+        "Ho Chi Minh Port",
+        "Cat Lai Port"
+      ],
+      "manufacturing_co2_factor": 0.95,
+      "electricity_grid_intensity": 0.542,
+      "supply_chain_complexity": "high",
+      "labor_cost_index": 40,
+      "infrastructure_quality": 7.5,
+      "annual_production_volume": "high"
+    },
+    "hanoi_assembly": {
+      "country": "Vietnam",
+      "city": "Hanoi",
+      "region": "Northern Vietnam",
+      "coordinates": {
+        "lat": 21.0285,
+        "lng": 105.8542
+      },
+      "specializations": [
+        "Electronics Assembly",
+        "Automotive Parts",
+        "Machinery"
+      ],
+      "major_companies": [
+        "Canon",
+        "Honda",
+        "Toyota"
+      ],
+      "transport_hubs": [
+        "Noi Bai Airport",
+        "Hai Phong Port",
+        "Northern Rail"
+      ],
+      "manufacturing_co2_factor": 0.92,
+      "electricity_grid_intensity": 0.542,
+      "supply_chain_complexity": "high",
+      "labor_cost_index": 38,
+      "infrastructure_quality": 7.2,
+      "annual_production_volume": "medium"
+    },
+    "dhaka_textiles": {
+      "country": "Bangladesh",
+      "city": "Dhaka",
+      "region": "Dhaka Division",
+      "coordinates": {
+        "lat": 23.8103,
+        "lng": 90.4125
+      },
+      "specializations": [
+        "Ready-Made Garments",
+        "Textiles",
+        "Footwear"
+      ],
+      "major_companies": [
+        "Beximco",
+        "Square Group",
+        "H&M suppliers"
+      ],
+      "transport_hubs": [
+        "Hazrat Shahjalal Airport",
+        "Chittagong Port",
+        "Mongla Port"
+      ],
+      "manufacturing_co2_factor": 1.05,
+      "electricity_grid_intensity": 0.518,
+      "supply_chain_complexity": "medium",
+      "labor_cost_index": 25,
+      "infrastructure_quality": 6.5,
+      "annual_production_volume": "massive"
+    },
+    "mumbai_pharmaceuticals": {
+      "country": "India",
+      "city": "Mumbai",
+      "region": "Maharashtra",
+      "coordinates": {
+        "lat": 19.076,
+        "lng": 72.8777
+      },
+      "specializations": [
+        "Pharmaceuticals",
+        "Chemicals",
+        "Textiles",
+        "Financial Services"
+      ],
+      "major_companies": [
+        "Tata Group",
+        "Reliance",
+        "Cipla"
+      ],
+      "transport_hubs": [
+        "Mumbai Airport",
+        "JNPT Port",
+        "Mumbai Port"
+      ],
+      "manufacturing_co2_factor": 1.12,
+      "electricity_grid_intensity": 0.708,
+      "supply_chain_complexity": "high",
+      "labor_cost_index": 35,
+      "infrastructure_quality": 7.0,
+      "annual_production_volume": "high"
+    },
+    "bangalore_tech": {
+      "country": "India",
+      "city": "Bangalore",
+      "region": "Karnataka",
+      "coordinates": {
+        "lat": 12.9716,
+        "lng": 77.5946
+      },
+      "specializations": [
+        "Software",
+        "Electronics",
+        "Aerospace",
+        "Biotechnology"
+      ],
+      "major_companies": [
+        "Infosys",
+        "Wipro",
+        "HAL"
+      ],
+      "transport_hubs": [
+        "Bangalore Airport",
+        "Chennai Port",
+        "Cochin Port"
+      ],
+      "manufacturing_co2_factor": 1.08,
+      "electricity_grid_intensity": 0.708,
+      "supply_chain_complexity": "medium",
+      "labor_cost_index": 42,
+      "infrastructure_quality": 7.8,
+      "annual_production_volume": "medium"
+    },
+    "basel_precision": {
+      "country": "Switzerland",
+      "city": "Basel",
+      "region": "Basel-Stadt",
+      "coordinates": {
+        "lat": 47.5596,
+        "lng": 7.5886
+      },
+      "specializations": [
+        "Pharmaceuticals",
+        "Precision Instruments",
+        "Chemicals"
+      ],
+      "major_companies": [
+        "Novartis",
+        "Roche",
+        "Lonza"
+      ],
+      "transport_hubs": [
+        "Zurich Airport",
+        "Basel-Mulhouse Airport",
+        "Rhine River Port"
+      ],
+      "manufacturing_co2_factor": 0.45,
+      "electricity_grid_intensity": 0.128,
+      "supply_chain_complexity": "very_high",
+      "labor_cost_index": 220,
+      "infrastructure_quality": 9.9,
+      "annual_production_volume": "medium"
+    },
+    "singapore_tech": {
+      "country": "Singapore",
+      "city": "Singapore",
+      "region": "Central Singapore",
+      "coordinates": {
+        "lat": 1.3521,
+        "lng": 103.8198
+      },
+      "specializations": [
+        "Electronics",
+        "Semiconductors",
+        "Logistics",
+        "Finance"
+      ],
+      "major_companies": [
+        "Razer",
+        "Creative Technology",
+        "Flextronics"
+      ],
+      "transport_hubs": [
+        "Changi Airport",
+        "Port of Singapore",
+        "Jurong Port"
+      ],
+      "manufacturing_co2_factor": 0.72,
+      "electricity_grid_intensity": 0.392,
+      "supply_chain_complexity": "very_high",
+      "labor_cost_index": 160,
+      "infrastructure_quality": 9.7,
+      "annual_production_volume": "medium"
+    },
+    "tijuana_maquiladoras": {
+      "country": "Mexico",
+      "city": "Tijuana",
+      "region": "Baja California",
+      "coordinates": {
+        "lat": 32.5149,
+        "lng": -117.0382
+      },
+      "specializations": [
+        "Electronics",
+        "Medical Devices",
+        "Aerospace"
+      ],
+      "major_companies": [
+        "Sony",
+        "Samsung",
+        "Panasonic"
+      ],
+      "transport_hubs": [
+        "Tijuana Airport",
+        "San Diego Connection",
+        "Ensenada Port"
+      ],
+      "manufacturing_co2_factor": 0.88,
+      "electricity_grid_intensity": 0.458,
+      "supply_chain_complexity": "high",
+      "labor_cost_index": 55,
+      "infrastructure_quality": 7.8,
+      "annual_production_volume": "high"
+    },
+    "manchester_textiles": {
+      "country": "UK",
+      "city": "Manchester",
+      "region": "Greater Manchester",
+      "coordinates": {
+        "lat": 53.4808,
+        "lng": -2.2426
+      },
+      "specializations": [
+        "Advanced Textiles",
+        "Chemicals",
+        "Aerospace"
+      ],
+      "major_companies": [
+        "BAE Systems",
+        "Rolls-Royce",
+        "AkzoNobel"
+      ],
+      "transport_hubs": [
+        "Manchester Airport",
+        "Liverpool Port",
+        "Hull Port"
+      ],
+      "manufacturing_co2_factor": 0.58,
+      "electricity_grid_intensity": 0.233,
+      "supply_chain_complexity": "high",
+      "labor_cost_index": 125,
+      "infrastructure_quality": 8.8,
+      "annual_production_volume": "medium"
+    },
+    "lyon_automotive": {
+      "country": "France",
+      "city": "Lyon",
+      "region": "Auvergne-Rhône-Alpes",
+      "coordinates": {
+        "lat": 45.764,
+        "lng": 4.8357
+      },
+      "specializations": [
+        "Automotive",
+        "Chemicals",
+        "Pharmaceuticals"
+      ],
+      "major_companies": [
+        "Renault",
+        "Sanofi",
+        "Arkema"
+      ],
+      "transport_hubs": [
+        "Lyon Airport",
+        "Marseille Port",
+        "Le Havre Port"
+      ],
+      "manufacturing_co2_factor": 0.52,
+      "electricity_grid_intensity": 0.057,
+      "supply_chain_complexity": "high",
+      "labor_cost_index": 140,
+      "infrastructure_quality": 9.0,
+      "annual_production_volume": "high"
+    },
+    "milan_fashion": {
+      "country": "Italy",
+      "city": "Milan",
+      "region": "Lombardy",
+      "coordinates": {
+        "lat": 45.4642,
+        "lng": 9.19
+      },
+      "specializations": [
+        "Fashion",
+        "Luxury Goods",
+        "Design",
+        "Machinery"
+      ],
+      "major_companies": [
+        "Prada",
+        "Versace",
+        "Luxottica"
+      ],
+      "transport_hubs": [
+        "Malpensa Airport",
+        "Genoa Port",
+        "Venice Port"
+      ],
+      "manufacturing_co2_factor": 0.64,
+      "electricity_grid_intensity": 0.279,
+      "supply_chain_complexity": "high",
+      "labor_cost_index": 130,
+      "infrastructure_quality": 8.5,
+      "annual_production_volume": "medium"
+    }
+  },
+  "metadata": {
+    "total_locations": 27,
+    "version": "2.0",
+    "description": "Global manufacturing locations with real specializations and CO2 factors",
+    "features": [
+      "Verified geographic coordinates",
+      "Real electricity grid intensities",
+      "Actual regional specializations",
+      "Labor cost and infrastructure data",
+      "Supply chain complexity mapping"
+    ]
+  }
+}

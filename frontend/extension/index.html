@@ -1,0 +1,28 @@
+<!-- popup.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Eco Emissions Estimator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 12px;
+      width: 300px;
+    }
+    input, button {
+      width: 100%;
+      margin: 8px 0;
+      padding: 8px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h3>Estimate Emissions</h3>
+  <input type="text" id="amazon_url" placeholder="Amazon product URL" />
+  <input type="text" id="postcode" placeholder="Your UK postcode" />
+  <button id="analyze">Analyze</button>
+  <p id="output"></p>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>

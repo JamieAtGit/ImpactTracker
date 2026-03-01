@@ -1,0 +1,358 @@
+/* Eco Tracker Overlay Styles */
+.eco-tracker-overlay {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 999999;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #ffffff;
+}
+
+.eco-overlay-container {
+  width: 380px;
+  background: linear-gradient(135deg, rgba(15, 15, 35, 0.95) 0%, rgba(26, 26, 46, 0.95) 50%, rgba(22, 33, 62, 0.95) 100%);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.eco-overlay-container.minimized {
+  width: auto;
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.9), rgba(124, 58, 237, 0.9));
+}
+
+/* Header */
+.eco-overlay-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: grab;
+  user-select: none;
+}
+
+.eco-overlay-header:active {
+  cursor: grabbing;
+}
+
+.eco-overlay-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #00d4ff, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.eco-overlay-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.eco-minimize-btn,
+.eco-close-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.eco-minimize-btn:hover,
+.eco-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.eco-close-btn:hover {
+  background: rgba(239, 68, 68, 0.3);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+/* Content */
+.eco-overlay-content {
+  padding: 20px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+/* Minimized view */
+.eco-overlay-minimized {
+  display: none;
+  padding: 12px 20px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+}
+
+.eco-minimized-text {
+  font-weight: 600;
+  color: white;
+}
+
+/* Form styles */
+.eco-estimate-form {
+  margin-bottom: 20px;
+}
+
+.eco-input-group {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.eco-input-field {
+  width: 100%;
+  padding: 12px 16px;
+  padding-right: 40px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+}
+
+.eco-input-field::placeholder {
+  color: #a1a1aa;
+}
+
+.eco-input-field:focus {
+  outline: none;
+  border-color: #00d4ff;
+  background: rgba(0, 212, 255, 0.1);
+  box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+}
+
+.eco-use-current-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.eco-use-current-btn:hover {
+  background: rgba(0, 212, 255, 0.2);
+  border-color: rgba(0, 212, 255, 0.3);
+}
+
+/* Button */
+.eco-btn-primary {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  background: linear-gradient(135deg, #00d4ff, #7c3aed);
+  color: white;
+  box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
+}
+
+.eco-btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(0, 212, 255, 0.4);
+}
+
+.eco-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Spinner */
+.eco-spinner {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: eco-spin 1s ease-in-out infinite;
+}
+
+@keyframes eco-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Results */
+.eco-result-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 16px;
+  animation: eco-slideIn 0.3s ease;
+}
+
+@keyframes eco-slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.eco-result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.eco-product-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.3;
+  flex: 1;
+}
+
+.eco-new-analysis-btn {
+  background: linear-gradient(135deg, #7c3aed, #00d4ff);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.eco-new-analysis-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+}
+
+/* Metrics grid */
+.eco-metric-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.eco-metric-item {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+}
+
+.eco-metric-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.eco-metric-label {
+  font-size: 11px;
+  color: #a1a1aa;
+  font-weight: 500;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.eco-metric-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #00d4ff;
+}
+
+.eco-metric-value.eco-carbon {
+  background: linear-gradient(135deg, #00d4ff, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Equivalence section */
+.eco-equivalence {
+  text-align: center;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 13px;
+  color: #a1a1aa;
+}
+
+.eco-equiv-item {
+  color: #10b981;
+  font-weight: 600;
+}
+
+/* Loading and error states */
+.eco-loading-message,
+.eco-error-message {
+  text-align: center;
+  padding: 16px;
+  margin: 12px 0;
+  border-radius: 8px;
+}
+
+.eco-loading-message {
+  color: #a1a1aa;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.eco-error-message {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+/* Scrollbar */
+.eco-overlay-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.eco-overlay-content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.eco-overlay-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.eco-overlay-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}

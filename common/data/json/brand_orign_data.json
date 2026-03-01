@@ -1,0 +1,10 @@
+{
+  "huel": { "country": "UK", "city": "Tring" },
+  "anker": { "country": "China", "city": "Shenzhen" },
+  "tefal": { "country": "France", "city": "Rumilly" },
+  "uno": { "country": "USA", "city": "El Segundo" },
+  "nintendo": { "country": "Japan", "city": "Kyoto" },
+  "dyson": { "country": "UK", "city": "Malmesbury" },
+  "sony": { "country": "Japan", "city": "Tokyo" },
+  "apple": { "country": "USA", "city": "Cupertino" }
+}

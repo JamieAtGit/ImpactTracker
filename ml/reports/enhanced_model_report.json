@@ -1,0 +1,96 @@
+{
+  "model_info": {
+    "features_count": 16,
+    "features_used": [
+      "material_encoded",
+      "transport_encoded",
+      "recyclability_encoded",
+      "origin_encoded",
+      "weight_log",
+      "weight_bin_encoded",
+      "packaging_type_encoded",
+      "size_category_encoded",
+      "quality_level_encoded",
+      "inferred_category_encoded",
+      "pack_size",
+      "material_confidence",
+      "origin_confidence",
+      "weight_confidence",
+      "estimated_lifespan_years",
+      "repairability_score"
+    ],
+    "dataset_rows": 4561,
+    "model_type": "Enhanced XGBoost",
+    "training_date": "2025-07-23T03:11:14.119083"
+  },
+  "cross_validation": {
+    "accuracy": {
+      "mean": 0.8445923114441538,
+      "std": 0.003584238114844853,
+      "ci_95_lower": 0.8391388640092228,
+      "ci_95_upper": 0.8492482773910345,
+      "scores": [
+        0.8433684210526315,
+        0.8458947368421053,
+        0.8454085930918281,
+        0.8496208930075821,
+        0.8386689132266217
+      ]
+    },
+    "f1_macro": {
+      "mean": 0.8462096055771333,
+      "std": 0.003717889635130943,
+      "ci_95_lower": 0.840508724895831,
+      "ci_95_upper": 0.8509910782919174,
+      "scores": [
+        0.84502871218014,
+        0.8475058301791554,
+        0.847128653357683,
+        0.8513783280822244,
+        0.8400065040864633
+      ]
+    },
+    "f1_weighted": {
+      "mean": 0.8462109465068768,
+      "std": 0.0036982280115191767,
+      "ci_95_lower": 0.840567520759067,
+      "ci_95_upper": 0.8510039180827059,
+      "scores": [
+        0.8450101242820762,
+        0.8474493175833578,
+        0.8471225188298062,
+        0.8513988736937446,
+        0.8400738981453993
+      ]
+    }
+  },
+  "final_evaluation": {
+    "accuracy": 0.8707368421052631,
+    "f1_macro": 0.872131533848509
+  },
+  "feature_importance": {
+    "pack_size": 0.18480134010314941,
+    "transport_encoded": 0.14094361662864685,
+    "weight_confidence": 0.1299174278974533,
+    "material_encoded": 0.0911475196480751,
+    "weight_bin_encoded": 0.07851958274841309,
+    "estimated_lifespan_years": 0.0741337239742279,
+    "weight_log": 0.04931594803929329,
+    "repairability_score": 0.04394994303584099,
+    "recyclability_encoded": 0.043275076895952225,
+    "inferred_category_encoded": 0.04010685533285141,
+    "material_confidence": 0.038264740258455276,
+    "origin_confidence": 0.0320284366607666,
+    "packaging_type_encoded": 0.02710268460214138,
+    "origin_encoded": 0.026493096724152565,
+    "size_category_encoded": 0.0,
+    "quality_level_encoded": 0.0
+  },
+  "statistical_tests": {
+    "significance_test": {
+      "p_value": 0.0576682030111313,
+      "is_significant": false,
+      "t_statistic": 2.6385427945599678
+    }
+  }
+}

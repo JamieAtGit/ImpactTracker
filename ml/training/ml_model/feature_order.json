@@ -1,0 +1,14 @@
+[
+  "material_encoded",
+  "transport_encoded",
+  "recyclability_encoded",
+  "origin_encoded",
+  "weight_log",
+  "weight_sqrt",
+  "weight_bin_encoded",
+  "material_transport",
+  "origin_recycle",
+  "material_weight_interaction",
+  "distance_proxy",
+  "distance_weight_interaction"
+]

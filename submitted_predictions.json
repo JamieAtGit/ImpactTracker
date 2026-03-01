@@ -1,0 +1,14 @@
+[
+  {
+    "title": "fork",
+    "raw_input": {
+      "material": "Plastic",
+      "weight": 1.0,
+      "transport": "Air",
+      "recyclability": "Low",
+      "origin": "China"
+    },
+    "predicted_label": "F",
+    "confidence": "94.4%"
+  }
+]

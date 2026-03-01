@@ -1,0 +1,1964 @@
+{
+  "materials": {
+    "steel": {
+      "co2_intensity": 2.0,
+      "category": "ferrous_metal",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "World Steel Association LCA",
+      "applications": [
+        "construction",
+        "automotive",
+        "machinery"
+      ],
+      "alternative_names": [
+        "carbon steel",
+        "mild steel"
+      ],
+      "amazon_products": [
+        "Cookware",
+        "Appliances",
+        "Tools",
+        "Furniture"
+      ]
+    },
+    "stainless_steel": {
+      "co2_intensity": 2.8,
+      "category": "ferrous_metal",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "ISSF LCA data",
+      "applications": [
+        "kitchen equipment",
+        "medical devices",
+        "architecture"
+      ],
+      "alternative_names": [
+        "ss304",
+        "ss316",
+        "inox"
+      ],
+      "amazon_products": [
+        "Kitchen appliances",
+        "Cookware",
+        "Cutlery",
+        "Appliances"
+      ]
+    },
+    "cast_iron": {
+      "co2_intensity": 1.8,
+      "category": "ferrous_metal",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "Cast iron industry LCA",
+      "applications": [
+        "cookware",
+        "pipes",
+        "automotive parts"
+      ],
+      "alternative_names": [
+        "iron",
+        "cast iron cookware"
+      ],
+      "amazon_products": [
+        "Cookware",
+        "Garden furniture",
+        "Decorative items"
+      ]
+    },
+    "aluminum": {
+      "co2_intensity": 9.2,
+      "category": "non_ferrous_metal",
+      "confidence": "high",
+      "recyclability": "very_high",
+      "source": "International Aluminium Institute",
+      "applications": [
+        "aerospace",
+        "automotive",
+        "packaging"
+      ],
+      "alternative_names": [
+        "aluminium",
+        "aluminum alloy"
+      ],
+      "recycled_version": {
+        "co2_intensity": 0.6,
+        "notes": "95% less energy than primary"
+      },
+      "amazon_products": [
+        "iPhone cases",
+        "Laptops",
+        "Tablets",
+        "Smartphones",
+        "Power banks"
+      ]
+    },
+    "copper": {
+      "co2_intensity": 3.4,
+      "category": "non_ferrous_metal",
+      "confidence": "high",
+      "recyclability": "very_high",
+      "source": "International Cooper Association",
+      "applications": [
+        "electrical",
+        "plumbing",
+        "electronics"
+      ],
+      "alternative_names": [
+        "copper wire",
+        "copper alloy"
+      ],
+      "amazon_products": [
+        "Cables",
+        "Wires",
+        "Electronics",
+        "Chargers",
+        "Speakers"
+      ]
+    },
+    "brass": {
+      "co2_intensity": 3.8,
+      "category": "non_ferrous_metal",
+      "confidence": "medium",
+      "recyclability": "high",
+      "source": "Estimated from copper/zinc composition",
+      "applications": [
+        "musical instruments",
+        "fittings",
+        "decorative"
+      ],
+      "alternative_names": [
+        "bronze"
+      ]
+    },
+    "titanium": {
+      "co2_intensity": 35.0,
+      "category": "non_ferrous_metal",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "Titanium industry reports",
+      "applications": [
+        "aerospace",
+        "medical implants",
+        "premium products"
+      ],
+      "alternative_names": [
+        "titanium alloy",
+        "grade 2 titanium"
+      ],
+      "amazon_products": [
+        "Jewelry",
+        "Sports equipment",
+        "Medical devices",
+        "Electronics"
+      ]
+    },
+    "carbon_fiber": {
+      "co2_intensity": 22.5,
+      "category": "advanced_fiber",
+      "confidence": "high",
+      "recyclability": "emerging",
+      "source": "Multiple LCA studies average",
+      "applications": [
+        "aerospace",
+        "automotive",
+        "sports equipment"
+      ],
+      "alternative_names": [
+        "carbon fibre",
+        "CFRP"
+      ],
+      "recycled_version": {
+        "co2_intensity": 4.0,
+        "notes": "Recycled CFRP technology developing"
+      },
+      "amazon_products": [
+        "Sports equipment",
+        "Electronics cases",
+        "Automotive parts"
+      ]
+    },
+    "graphene": {
+      "co2_intensity": 50.0,
+      "category": "advanced_material",
+      "confidence": "low",
+      "recyclability": "unknown",
+      "source": "Estimated - limited production data",
+      "applications": [
+        "electronics",
+        "composites",
+        "research"
+      ],
+      "alternative_names": [
+        "graphene_oxide"
+      ]
+    },
+    "kevlar": {
+      "co2_intensity": 7.5,
+      "category": "aramid_fiber",
+      "confidence": "high",
+      "recyclability": "medium",
+      "source": "DuPont LCA data",
+      "applications": [
+        "body armor",
+        "protective equipment",
+        "cables"
+      ],
+      "alternative_names": [
+        "para_aramid",
+        "kevlar_29",
+        "kevlar_49"
+      ]
+    },
+    "nomex": {
+      "co2_intensity": 7.5,
+      "category": "aramid_fiber",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Estimated similar to aramid family",
+      "applications": [
+        "fire protection",
+        "aerospace insulation"
+      ],
+      "alternative_names": [
+        "meta_aramid"
+      ]
+    },
+    "dyneema": {
+      "co2_intensity": 5.8,
+      "category": "uhmwpe_fiber",
+      "confidence": "medium",
+      "recyclability": "high",
+      "source": "DSM Sustainability report",
+      "applications": [
+        "ropes",
+        "ballistic protection",
+        "marine"
+      ],
+      "alternative_names": [
+        "uhmwpe",
+        "spectra"
+      ]
+    },
+    "cashmere": {
+      "co2_intensity": 385.5,
+      "category": "animal_fiber",
+      "confidence": "high",
+      "recyclability": "medium",
+      "source": "Sustainable Apparel Coalition Higg MSI",
+      "applications": [
+        "luxury clothing",
+        "accessories"
+      ],
+      "alternative_names": [
+        "kashmir_wool"
+      ],
+      "environmental_notes": "Extreme water usage and land degradation"
+    },
+    "merino_wool": {
+      "co2_intensity": 73.8,
+      "category": "animal_fiber",
+      "confidence": "high",
+      "recyclability": "medium",
+      "source": "Woolmark Company LCA",
+      "applications": [
+        "activewear",
+        "luxury clothing"
+      ],
+      "alternative_names": [
+        "superfine_wool"
+      ]
+    },
+    "wool": {
+      "co2_intensity": 10.4,
+      "category": "animal_fiber",
+      "confidence": "high",
+      "recyclability": "medium",
+      "source": "International Wool Textile Organisation",
+      "applications": [
+        "clothing",
+        "carpets",
+        "insulation"
+      ],
+      "alternative_names": [
+        "merino wool",
+        "sheep wool",
+        "wool blend"
+      ],
+      "recycled_version": {
+        "co2_intensity": 15.0,
+        "notes": "81% reduction vs virgin wool"
+      },
+      "amazon_products": [
+        "Sweaters",
+        "Coats",
+        "Blankets",
+        "Socks"
+      ]
+    },
+    "mohair": {
+      "co2_intensity": 70.0,
+      "category": "animal_fiber",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Estimated based on angora goat farming",
+      "applications": [
+        "luxury textiles",
+        "upholstery"
+      ],
+      "alternative_names": [
+        "angora_goat_hair"
+      ]
+    },
+    "alpaca": {
+      "co2_intensity": 45.0,
+      "category": "animal_fiber",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Estimated - lower than sheep wool",
+      "applications": [
+        "luxury clothing",
+        "outdoor gear"
+      ],
+      "environmental_notes": "More sustainable than cashmere/wool"
+    },
+    "silk": {
+      "co2_intensity": 18.6,
+      "category": "animal_fiber",
+      "confidence": "high",
+      "recyclability": "low",
+      "source": "Textile Exchange LCA",
+      "applications": [
+        "luxury clothing",
+        "accessories"
+      ],
+      "alternative_names": [
+        "mulberry silk",
+        "natural silk"
+      ],
+      "amazon_products": [
+        "Scarves",
+        "Dresses",
+        "Bedding",
+        "Ties"
+      ]
+    },
+    "down": {
+      "co2_intensity": 3.4,
+      "category": "animal_fiber",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Estimated from poultry industry",
+      "applications": [
+        "insulation",
+        "bedding",
+        "outdoor gear"
+      ],
+      "alternative_names": [
+        "goose_down",
+        "duck_down"
+      ]
+    },
+    "leather": {
+      "co2_intensity": 12.0,
+      "category": "animal_product",
+      "confidence": "high",
+      "recyclability": "low",
+      "source": "Multiple tannery LCAs",
+      "applications": [
+        "footwear",
+        "accessories",
+        "furniture"
+      ],
+      "alternative_names": [
+        "genuine_leather",
+        "full_grain"
+      ]
+    },
+    "cotton": {
+      "co2_intensity": 2.1,
+      "category": "plant_fiber",
+      "confidence": "high",
+      "recyclability": "medium",
+      "source": "Cotton Incorporated LCA",
+      "applications": [
+        "clothing",
+        "home textiles",
+        "medical"
+      ],
+      "alternative_names": [
+        "organic cotton",
+        "cotton blend"
+      ],
+      "organic_version": {
+        "co2_intensity": 1.8,
+        "notes": "Reduced fertilizer/pesticide use"
+      },
+      "amazon_products": [
+        "T-shirts",
+        "Jeans",
+        "Underwear",
+        "Bedding",
+        "Towels"
+      ]
+    },
+    "organic_cotton": {
+      "co2_intensity": 1.8,
+      "category": "plant_fiber",
+      "confidence": "high",
+      "recyclability": "medium",
+      "source": "Textile Exchange Organic Cotton LCA",
+      "applications": [
+        "sustainable clothing",
+        "baby products"
+      ],
+      "environmental_notes": "No synthetic pesticides/fertilizers"
+    },
+    "linen": {
+      "co2_intensity": 1.8,
+      "category": "plant_fiber",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "Flax industry LCA",
+      "applications": [
+        "summer clothing",
+        "home textiles"
+      ],
+      "alternative_names": [
+        "flax",
+        "linen blend"
+      ],
+      "amazon_products": [
+        "Shirts",
+        "Pants",
+        "Bedding",
+        "Home textiles"
+      ]
+    },
+    "hemp": {
+      "co2_intensity": 0.4,
+      "category": "plant_fiber",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "Hemp industry LCA - carbon negative during growth",
+      "applications": [
+        "textiles",
+        "ropes",
+        "building materials"
+      ],
+      "alternative_names": [
+        "hemp fiber",
+        "industrial hemp"
+      ],
+      "environmental_notes": "Carbon sequestering during growth",
+      "amazon_products": [
+        "Clothing",
+        "Bags",
+        "Ropes",
+        "Textiles"
+      ]
+    },
+    "jute": {
+      "co2_intensity": 0.4,
+      "category": "plant_fiber",
+      "confidence": "medium",
+      "recyclability": "high",
+      "source": "Estimated similar to hemp",
+      "applications": [
+        "burlap",
+        "carpets",
+        "packaging"
+      ],
+      "environmental_notes": "Fast-growing, minimal inputs"
+    },
+    "bamboo_fiber": {
+      "co2_intensity": 0.8,
+      "category": "plant_fiber",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Variable by processing method",
+      "applications": [
+        "clothing",
+        "home textiles"
+      ],
+      "alternative_names": [
+        "bamboo_viscose",
+        "bamboo_lyocell"
+      ],
+      "environmental_notes": "Processing method affects impact"
+    },
+    "wood": {
+      "co2_intensity": 0.1,
+      "category": "wood",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "Forest products LCA",
+      "applications": [
+        "furniture",
+        "construction",
+        "tools"
+      ],
+      "alternative_names": [
+        "hardwood",
+        "softwood",
+        "engineered wood"
+      ],
+      "environmental_notes": "Carbon storage during growth",
+      "amazon_products": [
+        "Furniture",
+        "Kitchen utensils",
+        "Decorative items",
+        "Toys"
+      ]
+    },
+    "bamboo": {
+      "co2_intensity": 0.3,
+      "category": "wood",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "Bamboo industry LCA",
+      "applications": [
+        "furniture",
+        "flooring",
+        "kitchenware"
+      ],
+      "environmental_notes": "Fastest growing plant, high carbon sequestration",
+      "amazon_products": [
+        "Clothing",
+        "Bedding",
+        "Towels",
+        "Socks"
+      ],
+      "alternative_names": [
+        "bamboo rayon",
+        "bamboo viscose"
+      ]
+    },
+    "cork": {
+      "co2_intensity": 0.5,
+      "category": "wood",
+      "confidence": "medium",
+      "recyclability": "high",
+      "source": "Cork industry estimates",
+      "applications": [
+        "wine corks",
+        "flooring",
+        "insulation"
+      ],
+      "environmental_notes": "Renewable harvest, doesn't harm tree",
+      "amazon_products": [
+        "Wine stoppers",
+        "Flooring",
+        "Yoga mats",
+        "Coasters"
+      ],
+      "alternative_names": [
+        "natural cork",
+        "cork composite"
+      ]
+    },
+    "plywood": {
+      "co2_intensity": 0.6,
+      "category": "engineered_wood",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Wood panel industry LCA",
+      "applications": [
+        "construction",
+        "furniture",
+        "packaging"
+      ],
+      "environmental_notes": "Includes adhesive impacts"
+    },
+    "plastic": {
+      "co2_intensity": 3.5,
+      "category": "thermoplastic",
+      "confidence": "high",
+      "recyclability": "medium",
+      "source": "Plastics industry average",
+      "applications": [
+        "packaging",
+        "consumer goods",
+        "automotive"
+      ],
+      "alternative_names": [
+        "polymer",
+        "synthetic_resin"
+      ]
+    },
+    "polypropylene": {
+      "co2_intensity": 1.8,
+      "category": "thermoplastic",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "Polypropylene Association",
+      "applications": [
+        "automotive",
+        "packaging",
+        "textiles"
+      ],
+      "alternative_names": [
+        "PP",
+        "polyprop"
+      ],
+      "amazon_products": [
+        "Containers",
+        "Automotive parts",
+        "Textiles",
+        "Packaging"
+      ]
+    },
+    "polyethylene": {
+      "co2_intensity": 1.6,
+      "category": "thermoplastic",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "Polyethylene Association",
+      "applications": [
+        "packaging",
+        "bottles",
+        "films"
+      ],
+      "alternative_names": [
+        "PE",
+        "HDPE",
+        "LDPE",
+        "polyethylene"
+      ],
+      "amazon_products": [
+        "Packaging",
+        "Bags",
+        "Containers",
+        "Toys"
+      ]
+    },
+    "abs_plastic": {
+      "co2_intensity": 2.8,
+      "category": "thermoplastic",
+      "confidence": "high",
+      "recyclability": "medium",
+      "source": "Plastics industry LCA",
+      "applications": [
+        "toys",
+        "automotive",
+        "electronics"
+      ],
+      "alternative_names": [
+        "ABS",
+        "acrylonitrile butadiene styrene"
+      ],
+      "amazon_products": [
+        "Computer cases",
+        "Electronics housings",
+        "Keyboards",
+        "Mouse"
+      ]
+    },
+    "polycarbonate": {
+      "co2_intensity": 3.1,
+      "category": "thermoplastic",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Polycarbonate Association",
+      "applications": [
+        "electronics",
+        "automotive",
+        "safety equipment"
+      ],
+      "alternative_names": [
+        "PC plastic",
+        "lexan",
+        "makrolon"
+      ],
+      "amazon_products": [
+        "Phone cases",
+        "Laptop screens",
+        "CDs",
+        "Safety equipment"
+      ]
+    },
+    "pvc": {
+      "co2_intensity": 2.4,
+      "category": "thermoplastic",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "PVC industry LCA",
+      "applications": [
+        "pipes",
+        "construction",
+        "medical"
+      ],
+      "alternative_names": [
+        "polyvinyl chloride",
+        "vinyl"
+      ],
+      "amazon_products": [
+        "Toys",
+        "Inflatable items",
+        "Pipes",
+        "Vinyl products"
+      ]
+    },
+    "nylon": {
+      "co2_intensity": 6.4,
+      "category": "thermoplastic",
+      "confidence": "high",
+      "recyclability": "medium",
+      "source": "Nylon industry LCA",
+      "applications": [
+        "textiles",
+        "automotive",
+        "industrial"
+      ],
+      "alternative_names": [
+        "polyamide",
+        "nylon 6",
+        "nylon 66"
+      ],
+      "amazon_products": [
+        "Activewear",
+        "Hosiery",
+        "Swimwear",
+        "Bags"
+      ]
+    },
+    "ptfe": {
+      "co2_intensity": 9.6,
+      "category": "fluoropolymer",
+      "confidence": "medium",
+      "recyclability": "low",
+      "source": "Fluoropolymer industry data",
+      "applications": [
+        "non-stick coatings",
+        "gaskets",
+        "chemical equipment"
+      ],
+      "alternative_names": [
+        "teflon",
+        "polytetrafluoroethylene"
+      ]
+    },
+    "polyester": {
+      "co2_intensity": 3.8,
+      "category": "synthetic_textile",
+      "confidence": "high",
+      "recyclability": "medium",
+      "source": "Textile Exchange LCA",
+      "applications": [
+        "clothing",
+        "home textiles",
+        "industrial"
+      ],
+      "alternative_names": [
+        "PET fiber",
+        "polyester blend"
+      ],
+      "recycled_version": {
+        "co2_intensity": 2.0,
+        "notes": "45% reduction vs virgin"
+      },
+      "amazon_products": [
+        "Athletic wear",
+        "Jackets",
+        "Pants",
+        "Bedding"
+      ]
+    },
+    "lycra": {
+      "co2_intensity": 4.2,
+      "category": "synthetic_textile",
+      "confidence": "medium",
+      "recyclability": "low",
+      "source": "Estimated from elastane production",
+      "applications": [
+        "activewear",
+        "swimwear",
+        "stretch fabrics"
+      ],
+      "alternative_names": [
+        "spandex",
+        "elastane"
+      ]
+    },
+    "acrylic": {
+      "co2_intensity": 5.1,
+      "category": "synthetic_textile",
+      "confidence": "medium",
+      "recyclability": "low",
+      "source": "Acrylic fiber LCA",
+      "applications": [
+        "sweaters",
+        "blankets",
+        "outdoor fabrics"
+      ],
+      "alternative_names": [
+        "acrylic fiber",
+        "polyacrylonitrile"
+      ],
+      "amazon_products": [
+        "Sweaters",
+        "Blankets",
+        "Carpets",
+        "Fake fur"
+      ]
+    },
+    "lyocell": {
+      "co2_intensity": 0.05,
+      "category": "semi_synthetic",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "Lenzing LCA data",
+      "applications": [
+        "clothing",
+        "home textiles",
+        "nonwovens"
+      ],
+      "alternative_names": [
+        "tencel",
+        "eucalyptus_fiber"
+      ],
+      "environmental_notes": "Closed-loop production, 99.5% solvent recovery"
+    },
+    "modal": {
+      "co2_intensity": 0.03,
+      "category": "semi_synthetic",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "Lenzing LCA data",
+      "applications": [
+        "underwear",
+        "sleepwear",
+        "towels"
+      ],
+      "alternative_names": [
+        "tencel_modal",
+        "beech_fiber"
+      ],
+      "environmental_notes": "From sustainably managed beech forests"
+    },
+    "viscose": {
+      "co2_intensity": 2.2,
+      "category": "semi_synthetic",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Conventional viscose process",
+      "applications": [
+        "clothing",
+        "home textiles"
+      ],
+      "alternative_names": [
+        "rayon"
+      ],
+      "environmental_notes": "Chemical-intensive process"
+    },
+    "rubber": {
+      "co2_intensity": 2.8,
+      "category": "elastomer",
+      "confidence": "high",
+      "recyclability": "medium",
+      "source": "Rubber industry LCA",
+      "applications": [
+        "tires",
+        "seals",
+        "footwear"
+      ],
+      "alternative_names": [
+        "natural_rubber",
+        "synthetic_rubber"
+      ]
+    },
+    "silicone": {
+      "co2_intensity": 3.1,
+      "category": "elastomer",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Silicone industry estimates",
+      "applications": [
+        "medical devices",
+        "kitchenware",
+        "electronics"
+      ],
+      "alternative_names": [
+        "silicone rubber",
+        "food grade silicone"
+      ],
+      "amazon_products": [
+        "Bakeware",
+        "Kitchen tools",
+        "Phone cases",
+        "Baby products"
+      ]
+    },
+    "neoprene": {
+      "co2_intensity": 3.6,
+      "category": "elastomer",
+      "confidence": "medium",
+      "recyclability": "low",
+      "source": "Synthetic rubber LCA estimates",
+      "applications": [
+        "wetsuits",
+        "gaskets",
+        "insulation"
+      ],
+      "alternative_names": [
+        "chloroprene_rubber"
+      ]
+    },
+    "foam": {
+      "co2_intensity": 2.8,
+      "category": "foam",
+      "confidence": "medium",
+      "recyclability": "low",
+      "source": "Polyurethane foam industry",
+      "applications": [
+        "furniture",
+        "mattresses",
+        "insulation"
+      ],
+      "alternative_names": [
+        "polyurethane_foam",
+        "memory_foam"
+      ]
+    },
+    "latex_foam": {
+      "co2_intensity": 2.6,
+      "category": "foam",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Natural latex production",
+      "applications": [
+        "mattresses",
+        "pillows",
+        "seating"
+      ],
+      "alternative_names": [
+        "natural_latex"
+      ]
+    },
+    "glass": {
+      "co2_intensity": 1.3,
+      "category": "ceramic_glass",
+      "confidence": "high",
+      "recyclability": "very_high",
+      "source": "Glass industry LCA",
+      "applications": [
+        "containers",
+        "windows",
+        "optics"
+      ],
+      "alternative_names": [
+        "tempered glass",
+        "borosilicate glass"
+      ],
+      "recycled_version": {
+        "co2_intensity": 0.8,
+        "notes": "40% reduction with recycled content"
+      },
+      "amazon_products": [
+        "Screens",
+        "Bottles",
+        "Containers",
+        "Lenses"
+      ]
+    },
+    "ceramic": {
+      "co2_intensity": 0.9,
+      "category": "ceramic_glass",
+      "confidence": "high",
+      "recyclability": "low",
+      "source": "Ceramic industry LCA",
+      "applications": [
+        "tableware",
+        "tiles",
+        "technical ceramics"
+      ],
+      "alternative_names": [
+        "porcelain",
+        "earthenware",
+        "stoneware"
+      ],
+      "amazon_products": [
+        "Dinnerware",
+        "Cookware",
+        "Decorative items",
+        "Tiles"
+      ]
+    },
+    "porcelain": {
+      "co2_intensity": 1.9,
+      "category": "ceramic_glass",
+      "confidence": "medium",
+      "recyclability": "low",
+      "source": "Fine ceramics production",
+      "applications": [
+        "tableware",
+        "decorative items",
+        "technical"
+      ],
+      "alternative_names": [
+        "fine_china",
+        "bone_china"
+      ]
+    },
+    "clay": {
+      "co2_intensity": 1.2,
+      "category": "ceramic_glass",
+      "confidence": "medium",
+      "recyclability": "low",
+      "source": "Clay processing estimates",
+      "applications": [
+        "pottery",
+        "construction",
+        "crafts"
+      ],
+      "alternative_names": [
+        "terracotta"
+      ]
+    },
+    "paper": {
+      "co2_intensity": 0.7,
+      "category": "paper",
+      "confidence": "high",
+      "recyclability": "very_high",
+      "source": "Paper industry LCA",
+      "applications": [
+        "books",
+        "packaging",
+        "printing"
+      ],
+      "alternative_names": [
+        "recycled paper",
+        "newsprint",
+        "cardboard"
+      ],
+      "recycled_version": {
+        "co2_intensity": 0.4,
+        "notes": "Significant energy savings"
+      },
+      "amazon_products": [
+        "Books",
+        "Magazines",
+        "Packaging",
+        "Office supplies"
+      ]
+    },
+    "cardboard": {
+      "co2_intensity": 0.8,
+      "category": "paper",
+      "confidence": "high",
+      "recyclability": "very_high",
+      "source": "Corrugated packaging LCA",
+      "applications": [
+        "packaging",
+        "shipping",
+        "displays"
+      ],
+      "alternative_names": [
+        "corrugated cardboard",
+        "paperboard"
+      ],
+      "amazon_products": [
+        "Packaging boxes",
+        "Shipping materials",
+        "Storage boxes"
+      ]
+    },
+    "mycelium": {
+      "co2_intensity": 0.8,
+      "category": "bio_material",
+      "confidence": "low",
+      "recyclability": "high",
+      "source": "Estimated from mushroom cultivation",
+      "applications": [
+        "leather alternatives",
+        "packaging",
+        "insulation"
+      ],
+      "alternative_names": [
+        "mushroom_leather",
+        "mycelium_leather"
+      ],
+      "environmental_notes": "Carbon negative during growth"
+    },
+    "pinatex": {
+      "co2_intensity": 1.2,
+      "category": "bio_material",
+      "confidence": "low",
+      "recyclability": "medium",
+      "source": "Estimated from pineapple waste processing",
+      "applications": [
+        "leather alternatives",
+        "fashion accessories"
+      ],
+      "alternative_names": [
+        "pineapple_leather"
+      ],
+      "environmental_notes": "Utilizes agricultural waste"
+    },
+    "cork_leather": {
+      "co2_intensity": 0.6,
+      "category": "bio_material",
+      "confidence": "low",
+      "recyclability": "high",
+      "source": "Estimated from cork processing",
+      "applications": [
+        "fashion accessories",
+        "upholstery"
+      ],
+      "alternative_names": [
+        "cork_fabric"
+      ],
+      "environmental_notes": "Renewable harvest"
+    },
+    "pla": {
+      "co2_intensity": 1.7,
+      "category": "bioplastic",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Polylactic acid LCA studies",
+      "applications": [
+        "3d printing",
+        "packaging",
+        "disposables"
+      ],
+      "alternative_names": [
+        "polylactic_acid"
+      ],
+      "environmental_notes": "Compostable under industrial conditions"
+    },
+    "pha": {
+      "co2_intensity": 2.2,
+      "category": "bioplastic",
+      "confidence": "low",
+      "recyclability": "high",
+      "source": "Limited production data",
+      "applications": [
+        "packaging",
+        "agricultural films"
+      ],
+      "alternative_names": [
+        "polyhydroxyalkanoate"
+      ],
+      "environmental_notes": "Marine biodegradable"
+    },
+    "mixed": {
+      "co2_intensity": 2.5,
+      "category": "composite",
+      "confidence": "low",
+      "recyclability": "variable",
+      "source": "Average across material types",
+      "applications": [
+        "multi-material products"
+      ],
+      "environmental_notes": "Actual impact depends on material composition"
+    },
+    "unknown": {
+      "co2_intensity": 2.0,
+      "category": "unknown",
+      "confidence": "low",
+      "recyclability": "unknown",
+      "source": "Conservative estimate",
+      "applications": [
+        "unidentified materials"
+      ],
+      "environmental_notes": "Default fallback value"
+    },
+    "gold": {
+      "co2_intensity": 19500.0,
+      "category": "precious_metal",
+      "confidence": "high",
+      "recyclability": "very_high",
+      "source": "World Gold Council LCA",
+      "amazon_products": [
+        "Electronics components",
+        "Jewelry",
+        "Watches",
+        "Connectors"
+      ],
+      "alternative_names": [
+        "gold plating",
+        "gold contacts"
+      ]
+    },
+    "silver": {
+      "co2_intensity": 1350.0,
+      "category": "precious_metal",
+      "confidence": "high",
+      "recyclability": "very_high",
+      "source": "Silver Institute LCA",
+      "amazon_products": [
+        "Electronics",
+        "Jewelry",
+        "Watches",
+        "Connectors"
+      ],
+      "alternative_names": [
+        "silver plating",
+        "silver contacts"
+      ]
+    },
+    "lithium": {
+      "co2_intensity": 15.0,
+      "category": "battery_material",
+      "confidence": "high",
+      "recyclability": "medium",
+      "source": "Battery industry LCA",
+      "amazon_products": [
+        "Phone batteries",
+        "Laptop batteries",
+        "Power banks",
+        "Electric devices"
+      ],
+      "alternative_names": [
+        "lithium-ion",
+        "li-ion",
+        "lithium battery"
+      ]
+    },
+    "cobalt": {
+      "co2_intensity": 8.2,
+      "category": "battery_material",
+      "confidence": "high",
+      "recyclability": "medium",
+      "source": "Cobalt Development Institute",
+      "amazon_products": [
+        "Batteries",
+        "Electronics",
+        "Rechargeable devices"
+      ],
+      "alternative_names": [
+        "cobalt oxide",
+        "cobalt sulfate"
+      ]
+    },
+    "nickel": {
+      "co2_intensity": 12.8,
+      "category": "non_ferrous_metal",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "Nickel Institute LCA",
+      "amazon_products": [
+        "Batteries",
+        "Electronics",
+        "Stainless steel items"
+      ],
+      "alternative_names": [
+        "nickel alloy",
+        "nickel plating"
+      ]
+    },
+    "rare_earth_elements": {
+      "co2_intensity": 45.0,
+      "category": "specialty_metal",
+      "confidence": "medium",
+      "recyclability": "low",
+      "source": "Mining industry studies",
+      "amazon_products": [
+        "Smartphones",
+        "Speakers",
+        "Hard drives",
+        "Motors"
+      ],
+      "alternative_names": [
+        "neodymium",
+        "dysprosium",
+        "terbium"
+      ]
+    },
+    "polystyrene": {
+      "co2_intensity": 2.9,
+      "category": "thermoplastic",
+      "confidence": "high",
+      "recyclability": "low",
+      "source": "Styrene industry LCA",
+      "amazon_products": [
+        "Packaging",
+        "Disposable items",
+        "Insulation",
+        "Toys"
+      ],
+      "alternative_names": [
+        "PS",
+        "styrofoam",
+        "expanded polystyrene"
+      ]
+    },
+    "tpu": {
+      "co2_intensity": 4.2,
+      "category": "thermoplastic",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Polyurethane Association",
+      "amazon_products": [
+        "Phone cases",
+        "Protective covers",
+        "Flexible parts"
+      ],
+      "alternative_names": [
+        "thermoplastic polyurethane",
+        "flexible plastic"
+      ]
+    },
+    "silicon": {
+      "co2_intensity": 5.6,
+      "category": "semiconductor",
+      "confidence": "high",
+      "recyclability": "low",
+      "source": "Semiconductor industry LCA",
+      "amazon_products": [
+        "Computer chips",
+        "Solar panels",
+        "Electronics"
+      ],
+      "alternative_names": [
+        "silicon wafer",
+        "crystalline silicon"
+      ]
+    },
+    "gorilla_glass": {
+      "co2_intensity": 1.5,
+      "category": "specialty_glass",
+      "confidence": "medium",
+      "recyclability": "high",
+      "source": "Corning LCA estimates",
+      "amazon_products": [
+        "Smartphone screens",
+        "Tablet screens",
+        "Protective glass"
+      ],
+      "alternative_names": [
+        "strengthened glass",
+        "chemically strengthened glass"
+      ]
+    },
+    "spandex": {
+      "co2_intensity": 4.9,
+      "category": "synthetic_textile",
+      "confidence": "medium",
+      "recyclability": "low",
+      "source": "Elastane industry studies",
+      "amazon_products": [
+        "Activewear",
+        "Underwear",
+        "Swimwear",
+        "Leggings"
+      ],
+      "alternative_names": [
+        "elastane",
+        "lycra"
+      ]
+    },
+    "rayon": {
+      "co2_intensity": 3.2,
+      "category": "regenerated_fiber",
+      "confidence": "medium",
+      "recyclability": "low",
+      "source": "Viscose industry studies",
+      "amazon_products": [
+        "Dresses",
+        "Shirts",
+        "Linings",
+        "Home textiles"
+      ],
+      "alternative_names": [
+        "viscose",
+        "modal",
+        "tencel"
+      ]
+    },
+    "melamine": {
+      "co2_intensity": 3.4,
+      "category": "thermoset_plastic",
+      "confidence": "medium",
+      "recyclability": "low",
+      "source": "Melamine industry estimates",
+      "amazon_products": [
+        "Dinnerware",
+        "Kitchen utensils",
+        "Countertops"
+      ],
+      "alternative_names": [
+        "melamine resin",
+        "melamine formaldehyde"
+      ]
+    },
+    "bamboo_wood": {
+      "co2_intensity": 0.05,
+      "category": "natural_material",
+      "confidence": "medium",
+      "recyclability": "high",
+      "source": "Bamboo industry studies",
+      "amazon_products": [
+        "Kitchen utensils",
+        "Cutting boards",
+        "Furniture",
+        "Decorative items"
+      ],
+      "alternative_names": [
+        "bamboo",
+        "bamboo composite"
+      ]
+    },
+    "hdpe": {
+      "co2_intensity": 1.7,
+      "category": "thermoplastic",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "Polyethylene Association",
+      "amazon_products": [
+        "Shampoo bottles",
+        "Cosmetic containers",
+        "Cleaning bottles"
+      ],
+      "alternative_names": [
+        "high density polyethylene",
+        "HDPE plastic"
+      ]
+    },
+    "pet": {
+      "co2_intensity": 2.2,
+      "category": "thermoplastic",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "PET Resin Association",
+      "amazon_products": [
+        "Water bottles",
+        "Cosmetic bottles",
+        "Food containers"
+      ],
+      "alternative_names": [
+        "polyethylene terephthalate",
+        "PET plastic"
+      ]
+    },
+    "pp": {
+      "co2_intensity": 1.8,
+      "category": "thermoplastic",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "Polypropylene Association",
+      "amazon_products": [
+        "Cosmetic caps",
+        "Food containers",
+        "Straws"
+      ],
+      "alternative_names": [
+        "polypropylene",
+        "PP plastic"
+      ]
+    },
+    "palm_oil": {
+      "co2_intensity": 2.3,
+      "category": "natural_oil",
+      "confidence": "medium",
+      "recyclability": "low",
+      "source": "Palm oil LCA studies",
+      "amazon_products": [
+        "Soaps",
+        "Cosmetics",
+        "Food products",
+        "Candles"
+      ],
+      "alternative_names": [
+        "palm kernel oil",
+        "sustainable palm oil"
+      ]
+    },
+    "coconut_oil": {
+      "co2_intensity": 1.4,
+      "category": "natural_oil",
+      "confidence": "medium",
+      "recyclability": "low",
+      "source": "Coconut industry LCA",
+      "amazon_products": [
+        "Cosmetics",
+        "Food products",
+        "Hair care",
+        "Soaps"
+      ],
+      "alternative_names": [
+        "virgin coconut oil",
+        "refined coconut oil"
+      ]
+    },
+    "recycled_paper": {
+      "co2_intensity": 0.5,
+      "category": "paper",
+      "confidence": "high",
+      "recyclability": "very_high",
+      "source": "Recycled paper LCA",
+      "amazon_products": [
+        "Eco-friendly books",
+        "Packaging",
+        "Office supplies"
+      ],
+      "alternative_names": [
+        "post-consumer recycled",
+        "recycled content"
+      ]
+    },
+    "eva_foam": {
+      "co2_intensity": 2.1,
+      "category": "foam_material",
+      "confidence": "medium",
+      "recyclability": "low",
+      "source": "Foam industry estimates",
+      "amazon_products": [
+        "Foam toys",
+        "Exercise mats",
+        "Packaging",
+        "Craft materials"
+      ],
+      "alternative_names": [
+        "ethylene vinyl acetate",
+        "EVA"
+      ]
+    },
+    "latex": {
+      "co2_intensity": 1.9,
+      "category": "natural_rubber",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Rubber industry LCA",
+      "amazon_products": [
+        "Balloons",
+        "Gloves",
+        "Mattresses",
+        "Toys"
+      ],
+      "alternative_names": [
+        "natural rubber",
+        "synthetic latex"
+      ]
+    },
+    "fiberglass": {
+      "co2_intensity": 2.7,
+      "category": "composite_material",
+      "confidence": "medium",
+      "recyclability": "low",
+      "source": "Fiberglass industry LCA",
+      "amazon_products": [
+        "Sports equipment",
+        "Automotive parts",
+        "Construction materials"
+      ],
+      "alternative_names": [
+        "glass fiber",
+        "GFRP"
+      ]
+    },
+    "magnesium": {
+      "co2_intensity": 16.2,
+      "category": "non_ferrous_metal",
+      "confidence": "medium",
+      "recyclability": "high",
+      "source": "Magnesium industry LCA",
+      "amazon_products": [
+        "Electronics cases",
+        "Automotive parts",
+        "Sports equipment"
+      ],
+      "alternative_names": [
+        "magnesium alloy",
+        "mag"
+      ]
+    },
+    "bubble_wrap": {
+      "co2_intensity": 2.0,
+      "category": "packaging_material",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Packaging industry estimates",
+      "amazon_products": [
+        "Protective packaging",
+        "Shipping materials"
+      ],
+      "alternative_names": [
+        "air cushioning",
+        "bubble film"
+      ]
+    },
+    "foam_padding": {
+      "co2_intensity": 2.8,
+      "category": "packaging_material",
+      "confidence": "medium",
+      "recyclability": "low",
+      "source": "Foam packaging LCA",
+      "amazon_products": [
+        "Electronics packaging",
+        "Protective padding"
+      ],
+      "alternative_names": [
+        "polyurethane foam",
+        "protective foam"
+      ]
+    },
+    "kraft_paper": {
+      "co2_intensity": 0.9,
+      "category": "paper",
+      "confidence": "high",
+      "recyclability": "very_high",
+      "source": "Kraft paper LCA",
+      "amazon_products": [
+        "Shipping envelopes",
+        "Packaging",
+        "Paper bags"
+      ],
+      "alternative_names": [
+        "brown paper",
+        "kraft board"
+      ]
+    }
+  },
+  "product_categories": {},
+  "amazon_category_mapping": {
+    "Electronics": [
+      "aluminum",
+      "copper",
+      "silicon",
+      "abs_plastic",
+      "polycarbonate",
+      "glass",
+      "lithium",
+      "gold",
+      "silver"
+    ],
+    "Clothing": [
+      "cotton",
+      "polyester",
+      "nylon",
+      "spandex",
+      "wool",
+      "silk",
+      "linen",
+      "rayon"
+    ],
+    "Home & Kitchen": [
+      "stainless_steel",
+      "aluminum",
+      "glass",
+      "ceramic",
+      "silicone",
+      "wood",
+      "bamboo_wood"
+    ],
+    "Beauty": [
+      "hdpe",
+      "pet",
+      "pp",
+      "palm_oil",
+      "coconut_oil",
+      "glass"
+    ],
+    "Books": [
+      "paper",
+      "cardboard",
+      "recycled_paper"
+    ],
+    "Toys": [
+      "abs_plastic",
+      "pvc",
+      "eva_foam",
+      "latex",
+      "wood"
+    ],
+    "Sports": [
+      "polyester",
+      "nylon",
+      "rubber",
+      "aluminum",
+      "carbon_fiber",
+      "eva_foam"
+    ],
+    "Tools": [
+      "steel",
+      "aluminum",
+      "abs_plastic",
+      "rubber"
+    ],
+    "Health": [
+      "hdpe",
+      "pet",
+      "pp",
+      "glass",
+      "aluminum"
+    ],
+    "Baby": [
+      "silicone",
+      "abs_plastic",
+      "cotton",
+      "latex",
+      "wood"
+    ],
+    "Automotive": [
+      "steel",
+      "aluminum",
+      "abs_plastic",
+      "rubber",
+      "glass"
+    ],
+    "Garden": [
+      "steel",
+      "aluminum",
+      "hdpe",
+      "wood",
+      "ceramic"
+    ],
+    "Office": [
+      "paper",
+      "abs_plastic",
+      "steel",
+      "aluminum"
+    ],
+    "Pet Supplies": [
+      "nylon",
+      "cotton",
+      "steel",
+      "ceramic",
+      "hdpe"
+    ]
+  },
+  "metadata": {
+    "last_updated": "2025-07-29",
+    "total_materials": 20,
+    "sources": [
+      "IEA",
+      "IPCC",
+      "Academic LCA Studies",
+      "Industry Reports"
+    ],
+    "version": "2.0_expanded"
+  },
+  "materials_database": {
+    "hemp_fiber": {
+      "co2_per_kg": 0.8,
+      "recyclability": "high",
+      "source": "Hemp cultivation studies",
+      "category": "bio_based",
+      "sustainability_rating": "excellent",
+      "end_of_life_options": [
+        "recycling",
+        "upcycling",
+        "composting"
+      ]
+    },
+    "bamboo_fiber": {
+      "co2_per_kg": 1.2,
+      "recyclability": "high",
+      "source": "Bamboo LCA studies",
+      "category": "bio_based",
+      "sustainability_rating": "excellent",
+      "end_of_life_options": [
+        "recycling",
+        "upcycling",
+        "composting"
+      ]
+    },
+    "cork": {
+      "co2_per_kg": 0.6,
+      "recyclability": "high",
+      "source": "Cork oak forest studies",
+      "category": "bio_based",
+      "sustainability_rating": "excellent",
+      "end_of_life_options": [
+        "recycling",
+        "upcycling",
+        "composting"
+      ]
+    },
+    "mycelium": {
+      "co2_per_kg": 0.4,
+      "recyclability": "high",
+      "source": "Mycelium packaging LCA",
+      "category": "bio_based",
+      "sustainability_rating": "excellent",
+      "end_of_life_options": [
+        "recycling",
+        "upcycling",
+        "composting"
+      ]
+    },
+    "bioplastic_pla": {
+      "co2_per_kg": 2.3,
+      "recyclability": "medium",
+      "source": "PLA lifecycle assessment",
+      "category": "bio_based",
+      "sustainability_rating": "good",
+      "end_of_life_options": [
+        "recycling",
+        "energy_recovery"
+      ]
+    },
+    "carbon_fiber": {
+      "co2_per_kg": 24.0,
+      "recyclability": "low",
+      "source": "Carbon fiber manufacturing LCA",
+      "category": "composite",
+      "sustainability_rating": "very_poor",
+      "end_of_life_options": [
+        "energy_recovery",
+        "landfill"
+      ]
+    },
+    "fiberglass": {
+      "co2_per_kg": 8.5,
+      "recyclability": "low",
+      "source": "Fiberglass composite studies",
+      "category": "composite",
+      "sustainability_rating": "moderate",
+      "end_of_life_options": [
+        "energy_recovery",
+        "landfill"
+      ]
+    },
+    "kevlar": {
+      "co2_per_kg": 15.2,
+      "recyclability": "low",
+      "source": "Aramid fiber LCA",
+      "category": "composite",
+      "sustainability_rating": "poor",
+      "end_of_life_options": [
+        "energy_recovery",
+        "landfill"
+      ]
+    },
+    "recycled_pet": {
+      "co2_per_kg": 1.8,
+      "recyclability": "high",
+      "source": "Recycled PET bottle studies",
+      "category": "recycled",
+      "sustainability_rating": "excellent",
+      "end_of_life_options": [
+        "recycling",
+        "upcycling",
+        "composting"
+      ]
+    },
+    "recycled_aluminum": {
+      "co2_per_kg": 0.7,
+      "recyclability": "high",
+      "source": "Aluminum recycling LCA",
+      "category": "recycled",
+      "sustainability_rating": "excellent",
+      "end_of_life_options": [
+        "recycling",
+        "upcycling",
+        "composting"
+      ]
+    },
+    "recycled_steel": {
+      "co2_per_kg": 0.8,
+      "recyclability": "high",
+      "source": "Steel recycling studies",
+      "category": "recycled",
+      "sustainability_rating": "excellent",
+      "end_of_life_options": [
+        "recycling",
+        "upcycling",
+        "composting"
+      ]
+    },
+    "recycled_paper": {
+      "co2_per_kg": 0.9,
+      "recyclability": "high",
+      "source": "Paper recycling LCA",
+      "category": "recycled",
+      "sustainability_rating": "excellent",
+      "end_of_life_options": [
+        "recycling",
+        "upcycling",
+        "composting"
+      ]
+    },
+    "lithium": {
+      "co2_per_kg": 15.0,
+      "recyclability": "medium",
+      "source": "Lithium extraction LCA",
+      "category": "high_tech",
+      "sustainability_rating": "poor",
+      "end_of_life_options": [
+        "recycling",
+        "energy_recovery"
+      ]
+    },
+    "rare_earth_elements": {
+      "co2_per_kg": 35.0,
+      "recyclability": "low",
+      "source": "REE mining studies",
+      "category": "high_tech",
+      "sustainability_rating": "very_poor",
+      "end_of_life_options": [
+        "energy_recovery",
+        "landfill"
+      ]
+    },
+    "titanium": {
+      "co2_per_kg": 12.8,
+      "recyclability": "medium",
+      "source": "Titanium production LCA",
+      "category": "high_tech",
+      "sustainability_rating": "poor",
+      "end_of_life_options": [
+        "recycling",
+        "energy_recovery"
+      ]
+    },
+    "ceramic_advanced": {
+      "co2_per_kg": 3.2,
+      "recyclability": "low",
+      "source": "Advanced ceramics LCA",
+      "category": "conventional",
+      "sustainability_rating": "good",
+      "end_of_life_options": [
+        "energy_recovery",
+        "landfill"
+      ]
+    },
+    "organic_cotton": {
+      "co2_per_kg": 5.2,
+      "recyclability": "high",
+      "source": "Organic cotton LCA",
+      "category": "conventional",
+      "sustainability_rating": "moderate",
+      "end_of_life_options": [
+        "recycling",
+        "upcycling",
+        "composting"
+      ]
+    },
+    "linen": {
+      "co2_per_kg": 2.1,
+      "recyclability": "high",
+      "source": "Flax/linen cultivation LCA",
+      "category": "conventional",
+      "sustainability_rating": "good",
+      "end_of_life_options": [
+        "recycling",
+        "upcycling",
+        "composting"
+      ]
+    },
+    "wool_organic": {
+      "co2_per_kg": 18.5,
+      "recyclability": "medium",
+      "source": "Organic wool production LCA",
+      "category": "conventional",
+      "sustainability_rating": "poor",
+      "end_of_life_options": [
+        "recycling",
+        "energy_recovery"
+      ]
+    },
+    "leather_vegetable_tanned": {
+      "co2_per_kg": 8.9,
+      "recyclability": "low",
+      "source": "Vegetable tanning LCA",
+      "category": "conventional",
+      "sustainability_rating": "moderate",
+      "end_of_life_options": [
+        "energy_recovery",
+        "landfill"
+      ]
+    }
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "data": {
+    "attributes": {
+      "carbon_kg": 0.51,
+      "country_of_origin": "China",
+      "default_transport_mode": "Air",
+      "dimensions_cm": null,
+      "distance_from_origin_km": 9197.4,
+      "distance_from_uk_hub_km": 49.5,
+      "eco_score_ml": "A",
+      "eco_score_ml_confidence": 58.0,
+      "eco_score_rule_based": "C",
+      "eco_score_rule_based_local_only": "B",
+      "emission_factors": {
+        "Air": 0.5,
+        "Ship": 0.03,
+        "Truck": 0.15
+      },
+      "facility_origin": "AVLASH Facility",
+      "intl_distance_km": 9197.4,
+      "material_type": "Wood",
+      "materials": {
+        "all_materials": [
+          {
+            "confidence_score": 0.95,
+            "name": "Wood"
+          }
+        ],
+        "confidence": 0.95,
+        "environmental_impact_score": 0.6,
+        "has_percentages": false,
+        "prediction_method": "Enhanced category: wooden spoon (score: 16)",
+        "primary_material": "Wood",
+        "primary_percentage": null,
+        "secondary_materials": [],
+        "tier": 4,
+        "tier_name": "Enhanced category prediction"
+      },
+      "method_agreement": "No",
+      "origin": "China",
+      "origin_source": "brand_mapping",
+      "prediction_methods": {
+        "ml_prediction": {
+          "confidence": "58.0%",
+          "features_used": {
+            "feature_count": 6,
+            "features": [
+              {
+                "name": "Material Type",
+                "value": 30
+              },
+              {
+                "name": "Transport Mode",
+                "value": 0
+              },
+              {
+                "name": "Recyclability",
+                "value": 2
+              },
+              {
+                "name": "Origin Country",
+                "value": 2
+              },
+              {
+                "name": "Weight (log)",
+                "value": 0.3129842553139992
+              },
+              {
+                "name": "Weight Category",
+                "value": 1
+              }
+            ]
+          },
+          "method": "Enhanced XGBoost (11 features)",
+          "score": "A"
+        },
+        "rule_based_prediction": {
+          "confidence": "80%",
+          "method": "Traditional Heuristic Rules",
+          "score": "C"
+        }
+      },
+      "raw_product_weight_kg": 0.35,
+      "recyclability": null,
+      "recyclability_description": "Assessment pending",
+      "recyclability_percentage": 30,
+      "selected_transport_mode": null,
+      "transport_mode": "Air",
+      "trees_to_offset": 0.0,
+      "uk_distance_km": 49.5,
+      "weight_kg": 0.37
+    }
+  },
+  "title": "[ Pack of 100 ] Disposable Wooden Spoons, Biodegradable Wooden Spoon - 16cm Long | Eco Friendly & Plastic Free Wooden Spoons - Ideal for Wedding, Picnic, Party, Office (Spoons)"
+}

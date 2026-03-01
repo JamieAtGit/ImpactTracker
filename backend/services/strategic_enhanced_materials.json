@@ -1,0 +1,1927 @@
+{
+  "materials": {
+    "steel": {
+      "co2_intensity": 2.0,
+      "category": "ferrous_metal",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "World Steel Association LCA",
+      "applications": [
+        "construction",
+        "automotive",
+        "machinery"
+      ],
+      "alternative_names": [
+        "carbon steel",
+        "mild steel"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "stainless_steel": {
+      "co2_intensity": 2.8,
+      "category": "ferrous_metal",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "ISSF LCA data",
+      "applications": [
+        "kitchen equipment",
+        "medical devices",
+        "architecture"
+      ],
+      "alternative_names": [
+        "ss304",
+        "ss316",
+        "inox"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "cast_iron": {
+      "co2_intensity": 1.8,
+      "category": "ferrous_metal",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "Industry average",
+      "applications": [
+        "cookware",
+        "pipes",
+        "automotive parts"
+      ],
+      "alternative_names": [
+        "iron",
+        "grey iron"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "aluminum": {
+      "co2_intensity": 9.2,
+      "category": "non_ferrous_metal",
+      "confidence": "high",
+      "recyclability": "very_high",
+      "source": "International Aluminium Institute",
+      "applications": [
+        "aerospace",
+        "automotive",
+        "packaging"
+      ],
+      "alternative_names": [
+        "aluminium",
+        "al"
+      ],
+      "recycled_version": {
+        "co2_intensity": 0.6,
+        "notes": "95% less energy than primary"
+      },
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "copper": {
+      "co2_intensity": 4.5,
+      "category": "non_ferrous_metal",
+      "confidence": "high",
+      "recyclability": "very_high",
+      "source": "Copper Alliance LCA",
+      "applications": [
+        "electrical",
+        "plumbing",
+        "electronics"
+      ],
+      "alternative_names": [
+        "cu"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "brass": {
+      "co2_intensity": 4.6,
+      "category": "non_ferrous_metal",
+      "confidence": "high",
+      "recyclability": "very_high",
+      "source": "Copper alloy LCA",
+      "applications": [
+        "Musical instruments",
+        "Plumbing",
+        "Decorative items"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "titanium": {
+      "co2_intensity": 35.0,
+      "category": "non_ferrous_metal",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "Titanium industry reports",
+      "applications": [
+        "aerospace",
+        "medical implants",
+        "premium products"
+      ],
+      "alternative_names": [
+        "ti",
+        "grade_5_titanium"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "carbon_fiber": {
+      "co2_intensity": 22.5,
+      "category": "advanced_fiber",
+      "confidence": "high",
+      "recyclability": "emerging",
+      "source": "Multiple LCA studies average",
+      "applications": [
+        "aerospace",
+        "automotive",
+        "sports equipment"
+      ],
+      "alternative_names": [
+        "carbon_fibre",
+        "cf",
+        "cfrp"
+      ],
+      "recycled_version": {
+        "co2_intensity": 4.0,
+        "notes": "Recycled CFRP technology developing"
+      },
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "graphene": {
+      "co2_intensity": 50.0,
+      "category": "advanced_material",
+      "confidence": "low",
+      "recyclability": "unknown",
+      "source": "Estimated - limited production data",
+      "applications": [
+        "electronics",
+        "composites",
+        "research"
+      ],
+      "alternative_names": [
+        "graphene_oxide"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "kevlar": {
+      "co2_intensity": 7.5,
+      "category": "aramid_fiber",
+      "confidence": "high",
+      "recyclability": "medium",
+      "source": "DuPont LCA data",
+      "applications": [
+        "body armor",
+        "protective equipment",
+        "cables"
+      ],
+      "alternative_names": [
+        "para_aramid",
+        "kevlar_29",
+        "kevlar_49"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "nomex": {
+      "co2_intensity": 7.5,
+      "category": "aramid_fiber",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Estimated similar to aramid family",
+      "applications": [
+        "fire protection",
+        "aerospace insulation"
+      ],
+      "alternative_names": [
+        "meta_aramid"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "dyneema": {
+      "co2_intensity": 5.8,
+      "category": "uhmwpe_fiber",
+      "confidence": "medium",
+      "recyclability": "high",
+      "source": "DSM Sustainability report",
+      "applications": [
+        "ropes",
+        "ballistic protection",
+        "marine"
+      ],
+      "alternative_names": [
+        "uhmwpe",
+        "spectra"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "cashmere": {
+      "co2_intensity": 385.5,
+      "category": "animal_fiber",
+      "confidence": "high",
+      "recyclability": "medium",
+      "source": "Sustainable Apparel Coalition Higg MSI",
+      "applications": [
+        "luxury clothing",
+        "accessories"
+      ],
+      "alternative_names": [
+        "kashmir_wool"
+      ],
+      "environmental_notes": "Extreme water usage and land degradation",
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "merino_wool": {
+      "co2_intensity": 73.8,
+      "category": "animal_fiber",
+      "confidence": "high",
+      "recyclability": "medium",
+      "source": "Woolmark Company LCA",
+      "applications": [
+        "activewear",
+        "luxury clothing"
+      ],
+      "alternative_names": [
+        "superfine_wool"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "wool": {
+      "co2_intensity": 80.3,
+      "category": "animal_fiber",
+      "confidence": "high",
+      "recyclability": "medium",
+      "source": "International Wool Textile Organisation",
+      "applications": [
+        "clothing",
+        "carpets",
+        "insulation"
+      ],
+      "alternative_names": [
+        "sheep_wool",
+        "virgin_wool"
+      ],
+      "recycled_version": {
+        "co2_intensity": 15.0,
+        "notes": "81% reduction vs virgin wool"
+      },
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "mohair": {
+      "co2_intensity": 70.0,
+      "category": "animal_fiber",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Estimated based on angora goat farming",
+      "applications": [
+        "luxury textiles",
+        "upholstery"
+      ],
+      "alternative_names": [
+        "angora_goat_hair"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "alpaca": {
+      "co2_intensity": 45.0,
+      "category": "animal_fiber",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Estimated - lower than sheep wool",
+      "applications": [
+        "luxury clothing",
+        "outdoor gear"
+      ],
+      "environmental_notes": "More sustainable than cashmere/wool",
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "silk": {
+      "co2_intensity": 18.6,
+      "category": "animal_fiber",
+      "confidence": "high",
+      "recyclability": "low",
+      "source": "Textile Exchange LCA",
+      "applications": [
+        "luxury clothing",
+        "accessories"
+      ],
+      "alternative_names": [
+        "mulberry_silk",
+        "peace_silk"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "down": {
+      "co2_intensity": 3.4,
+      "category": "animal_fiber",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Estimated from poultry industry",
+      "applications": [
+        "insulation",
+        "bedding",
+        "outdoor gear"
+      ],
+      "alternative_names": [
+        "goose_down",
+        "duck_down"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "leather": {
+      "co2_intensity": 12.0,
+      "category": "animal_product",
+      "confidence": "high",
+      "recyclability": "low",
+      "source": "Multiple tannery LCAs",
+      "applications": [
+        "footwear",
+        "accessories",
+        "furniture"
+      ],
+      "alternative_names": [
+        "genuine_leather",
+        "full_grain"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "cotton": {
+      "co2_intensity": 2.1,
+      "category": "plant_fiber",
+      "confidence": "high",
+      "recyclability": "medium",
+      "source": "Cotton Incorporated LCA",
+      "applications": [
+        "clothing",
+        "home textiles",
+        "medical"
+      ],
+      "alternative_names": [
+        "100_percent_cotton"
+      ],
+      "organic_version": {
+        "co2_intensity": 1.8,
+        "notes": "Reduced fertilizer/pesticide use"
+      },
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "organic_cotton": {
+      "co2_intensity": 1.8,
+      "category": "plant_fiber",
+      "confidence": "high",
+      "recyclability": "medium",
+      "source": "Textile Exchange Organic Cotton LCA",
+      "applications": [
+        "sustainable clothing",
+        "baby products"
+      ],
+      "environmental_notes": "No synthetic pesticides/fertilizers",
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "linen": {
+      "co2_intensity": 0.5,
+      "category": "plant_fiber",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "European Flax LCA",
+      "applications": [
+        "summer clothing",
+        "home textiles"
+      ],
+      "alternative_names": [
+        "flax",
+        "flax_fiber"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "hemp": {
+      "co2_intensity": 0.4,
+      "category": "plant_fiber",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "Hemp industry LCA - carbon negative during growth",
+      "applications": [
+        "textiles",
+        "ropes",
+        "building materials"
+      ],
+      "alternative_names": [
+        "hemp_fiber",
+        "industrial_hemp"
+      ],
+      "environmental_notes": "Carbon sequestering during growth",
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "jute": {
+      "co2_intensity": 0.8,
+      "category": "plant_fiber",
+      "confidence": "medium",
+      "recyclability": "very_high",
+      "source": "Natural fiber studies",
+      "applications": [
+        "Bags",
+        "Carpets",
+        "Textiles"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "bamboo_fiber": {
+      "co2_intensity": -0.2,
+      "category": "biodegradable_natural",
+      "confidence": "medium",
+      "recyclability": "very_high",
+      "source": "Bamboo LCA studies",
+      "applications": [
+        "Textiles",
+        "Packaging",
+        "Utensils"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": true,
+      "biodegradation_time_months": 12,
+      "carbon_negative": true,
+      "hazardous_flags": [],
+      "certifications": [
+        "OEKO-TEX",
+        "GOTS organic"
+      ]
+    },
+    "wood": {
+      "co2_intensity": 0.4,
+      "category": "wood",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "Forest industry LCA - carbon storing",
+      "applications": [
+        "furniture",
+        "construction",
+        "tools"
+      ],
+      "alternative_names": [
+        "timber",
+        "lumber"
+      ],
+      "environmental_notes": "Carbon storage during growth",
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "bamboo": {
+      "co2_intensity": 0.3,
+      "category": "wood",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "Bamboo industry LCA",
+      "applications": [
+        "furniture",
+        "flooring",
+        "kitchenware"
+      ],
+      "environmental_notes": "Fastest growing plant, high carbon sequestration",
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "cork": {
+      "co2_intensity": -0.3,
+      "category": "carbon_negative_natural",
+      "confidence": "medium",
+      "recyclability": "very_high",
+      "source": "Cork forest carbon sequestration studies",
+      "applications": [
+        "Flooring",
+        "Insulation",
+        "Accessories"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": true,
+      "biodegradation_time_months": 24,
+      "carbon_negative": true,
+      "hazardous_flags": [],
+      "certifications": [
+        "FSC certified",
+        "Carbon negative"
+      ]
+    },
+    "plywood": {
+      "co2_intensity": 0.6,
+      "category": "engineered_wood",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Wood panel industry LCA",
+      "applications": [
+        "construction",
+        "furniture",
+        "packaging"
+      ],
+      "environmental_notes": "Includes adhesive impacts",
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "plastic": {
+      "co2_intensity": 3.5,
+      "category": "thermoplastic",
+      "confidence": "high",
+      "recyclability": "medium",
+      "source": "Plastics industry average",
+      "applications": [
+        "packaging",
+        "consumer goods",
+        "automotive"
+      ],
+      "alternative_names": [
+        "polymer",
+        "synthetic_resin"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "polypropylene": {
+      "co2_intensity": 1.58,
+      "category": "thermoplastic",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "PlasticsEurope LCA",
+      "applications": [
+        "automotive",
+        "packaging",
+        "textiles"
+      ],
+      "alternative_names": [
+        "pp",
+        "pp5"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "polyethylene": {
+      "co2_intensity": 2.8,
+      "category": "thermoplastic",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "PlasticsEurope LCA",
+      "applications": [
+        "packaging",
+        "bottles",
+        "films"
+      ],
+      "alternative_names": [
+        "pe",
+        "hdpe",
+        "ldpe"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "abs_plastic": {
+      "co2_intensity": 4.1,
+      "category": "thermoplastic",
+      "confidence": "high",
+      "recyclability": "medium",
+      "source": "Engineering plastics LCA",
+      "applications": [
+        "toys",
+        "automotive",
+        "electronics"
+      ],
+      "alternative_names": [
+        "abs",
+        "acrylonitrile"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "polycarbonate": {
+      "co2_intensity": 5.2,
+      "category": "thermoplastic",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Engineering plastics study",
+      "applications": [
+        "electronics",
+        "automotive",
+        "safety equipment"
+      ],
+      "alternative_names": [
+        "pc_plastic",
+        "lexan"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "pvc": {
+      "co2_intensity": 3.8,
+      "category": "thermoplastic",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "PVC industry estimates",
+      "applications": [
+        "pipes",
+        "construction",
+        "medical"
+      ],
+      "alternative_names": [
+        "vinyl",
+        "polyvinyl_chloride"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "nylon": {
+      "co2_intensity": 6.4,
+      "category": "thermoplastic",
+      "confidence": "high",
+      "recyclability": "medium",
+      "source": "Nylon industry LCA",
+      "applications": [
+        "textiles",
+        "automotive",
+        "industrial"
+      ],
+      "alternative_names": [
+        "polyamide",
+        "pa6",
+        "pa66"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "ptfe": {
+      "co2_intensity": 9.6,
+      "category": "fluoropolymer",
+      "confidence": "medium",
+      "recyclability": "low",
+      "source": "Fluoropolymer industry data",
+      "applications": [
+        "non-stick coatings",
+        "gaskets",
+        "chemical equipment"
+      ],
+      "alternative_names": [
+        "teflon",
+        "polytetrafluoroethylene"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "polyester": {
+      "co2_intensity": 3.8,
+      "category": "synthetic_textile",
+      "confidence": "high",
+      "recyclability": "medium",
+      "source": "Textile Exchange LCA",
+      "applications": [
+        "clothing",
+        "home textiles",
+        "industrial"
+      ],
+      "alternative_names": [
+        "poly",
+        "pet_fiber"
+      ],
+      "recycled_version": {
+        "co2_intensity": 2.0,
+        "notes": "45% reduction vs virgin"
+      },
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "lycra": {
+      "co2_intensity": 4.2,
+      "category": "synthetic_textile",
+      "confidence": "medium",
+      "recyclability": "low",
+      "source": "Estimated from elastane production",
+      "applications": [
+        "activewear",
+        "swimwear",
+        "stretch fabrics"
+      ],
+      "alternative_names": [
+        "spandex",
+        "elastane"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "acrylic": {
+      "co2_intensity": 4.8,
+      "category": "synthetic_textile",
+      "confidence": "medium",
+      "recyclability": "low",
+      "source": "Synthetic fiber LCA estimates",
+      "applications": [
+        "sweaters",
+        "blankets",
+        "outdoor fabrics"
+      ],
+      "alternative_names": [
+        "acrylic_fiber"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "lyocell": {
+      "co2_intensity": 0.05,
+      "category": "semi_synthetic",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "Lenzing LCA data",
+      "applications": [
+        "clothing",
+        "home textiles",
+        "nonwovens"
+      ],
+      "alternative_names": [
+        "tencel",
+        "eucalyptus_fiber"
+      ],
+      "environmental_notes": "Closed-loop production, 99.5% solvent recovery",
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "modal": {
+      "co2_intensity": 0.03,
+      "category": "semi_synthetic",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "Lenzing LCA data",
+      "applications": [
+        "underwear",
+        "sleepwear",
+        "towels"
+      ],
+      "alternative_names": [
+        "tencel_modal",
+        "beech_fiber"
+      ],
+      "environmental_notes": "From sustainably managed beech forests",
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "viscose": {
+      "co2_intensity": 2.2,
+      "category": "semi_synthetic",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Conventional viscose process",
+      "applications": [
+        "clothing",
+        "home textiles"
+      ],
+      "alternative_names": [
+        "rayon"
+      ],
+      "environmental_notes": "Chemical-intensive process",
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "rubber": {
+      "co2_intensity": 2.8,
+      "category": "elastomer",
+      "confidence": "high",
+      "recyclability": "medium",
+      "source": "Rubber industry LCA",
+      "applications": [
+        "tires",
+        "seals",
+        "footwear"
+      ],
+      "alternative_names": [
+        "natural_rubber",
+        "synthetic_rubber"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "silicone": {
+      "co2_intensity": 3.1,
+      "category": "elastomer",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Silicone industry estimates",
+      "applications": [
+        "medical devices",
+        "kitchenware",
+        "electronics"
+      ],
+      "alternative_names": [
+        "silicone_rubber",
+        "lsr"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "neoprene": {
+      "co2_intensity": 3.6,
+      "category": "elastomer",
+      "confidence": "medium",
+      "recyclability": "low",
+      "source": "Synthetic rubber LCA estimates",
+      "applications": [
+        "wetsuits",
+        "gaskets",
+        "insulation"
+      ],
+      "alternative_names": [
+        "chloroprene_rubber"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "foam": {
+      "co2_intensity": 2.8,
+      "category": "foam",
+      "confidence": "medium",
+      "recyclability": "low",
+      "source": "Polyurethane foam industry",
+      "applications": [
+        "furniture",
+        "mattresses",
+        "insulation"
+      ],
+      "alternative_names": [
+        "polyurethane_foam",
+        "memory_foam"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "latex_foam": {
+      "co2_intensity": 2.6,
+      "category": "foam",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Natural latex production",
+      "applications": [
+        "mattresses",
+        "pillows",
+        "seating"
+      ],
+      "alternative_names": [
+        "natural_latex"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "glass": {
+      "co2_intensity": 1.3,
+      "category": "ceramic_glass",
+      "confidence": "high",
+      "recyclability": "very_high",
+      "source": "Glass industry LCA",
+      "applications": [
+        "containers",
+        "windows",
+        "optics"
+      ],
+      "alternative_names": [
+        "soda_lime_glass",
+        "borosilicate"
+      ],
+      "recycled_version": {
+        "co2_intensity": 0.8,
+        "notes": "40% reduction with recycled content"
+      },
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "ceramic": {
+      "co2_intensity": 1.7,
+      "category": "ceramic_glass",
+      "confidence": "high",
+      "recyclability": "low",
+      "source": "Ceramics industry LCA",
+      "applications": [
+        "tableware",
+        "tiles",
+        "technical ceramics"
+      ],
+      "alternative_names": [
+        "pottery",
+        "stoneware"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "porcelain": {
+      "co2_intensity": 1.9,
+      "category": "ceramic_glass",
+      "confidence": "medium",
+      "recyclability": "low",
+      "source": "Fine ceramics production",
+      "applications": [
+        "tableware",
+        "decorative items",
+        "technical"
+      ],
+      "alternative_names": [
+        "fine_china",
+        "bone_china"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "clay": {
+      "co2_intensity": 1.2,
+      "category": "ceramic_glass",
+      "confidence": "medium",
+      "recyclability": "low",
+      "source": "Clay processing estimates",
+      "applications": [
+        "pottery",
+        "construction",
+        "crafts"
+      ],
+      "alternative_names": [
+        "terracotta"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "paper": {
+      "co2_intensity": 0.7,
+      "category": "paper",
+      "confidence": "high",
+      "recyclability": "very_high",
+      "source": "Paper industry LCA",
+      "applications": [
+        "books",
+        "packaging",
+        "printing"
+      ],
+      "alternative_names": [
+        "pulp_paper"
+      ],
+      "recycled_version": {
+        "co2_intensity": 0.4,
+        "notes": "Significant energy savings"
+      },
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "cardboard": {
+      "co2_intensity": 0.8,
+      "category": "paper",
+      "confidence": "high",
+      "recyclability": "very_high",
+      "source": "Cardboard industry LCA",
+      "applications": [
+        "packaging",
+        "shipping",
+        "displays"
+      ],
+      "alternative_names": [
+        "corrugated_cardboard",
+        "paperboard"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "mycelium": {
+      "co2_intensity": 0.8,
+      "category": "bio_material",
+      "confidence": "low",
+      "recyclability": "high",
+      "source": "Estimated from mushroom cultivation",
+      "applications": [
+        "leather alternatives",
+        "packaging",
+        "insulation"
+      ],
+      "alternative_names": [
+        "mushroom_leather",
+        "mycelium_leather"
+      ],
+      "environmental_notes": "Carbon negative during growth",
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "pinatex": {
+      "co2_intensity": 1.2,
+      "category": "bio_material",
+      "confidence": "low",
+      "recyclability": "medium",
+      "source": "Estimated from pineapple waste processing",
+      "applications": [
+        "leather alternatives",
+        "fashion accessories"
+      ],
+      "alternative_names": [
+        "pineapple_leather"
+      ],
+      "environmental_notes": "Utilizes agricultural waste",
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "cork_leather": {
+      "co2_intensity": 0.6,
+      "category": "bio_material",
+      "confidence": "low",
+      "recyclability": "high",
+      "source": "Estimated from cork processing",
+      "applications": [
+        "fashion accessories",
+        "upholstery"
+      ],
+      "alternative_names": [
+        "cork_fabric"
+      ],
+      "environmental_notes": "Renewable harvest",
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "pla": {
+      "co2_intensity": 1.7,
+      "category": "bioplastic",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Polylactic acid LCA studies",
+      "applications": [
+        "3d printing",
+        "packaging",
+        "disposables"
+      ],
+      "alternative_names": [
+        "polylactic_acid"
+      ],
+      "environmental_notes": "Compostable under industrial conditions",
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "pha": {
+      "co2_intensity": 2.2,
+      "category": "bioplastic",
+      "confidence": "low",
+      "recyclability": "high",
+      "source": "Limited production data",
+      "applications": [
+        "packaging",
+        "agricultural films"
+      ],
+      "alternative_names": [
+        "polyhydroxyalkanoate"
+      ],
+      "environmental_notes": "Marine biodegradable",
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "mixed": {
+      "co2_intensity": 2.5,
+      "category": "composite",
+      "confidence": "low",
+      "recyclability": "variable",
+      "source": "Average across material types",
+      "applications": [
+        "multi-material products"
+      ],
+      "environmental_notes": "Actual impact depends on material composition",
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "unknown": {
+      "co2_intensity": 2.0,
+      "category": "unknown",
+      "confidence": "low",
+      "recyclability": "unknown",
+      "source": "Conservative estimate",
+      "applications": [
+        "unidentified materials"
+      ],
+      "environmental_notes": "Default fallback value",
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "polyphenylene_oxide": {
+      "co2_intensity": 3.9,
+      "category": "engineering_plastic",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Engineering plastics LCA",
+      "applications": [
+        "Electronics housings",
+        "Automotive parts"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "polyoxymethylene": {
+      "co2_intensity": 4.2,
+      "category": "engineering_plastic",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Acetal resin LCA",
+      "applications": [
+        "Precision parts",
+        "Gears",
+        "Medical devices"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "polyetheretherketone": {
+      "co2_intensity": 12.8,
+      "category": "high_performance_plastic",
+      "confidence": "low",
+      "recyclability": "low",
+      "source": "PEEK industry estimates",
+      "applications": [
+        "Aerospace",
+        "Medical implants",
+        "Industrial"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "glass_fiber_reinforced_plastic": {
+      "co2_intensity": 3.8,
+      "category": "composite_material",
+      "confidence": "medium",
+      "recyclability": "low",
+      "source": "Fiberglass composites LCA",
+      "applications": [
+        "Automotive panels",
+        "Boat hulls",
+        "Sports equipment"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "aramid_fiber": {
+      "co2_intensity": 28.5,
+      "category": "synthetic_fiber",
+      "confidence": "low",
+      "recyclability": "very_low",
+      "source": "Kevlar production studies",
+      "applications": [
+        "Protective gear",
+        "Cables",
+        "Composites"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "polylactic_acid": {
+      "co2_intensity": 1.8,
+      "category": "biodegradable_plastic",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "PLA bioplastic LCA",
+      "applications": [
+        "3D printing",
+        "Food packaging",
+        "Medical devices"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "polyhydroxyalkanoates": {
+      "co2_intensity": 2.2,
+      "category": "biodegradable_plastic",
+      "confidence": "low",
+      "recyclability": "high",
+      "source": "PHA bioplastic studies",
+      "applications": [
+        "Packaging",
+        "Agricultural films"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "bronze": {
+      "co2_intensity": 5.2,
+      "category": "non_ferrous_metal",
+      "confidence": "medium",
+      "recyclability": "very_high",
+      "source": "Bronze alloy studies",
+      "applications": [
+        "Sculptures",
+        "Bearings",
+        "Marine hardware"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "zinc": {
+      "co2_intensity": 3.2,
+      "category": "non_ferrous_metal",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "Zinc industry LCA",
+      "applications": [
+        "Galvanizing",
+        "Die casting",
+        "Batteries"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "lead": {
+      "co2_intensity": 1.4,
+      "category": "heavy_metal",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "Lead industry LCA",
+      "applications": [
+        "Batteries",
+        "Radiation shielding",
+        "Weights"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "sisal": {
+      "co2_intensity": 0.9,
+      "category": "plant_fiber",
+      "confidence": "medium",
+      "recyclability": "high",
+      "source": "Natural fiber LCA",
+      "applications": [
+        "Ropes",
+        "Carpets",
+        "Paper"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "kapok": {
+      "co2_intensity": 0.6,
+      "category": "plant_fiber",
+      "confidence": "low",
+      "recyclability": "high",
+      "source": "Natural fiber estimates",
+      "applications": [
+        "Insulation",
+        "Stuffing",
+        "Oil absorption"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "styrene_butadiene_rubber": {
+      "co2_intensity": 3.1,
+      "category": "synthetic_rubber",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Synthetic rubber LCA",
+      "applications": [
+        "Tires",
+        "Footwear",
+        "Adhesives"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "nitrile_rubber": {
+      "co2_intensity": 4.8,
+      "category": "synthetic_rubber",
+      "confidence": "medium",
+      "recyclability": "low",
+      "source": "NBR production studies",
+      "applications": [
+        "Gloves",
+        "Seals",
+        "Hoses"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "food_grade_silicone": {
+      "co2_intensity": 5.2,
+      "category": "food_safe_polymer",
+      "confidence": "medium",
+      "recyclability": "low",
+      "source": "Food grade silicone LCA",
+      "applications": [
+        "Bakeware",
+        "Baby products",
+        "Kitchen tools"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "food_grade_stainless_steel": {
+      "co2_intensity": 3.1,
+      "category": "food_safe_metal",
+      "confidence": "high",
+      "recyclability": "very_high",
+      "source": "Food grade steel LCA",
+      "applications": [
+        "Cookware",
+        "Cutlery",
+        "Food processing"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "printed_circuit_board": {
+      "co2_intensity": 45.0,
+      "category": "electronic_component",
+      "confidence": "low",
+      "recyclability": "low",
+      "source": "PCB manufacturing estimates",
+      "applications": [
+        "Electronics",
+        "Computers",
+        "Smartphones"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "lithium_polymer": {
+      "co2_intensity": 18.2,
+      "category": "battery_material",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Li-poly battery LCA",
+      "applications": [
+        "Smartphones",
+        "Tablets",
+        "Drones"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "gallium_arsenide": {
+      "co2_intensity": 280.0,
+      "category": "semiconductor",
+      "confidence": "low",
+      "recyclability": "very_low",
+      "source": "Compound semiconductor studies",
+      "applications": [
+        "High-frequency electronics",
+        "Solar cells",
+        "LEDs"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "biodegradable_foam": {
+      "co2_intensity": 1.2,
+      "category": "eco_packaging",
+      "confidence": "low",
+      "recyclability": "very_high",
+      "source": "Biodegradable packaging studies",
+      "applications": [
+        "Protective packaging",
+        "Food containers"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "recycled_cardboard": {
+      "co2_intensity": 0.6,
+      "category": "recycled_paper",
+      "confidence": "high",
+      "recyclability": "very_high",
+      "source": "Updated recycled packaging LCA",
+      "applications": [
+        "Packaging",
+        "Boxes",
+        "Displays"
+      ],
+      "recycled_content_percentage": 85,
+      "biodegradable": true,
+      "biodegradation_time_months": 6,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": [
+        "FSC recycled",
+        "PEFC"
+      ]
+    },
+    "molded_pulp": {
+      "co2_intensity": 0.7,
+      "category": "paper_based",
+      "confidence": "medium",
+      "recyclability": "very_high",
+      "source": "Molded fiber packaging LCA",
+      "applications": [
+        "Egg cartons",
+        "Electronics packaging",
+        "Trays"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": []
+    },
+    "recycled_aluminum": {
+      "co2_intensity": 1.2,
+      "category": "recycled_metal",
+      "confidence": "high",
+      "recyclability": "very_high",
+      "source": "Recycled aluminum industry data",
+      "applications": [
+        "Cans",
+        "Electronics",
+        "Automotive"
+      ],
+      "recycled_content_percentage": 100,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": [
+        "ASI certified",
+        "Cradle to Cradle"
+      ]
+    },
+    "recycled_plastic_pet": {
+      "co2_intensity": 1.8,
+      "category": "recycled_plastic",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "rPET bottle-to-bottle LCA",
+      "applications": [
+        "Bottles",
+        "Clothing",
+        "Carpets"
+      ],
+      "recycled_content_percentage": 100,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": [
+        "GRS certified",
+        "OEKO-TEX"
+      ]
+    },
+    "hemp_fiber": {
+      "co2_intensity": -0.1,
+      "category": "biodegradable_natural",
+      "confidence": "medium",
+      "recyclability": "very_high",
+      "source": "Hemp sustainability studies",
+      "applications": [
+        "Textiles",
+        "Paper",
+        "Building materials"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": true,
+      "biodegradation_time_months": 18,
+      "carbon_negative": true,
+      "hazardous_flags": [],
+      "certifications": [
+        "Organic",
+        "Carbon Trust"
+      ]
+    },
+    "mushroom_packaging": {
+      "co2_intensity": 0.1,
+      "category": "biodegradable_packaging",
+      "confidence": "low",
+      "recyclability": "very_high",
+      "source": "Mycelium packaging studies",
+      "applications": [
+        "Protective packaging",
+        "Insulation"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": true,
+      "biodegradation_time_months": 3,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": [
+        "Biodegradable",
+        "Compostable"
+      ]
+    },
+    "lithium_ion_battery": {
+      "co2_intensity": 18.2,
+      "category": "battery_material",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "Updated Li-ion battery LCA",
+      "applications": [
+        "Electronics",
+        "Vehicles",
+        "Tools"
+      ],
+      "recycled_content_percentage": 5,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [
+        "lithium",
+        "flammable",
+        "toxic_disposal"
+      ],
+      "certifications": [
+        "UN38.3",
+        "IEC safety"
+      ]
+    },
+    "lead_free_solder": {
+      "co2_intensity": 4.8,
+      "category": "electronic_material",
+      "confidence": "high",
+      "recyclability": "high",
+      "source": "Lead-free electronics LCA",
+      "applications": [
+        "Electronics",
+        "Circuit boards"
+      ],
+      "recycled_content_percentage": 20,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": [
+        "RoHS compliant",
+        "WEEE approved"
+      ]
+    },
+    "bpa_free_plastic": {
+      "co2_intensity": 2.8,
+      "category": "food_safe_plastic",
+      "confidence": "medium",
+      "recyclability": "medium",
+      "source": "BPA-free plastic alternatives LCA",
+      "applications": [
+        "Food containers",
+        "Baby products"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": false,
+      "biodegradation_time_months": null,
+      "carbon_negative": false,
+      "hazardous_flags": [],
+      "certifications": [
+        "FDA approved",
+        "Food contact safe"
+      ]
+    },
+    "seaweed_packaging": {
+      "co2_intensity": -0.1,
+      "category": "carbon_negative_marine",
+      "confidence": "low",
+      "recyclability": "very_high",
+      "source": "Seaweed packaging innovation studies",
+      "applications": [
+        "Food packaging",
+        "Single-use items"
+      ],
+      "recycled_content_percentage": 0,
+      "biodegradable": true,
+      "biodegradation_time_months": 2,
+      "carbon_negative": true,
+      "hazardous_flags": [],
+      "certifications": [
+        "Marine safe",
+        "Edible"
+      ]
+    }
+  },
+  "metadata": {
+    "total_materials": 92,
+    "version": "5.0",
+    "description": "Strategically enhanced materials with sustainability properties",
+    "enhancements": [
+      "Recycled content percentages",
+      "Biodegradability timelines",
+      "Carbon negative materials",
+      "Hazardous material flags",
+      "Sustainability certifications"
+    ]
+  }
+}

@@ -1,0 +1,89 @@
+[
+  {
+    "vote": "up",
+    "prediction": "D",
+    "confidence": "100.0%",
+    "raw_input": {
+      "material": "Plastic",
+      "origin": "China",
+      "recyclability": "Low",
+      "transport": "Air",
+      "weight": 1
+    },
+    "encoded_input": {
+      "material": 10,
+      "origin": 1,
+      "recyclability": 1,
+      "transport": 0,
+      "weight": 1,
+      "weight_bin": 1
+    },
+    "feature_impact": {
+      "material": 1.6773348877266616,
+      "origin": 0.3896851763510626,
+      "recyclability": 0.13755511678549337,
+      "transport": 0,
+      "weight": 0.22487269906341095,
+      "weight_bin": 0.03472581046504793
+    },
+    "timestamp": "2025-05-03T04:28:32.898Z"
+  },
+  {
+    "vote": "up",
+    "prediction": "D",
+    "confidence": "100.0%",
+    "raw_input": {
+      "material": "Plastic",
+      "origin": "China",
+      "recyclability": "Low",
+      "transport": "Air",
+      "weight": 1
+    },
+    "encoded_input": {
+      "material": 10,
+      "origin": 1,
+      "recyclability": 1,
+      "transport": 0,
+      "weight": 1,
+      "weight_bin": 1
+    },
+    "feature_impact": {
+      "material": 1.6773348877266616,
+      "origin": 0.3896851763510626,
+      "recyclability": 0.13755511678549337,
+      "transport": 0,
+      "weight": 0.22487269906341095,
+      "weight_bin": 0.03472581046504793
+    },
+    "timestamp": "2025-05-03T04:28:34.913Z"
+  },
+  {
+    "vote": "up",
+    "prediction": "D",
+    "confidence": "100.0%",
+    "raw_input": {
+      "material": "Plastic",
+      "origin": "China",
+      "recyclability": "Low",
+      "transport": "Air",
+      "weight": 1
+    },
+    "encoded_input": {
+      "material": 10,
+      "origin": 1,
+      "recyclability": 1,
+      "transport": 0,
+      "weight": 1,
+      "weight_bin": 1
+    },
+    "feature_impact": {
+      "material": 1.6773348877266616,
+      "origin": 0.3896851763510626,
+      "recyclability": 0.13755511678549337,
+      "transport": 0,
+      "weight": 0.22487269906341095,
+      "weight_bin": 0.03472581046504793
+    },
+    "timestamp": "2025-05-03T04:42:19.022Z"
+  }
+]

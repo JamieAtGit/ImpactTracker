@@ -1,0 +1,213 @@
+{
+  "locations": {
+    "shenzhen_electronics": {
+      "country": "China",
+      "city": "Shenzhen",
+      "region": "Guangdong",
+      "specializations": [
+        "Electronics",
+        "Smartphones",
+        "Components",
+        "Accessories"
+      ],
+      "transport_hubs": [
+        "Shenzhen Port",
+        "Hong Kong Airport"
+      ],
+      "manufacturing_co2_factor": 1.2,
+      "supply_chain_complexity": "high"
+    },
+    "guangzhou_textiles": {
+      "country": "China",
+      "city": "Guangzhou",
+      "region": "Guangdong",
+      "specializations": [
+        "Textiles",
+        "Clothing",
+        "Fashion",
+        "Bags"
+      ],
+      "transport_hubs": [
+        "Guangzhou Port",
+        "Baiyun Airport"
+      ],
+      "manufacturing_co2_factor": 1.1,
+      "supply_chain_complexity": "medium"
+    },
+    "dongguan_manufacturing": {
+      "country": "China",
+      "city": "Dongguan",
+      "region": "Guangdong",
+      "specializations": [
+        "Toys",
+        "Plastic goods",
+        "Furniture",
+        "Appliances"
+      ],
+      "transport_hubs": [
+        "Shenzhen Port",
+        "Guangzhou Port"
+      ],
+      "manufacturing_co2_factor": 1.15,
+      "supply_chain_complexity": "high"
+    },
+    "yiwu_small_goods": {
+      "country": "China",
+      "city": "Yiwu",
+      "region": "Zhejiang",
+      "specializations": [
+        "Small goods",
+        "Accessories",
+        "Jewelry",
+        "Gifts"
+      ],
+      "transport_hubs": [
+        "Ningbo Port",
+        "Shanghai Port"
+      ],
+      "manufacturing_co2_factor": 1.0,
+      "supply_chain_complexity": "low"
+    },
+    "stuttgart_engineering": {
+      "country": "Germany",
+      "city": "Stuttgart",
+      "region": "Baden-Württemberg",
+      "specializations": [
+        "Power tools",
+        "Precision instruments",
+        "Automotive parts"
+      ],
+      "transport_hubs": [
+        "Frankfurt Airport",
+        "Hamburg Port"
+      ],
+      "manufacturing_co2_factor": 0.7,
+      "supply_chain_complexity": "high"
+    },
+    "munich_technology": {
+      "country": "Germany",
+      "city": "Munich",
+      "region": "Bavaria",
+      "specializations": [
+        "Technology",
+        "Software",
+        "Medical devices"
+      ],
+      "transport_hubs": [
+        "Munich Airport",
+        "Frankfurt Hub"
+      ],
+      "manufacturing_co2_factor": 0.65,
+      "supply_chain_complexity": "medium"
+    },
+    "silicon_valley_tech": {
+      "country": "USA",
+      "city": "San Jose",
+      "region": "California",
+      "specializations": [
+        "Technology",
+        "Software",
+        "Innovation",
+        "Design"
+      ],
+      "transport_hubs": [
+        "San Francisco Airport",
+        "Oakland Port"
+      ],
+      "manufacturing_co2_factor": 0.8,
+      "supply_chain_complexity": "low"
+    },
+    "seattle_tech": {
+      "country": "USA",
+      "city": "Seattle",
+      "region": "Washington",
+      "specializations": [
+        "Technology",
+        "Cloud services",
+        "E-commerce"
+      ],
+      "transport_hubs": [
+        "Seattle Airport",
+        "Tacoma Port"
+      ],
+      "manufacturing_co2_factor": 0.6,
+      "supply_chain_complexity": "low"
+    },
+    "detroit_manufacturing": {
+      "country": "USA",
+      "city": "Detroit",
+      "region": "Michigan",
+      "specializations": [
+        "Manufacturing",
+        "Tools",
+        "Industrial equipment"
+      ],
+      "transport_hubs": [
+        "Detroit Airport",
+        "Great Lakes shipping"
+      ],
+      "manufacturing_co2_factor": 0.9,
+      "supply_chain_complexity": "medium"
+    },
+    "swiss_precision": {
+      "country": "Switzerland",
+      "city": "Basel",
+      "region": "Basel-Stadt",
+      "specializations": [
+        "Precision instruments",
+        "Watches",
+        "Medical devices"
+      ],
+      "transport_hubs": [
+        "Zurich Airport",
+        "Basel Rhine Port"
+      ],
+      "manufacturing_co2_factor": 0.5,
+      "supply_chain_complexity": "high"
+    },
+    "japanese_quality": {
+      "country": "Japan",
+      "city": "Tokyo",
+      "region": "Kanto",
+      "specializations": [
+        "Electronics",
+        "Precision manufacturing",
+        "Quality goods"
+      ],
+      "transport_hubs": [
+        "Narita Airport",
+        "Tokyo Port"
+      ],
+      "manufacturing_co2_factor": 0.85,
+      "supply_chain_complexity": "high"
+    },
+    "korean_electronics": {
+      "country": "South Korea",
+      "city": "Seoul",
+      "region": "Seoul Capital Area",
+      "specializations": [
+        "Electronics",
+        "Smartphones",
+        "Display technology"
+      ],
+      "transport_hubs": [
+        "Incheon Airport",
+        "Busan Port"
+      ],
+      "manufacturing_co2_factor": 0.9,
+      "supply_chain_complexity": "high"
+    }
+  },
+  "metadata": {
+    "total_locations": 12,
+    "version": "1.0",
+    "description": "Precise manufacturing locations with city-level accuracy",
+    "features": [
+      "City-level geographic precision",
+      "Regional specializations",
+      "Transport hub mapping",
+      "Manufacturing CO2 factors",
+      "Supply chain complexity"
+    ]
+  }
+}

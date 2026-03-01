@@ -1,0 +1,1567 @@
+{
+  "apple": {
+    "origin": {
+      "country": "USA",
+      "city": "Cupertino"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Cupertino",
+      "state": "California"
+    },
+    "founded": 1976,
+    "manufacturing": [
+      "China",
+      "Taiwan",
+      "South Korea",
+      "India"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Founded by Steve Jobs, Wozniak in California garage"
+  },
+  "microsoft": {
+    "origin": {
+      "country": "USA",
+      "city": "Redmond"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Redmond",
+      "state": "Washington"
+    },
+    "founded": 1975,
+    "manufacturing": [
+      "USA",
+      "China",
+      "Mexico"
+    ],
+    "fulfillment": "Global",
+    "verified": true
+  },
+  "google": {
+    "origin": {
+      "country": "USA",
+      "city": "Mountain View"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Mountain View",
+      "state": "California"
+    },
+    "founded": 1998,
+    "manufacturing": [
+      "China",
+      "Taiwan",
+      "USA"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Part of Alphabet Inc"
+  },
+  "amazon": {
+    "origin": {
+      "country": "USA",
+      "city": "Seattle"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Seattle",
+      "state": "Washington"
+    },
+    "founded": 1994,
+    "manufacturing": [
+      "Global suppliers"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Started in Bellevue garage by Jeff Bezos"
+  },
+  "meta": {
+    "origin": {
+      "country": "USA",
+      "city": "Menlo Park"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Menlo Park",
+      "state": "California"
+    },
+    "founded": 2004,
+    "manufacturing": [
+      "Taiwan",
+      "China"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Originally Facebook, founded at Harvard"
+  },
+  "tesla": {
+    "origin": {
+      "country": "USA",
+      "city": "Austin"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Austin",
+      "state": "Texas"
+    },
+    "founded": 2003,
+    "manufacturing": [
+      "USA",
+      "China",
+      "Germany"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Moved HQ from Palo Alto to Austin 2021"
+  },
+  "intel": {
+    "origin": {
+      "country": "USA",
+      "city": "Santa Clara"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Santa Clara",
+      "state": "California"
+    },
+    "founded": 1968,
+    "manufacturing": [
+      "USA",
+      "Ireland",
+      "Israel",
+      "China"
+    ],
+    "fulfillment": "Global",
+    "verified": true
+  },
+  "amd": {
+    "origin": {
+      "country": "USA",
+      "city": "Santa Clara"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Santa Clara",
+      "state": "California"
+    },
+    "founded": 1969,
+    "manufacturing": [
+      "Taiwan",
+      "China",
+      "Malaysia"
+    ],
+    "fulfillment": "Global",
+    "verified": true
+  },
+  "nvidia": {
+    "origin": {
+      "country": "USA",
+      "city": "Santa Clara"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Santa Clara",
+      "state": "California"
+    },
+    "founded": 1993,
+    "manufacturing": [
+      "Taiwan",
+      "South Korea"
+    ],
+    "fulfillment": "Global",
+    "verified": true
+  },
+  "qualcomm": {
+    "origin": {
+      "country": "USA",
+      "city": "San Diego"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "San Diego",
+      "state": "California"
+    },
+    "founded": 1985,
+    "manufacturing": [
+      "Taiwan",
+      "South Korea",
+      "China"
+    ],
+    "fulfillment": "Global",
+    "verified": true
+  },
+  "ibm": {
+    "origin": {
+      "country": "USA",
+      "city": "Armonk"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Armonk",
+      "state": "New York"
+    },
+    "founded": 1911,
+    "manufacturing": [
+      "USA",
+      "China",
+      "Germany"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Originally Computing-Tabulating-Recording Company"
+  },
+  "oracle": {
+    "origin": {
+      "country": "USA",
+      "city": "Austin"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Austin",
+      "state": "Texas"
+    },
+    "founded": 1977,
+    "manufacturing": [
+      "USA",
+      "India"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Moved from Redwood City to Austin 2020"
+  },
+  "hp": {
+    "origin": {
+      "country": "USA",
+      "city": "Palo Alto"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Palo Alto",
+      "state": "California"
+    },
+    "founded": 1939,
+    "manufacturing": [
+      "China",
+      "Singapore",
+      "Mexico"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Hewlett-Packard, split in 2015"
+  },
+  "dell": {
+    "origin": {
+      "country": "USA",
+      "city": "Round Rock"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Round Rock",
+      "state": "Texas"
+    },
+    "founded": 1984,
+    "manufacturing": [
+      "China",
+      "Malaysia",
+      "Brazil"
+    ],
+    "fulfillment": "Global",
+    "verified": true
+  },
+  "samsung": {
+    "origin": {
+      "country": "South Korea",
+      "city": "Seoul"
+    },
+    "headquarters": {
+      "country": "South Korea",
+      "city": "Seoul"
+    },
+    "founded": 1938,
+    "manufacturing": [
+      "South Korea",
+      "China",
+      "Vietnam",
+      "India"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Founded by Lee Byung-chul"
+  },
+  "lg": {
+    "origin": {
+      "country": "South Korea",
+      "city": "Seoul"
+    },
+    "headquarters": {
+      "country": "South Korea",
+      "city": "Seoul"
+    },
+    "founded": 1947,
+    "manufacturing": [
+      "South Korea",
+      "China",
+      "Mexico",
+      "Indonesia"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Lucky Goldstar merger"
+  },
+  "sony": {
+    "origin": {
+      "country": "Japan",
+      "city": "Tokyo"
+    },
+    "headquarters": {
+      "country": "Japan",
+      "city": "Tokyo"
+    },
+    "founded": 1946,
+    "manufacturing": [
+      "Japan",
+      "China",
+      "Thailand",
+      "Malaysia"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Tokyo Tsushin Kogyo originally"
+  },
+  "panasonic": {
+    "origin": {
+      "country": "Japan",
+      "city": "Osaka"
+    },
+    "headquarters": {
+      "country": "Japan",
+      "city": "Osaka"
+    },
+    "founded": 1918,
+    "manufacturing": [
+      "Japan",
+      "China",
+      "Malaysia",
+      "India"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Founded by Konosuke Matsushita"
+  },
+  "canon": {
+    "origin": {
+      "country": "Japan",
+      "city": "Tokyo"
+    },
+    "headquarters": {
+      "country": "Japan",
+      "city": "Tokyo"
+    },
+    "founded": 1937,
+    "manufacturing": [
+      "Japan",
+      "China",
+      "Taiwan",
+      "Malaysia"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Originally Precision Optical Industry"
+  },
+  "nikon": {
+    "origin": {
+      "country": "Japan",
+      "city": "Tokyo"
+    },
+    "headquarters": {
+      "country": "Japan",
+      "city": "Tokyo"
+    },
+    "founded": 1917,
+    "manufacturing": [
+      "Japan",
+      "China",
+      "Thailand"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Originally Nippon Kogaku K.K."
+  },
+  "fujifilm": {
+    "origin": {
+      "country": "Japan",
+      "city": "Tokyo"
+    },
+    "headquarters": {
+      "country": "Japan",
+      "city": "Tokyo"
+    },
+    "founded": 1934,
+    "manufacturing": [
+      "Japan",
+      "China",
+      "Netherlands"
+    ],
+    "fulfillment": "Global",
+    "verified": true
+  },
+  "casio": {
+    "origin": {
+      "country": "Japan",
+      "city": "Tokyo"
+    },
+    "headquarters": {
+      "country": "Japan",
+      "city": "Tokyo"
+    },
+    "founded": 1946,
+    "manufacturing": [
+      "Japan",
+      "China",
+      "Thailand"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Founded by Tadao Kashio"
+  },
+  "seiko": {
+    "origin": {
+      "country": "Japan",
+      "city": "Tokyo"
+    },
+    "headquarters": {
+      "country": "Japan",
+      "city": "Tokyo"
+    },
+    "founded": 1881,
+    "manufacturing": [
+      "Japan",
+      "China",
+      "Malaysia"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Originally K. Hattori & Co"
+  },
+  "lenovo": {
+    "origin": {
+      "country": "China",
+      "city": "Beijing"
+    },
+    "headquarters": {
+      "country": "China",
+      "city": "Beijing"
+    },
+    "founded": 1984,
+    "manufacturing": [
+      "China",
+      "India",
+      "Mexico",
+      "Hungary"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Originally Legend, renamed 2004"
+  },
+  "huawei": {
+    "origin": {
+      "country": "China",
+      "city": "Shenzhen"
+    },
+    "headquarters": {
+      "country": "China",
+      "city": "Shenzhen"
+    },
+    "founded": 1987,
+    "manufacturing": [
+      "China",
+      "India",
+      "Brazil"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Founded by Ren Zhengfei"
+  },
+  "xiaomi": {
+    "origin": {
+      "country": "China",
+      "city": "Beijing"
+    },
+    "headquarters": {
+      "country": "China",
+      "city": "Beijing"
+    },
+    "founded": 2010,
+    "manufacturing": [
+      "China",
+      "India",
+      "Indonesia"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Founded by Lei Jun"
+  },
+  "oneplus": {
+    "origin": {
+      "country": "China",
+      "city": "Shenzhen"
+    },
+    "headquarters": {
+      "country": "China",
+      "city": "Shenzhen"
+    },
+    "founded": 2013,
+    "manufacturing": [
+      "China",
+      "India"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "OnePlus Technology Co Ltd"
+  },
+  "oppo": {
+    "origin": {
+      "country": "China",
+      "city": "Dongguan"
+    },
+    "headquarters": {
+      "country": "China",
+      "city": "Dongguan"
+    },
+    "founded": 2004,
+    "manufacturing": [
+      "China",
+      "India",
+      "Indonesia"
+    ],
+    "fulfillment": "Global",
+    "verified": true
+  },
+  "vivo": {
+    "origin": {
+      "country": "China",
+      "city": "Dongguan"
+    },
+    "headquarters": {
+      "country": "China",
+      "city": "Dongguan"
+    },
+    "founded": 2009,
+    "manufacturing": [
+      "China",
+      "India",
+      "Indonesia"
+    ],
+    "fulfillment": "Global",
+    "verified": true
+  },
+  "dji": {
+    "origin": {
+      "country": "China",
+      "city": "Shenzhen"
+    },
+    "headquarters": {
+      "country": "China",
+      "city": "Shenzhen"
+    },
+    "founded": 2006,
+    "manufacturing": [
+      "China"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Da-Jiang Innovations"
+  },
+  "byd": {
+    "origin": {
+      "country": "China",
+      "city": "Shenzhen"
+    },
+    "headquarters": {
+      "country": "China",
+      "city": "Shenzhen"
+    },
+    "founded": 1995,
+    "manufacturing": [
+      "China",
+      "Hungary",
+      "Brazil"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Build Your Dreams"
+  },
+  "haier": {
+    "origin": {
+      "country": "China",
+      "city": "Qingdao"
+    },
+    "headquarters": {
+      "country": "China",
+      "city": "Qingdao"
+    },
+    "founded": 1984,
+    "manufacturing": [
+      "China",
+      "India",
+      "Pakistan",
+      "Thailand"
+    ],
+    "fulfillment": "Global",
+    "verified": true
+  },
+  "bmw": {
+    "origin": {
+      "country": "Germany",
+      "city": "Munich"
+    },
+    "headquarters": {
+      "country": "Germany",
+      "city": "Munich"
+    },
+    "founded": 1916,
+    "manufacturing": [
+      "Germany",
+      "USA",
+      "China",
+      "South Africa"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Bayerische Motoren Werke"
+  },
+  "mercedes-benz": {
+    "origin": {
+      "country": "Germany",
+      "city": "Stuttgart"
+    },
+    "headquarters": {
+      "country": "Germany",
+      "city": "Stuttgart"
+    },
+    "founded": 1926,
+    "manufacturing": [
+      "Germany",
+      "USA",
+      "China",
+      "India"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Daimler and Benz merger"
+  },
+  "volkswagen": {
+    "origin": {
+      "country": "Germany",
+      "city": "Wolfsburg"
+    },
+    "headquarters": {
+      "country": "Germany",
+      "city": "Wolfsburg"
+    },
+    "founded": 1937,
+    "manufacturing": [
+      "Germany",
+      "China",
+      "Mexico",
+      "Brazil"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Founded by German Labour Front"
+  },
+  "audi": {
+    "origin": {
+      "country": "Germany",
+      "city": "Ingolstadt"
+    },
+    "headquarters": {
+      "country": "Germany",
+      "city": "Ingolstadt"
+    },
+    "founded": 1909,
+    "manufacturing": [
+      "Germany",
+      "China",
+      "Mexico",
+      "Hungary"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Part of Volkswagen Group"
+  },
+  "porsche": {
+    "origin": {
+      "country": "Germany",
+      "city": "Stuttgart"
+    },
+    "headquarters": {
+      "country": "Germany",
+      "city": "Stuttgart"
+    },
+    "founded": 1931,
+    "manufacturing": [
+      "Germany",
+      "Slovakia"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Founded by Ferdinand Porsche"
+  },
+  "toyota": {
+    "origin": {
+      "country": "Japan",
+      "city": "Toyota City"
+    },
+    "headquarters": {
+      "country": "Japan",
+      "city": "Toyota City"
+    },
+    "founded": 1937,
+    "manufacturing": [
+      "Japan",
+      "USA",
+      "China",
+      "Thailand"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Founded by Kiichiro Toyoda"
+  },
+  "honda": {
+    "origin": {
+      "country": "Japan",
+      "city": "Tokyo"
+    },
+    "headquarters": {
+      "country": "Japan",
+      "city": "Tokyo"
+    },
+    "founded": 1948,
+    "manufacturing": [
+      "Japan",
+      "USA",
+      "China",
+      "India"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Founded by Soichiro Honda"
+  },
+  "nissan": {
+    "origin": {
+      "country": "Japan",
+      "city": "Yokohama"
+    },
+    "headquarters": {
+      "country": "Japan",
+      "city": "Yokohama"
+    },
+    "founded": 1933,
+    "manufacturing": [
+      "Japan",
+      "USA",
+      "China",
+      "UK"
+    ],
+    "fulfillment": "Global",
+    "verified": true
+  },
+  "mazda": {
+    "origin": {
+      "country": "Japan",
+      "city": "Hiroshima"
+    },
+    "headquarters": {
+      "country": "Japan",
+      "city": "Hiroshima"
+    },
+    "founded": 1920,
+    "manufacturing": [
+      "Japan",
+      "Mexico",
+      "Thailand"
+    ],
+    "fulfillment": "Global",
+    "verified": true
+  },
+  "subaru": {
+    "origin": {
+      "country": "Japan",
+      "city": "Tokyo"
+    },
+    "headquarters": {
+      "country": "Japan",
+      "city": "Tokyo"
+    },
+    "founded": 1953,
+    "manufacturing": [
+      "Japan",
+      "USA"
+    ],
+    "fulfillment": "Global",
+    "verified": true
+  },
+  "mitsubishi": {
+    "origin": {
+      "country": "Japan",
+      "city": "Tokyo"
+    },
+    "headquarters": {
+      "country": "Japan",
+      "city": "Tokyo"
+    },
+    "founded": 1870,
+    "manufacturing": [
+      "Japan",
+      "Philippines",
+      "Thailand"
+    ],
+    "fulfillment": "Global",
+    "verified": true
+  },
+  "ford": {
+    "origin": {
+      "country": "USA",
+      "city": "Dearborn"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Dearborn",
+      "state": "Michigan"
+    },
+    "founded": 1903,
+    "manufacturing": [
+      "USA",
+      "Mexico",
+      "China",
+      "Turkey"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Founded by Henry Ford"
+  },
+  "general motors": {
+    "origin": {
+      "country": "USA",
+      "city": "Detroit"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Detroit",
+      "state": "Michigan"
+    },
+    "founded": 1908,
+    "manufacturing": [
+      "USA",
+      "China",
+      "Mexico",
+      "South Korea"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "GM"
+  },
+  "chevrolet": {
+    "origin": {
+      "country": "USA",
+      "city": "Detroit"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Detroit",
+      "state": "Michigan"
+    },
+    "founded": 1911,
+    "manufacturing": [
+      "USA",
+      "Mexico",
+      "South Korea",
+      "China"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Part of General Motors"
+  },
+  "cadillac": {
+    "origin": {
+      "country": "USA",
+      "city": "Detroit"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Detroit",
+      "state": "Michigan"
+    },
+    "founded": 1902,
+    "manufacturing": [
+      "USA",
+      "China"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Part of General Motors"
+  },
+  "nike": {
+    "origin": {
+      "country": "USA",
+      "city": "Beaverton"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Beaverton",
+      "state": "Oregon"
+    },
+    "founded": 1964,
+    "manufacturing": [
+      "Vietnam",
+      "China",
+      "Indonesia",
+      "Thailand"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Originally Blue Ribbon Sports"
+  },
+  "adidas": {
+    "origin": {
+      "country": "Germany",
+      "city": "Herzogenaurach"
+    },
+    "headquarters": {
+      "country": "Germany",
+      "city": "Herzogenaurach"
+    },
+    "founded": 1949,
+    "manufacturing": [
+      "Vietnam",
+      "China",
+      "Indonesia",
+      "India"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Founded by Adolf Dassler"
+  },
+  "puma": {
+    "origin": {
+      "country": "Germany",
+      "city": "Herzogenaurach"
+    },
+    "headquarters": {
+      "country": "Germany",
+      "city": "Herzogenaurach"
+    },
+    "founded": 1948,
+    "manufacturing": [
+      "Vietnam",
+      "China",
+      "Indonesia",
+      "India"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Founded by Rudolf Dassler (Adi's brother)"
+  },
+  "under armour": {
+    "origin": {
+      "country": "USA",
+      "city": "Baltimore"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Baltimore",
+      "state": "Maryland"
+    },
+    "founded": 1996,
+    "manufacturing": [
+      "China",
+      "Vietnam",
+      "Indonesia",
+      "Malaysia"
+    ],
+    "fulfillment": "Global",
+    "verified": true
+  },
+  "new balance": {
+    "origin": {
+      "country": "USA",
+      "city": "Boston"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Boston",
+      "state": "Massachusetts"
+    },
+    "founded": 1906,
+    "manufacturing": [
+      "USA",
+      "UK",
+      "China",
+      "Vietnam"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Still makes some shoes in USA"
+  },
+  "reebok": {
+    "origin": {
+      "country": "UK",
+      "city": "Bolton"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Boston",
+      "state": "Massachusetts"
+    },
+    "founded": 1958,
+    "manufacturing": [
+      "China",
+      "Vietnam",
+      "Indonesia"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "UK origin, now owned by Authentic Brands"
+  },
+  "asics": {
+    "origin": {
+      "country": "Japan",
+      "city": "Kobe"
+    },
+    "headquarters": {
+      "country": "Japan",
+      "city": "Kobe"
+    },
+    "founded": 1949,
+    "manufacturing": [
+      "Japan",
+      "China",
+      "Vietnam",
+      "Indonesia"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Anima Sana In Corpore Sano"
+  },
+  "converse": {
+    "origin": {
+      "country": "USA",
+      "city": "Malden"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Boston",
+      "state": "Massachusetts"
+    },
+    "founded": 1908,
+    "manufacturing": [
+      "China",
+      "Vietnam",
+      "Indonesia"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Owned by Nike since 2003"
+  },
+  "vans": {
+    "origin": {
+      "country": "USA",
+      "city": "Anaheim"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Costa Mesa",
+      "state": "California"
+    },
+    "founded": 1966,
+    "manufacturing": [
+      "China",
+      "Vietnam",
+      "Indonesia"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Van Doren Rubber Company"
+  },
+  "ralph lauren": {
+    "origin": {
+      "country": "USA",
+      "city": "New York"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "New York",
+      "state": "New York"
+    },
+    "founded": 1967,
+    "manufacturing": [
+      "China",
+      "Vietnam",
+      "India",
+      "Peru"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Polo Ralph Lauren"
+  },
+  "calvin klein": {
+    "origin": {
+      "country": "USA",
+      "city": "New York"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "New York",
+      "state": "New York"
+    },
+    "founded": 1968,
+    "manufacturing": [
+      "China",
+      "Vietnam",
+      "Indonesia"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Owned by PVH Corp"
+  },
+  "tommy hilfiger": {
+    "origin": {
+      "country": "USA",
+      "city": "Elmira"
+    },
+    "headquarters": {
+      "country": "Netherlands",
+      "city": "Amsterdam"
+    },
+    "founded": 1985,
+    "manufacturing": [
+      "China",
+      "Vietnam",
+      "India"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Owned by PVH Corp"
+  },
+  "lacoste": {
+    "origin": {
+      "country": "France",
+      "city": "Paris"
+    },
+    "headquarters": {
+      "country": "France",
+      "city": "Paris"
+    },
+    "founded": 1933,
+    "manufacturing": [
+      "France",
+      "Peru",
+      "Thailand",
+      "Morocco"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Founded by René Lacoste"
+  },
+  "burberry": {
+    "origin": {
+      "country": "UK",
+      "city": "London"
+    },
+    "headquarters": {
+      "country": "UK",
+      "city": "London"
+    },
+    "founded": 1856,
+    "manufacturing": [
+      "UK",
+      "Italy",
+      "Poland",
+      "China"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Founded by Thomas Burberry"
+  },
+  "louis vuitton": {
+    "origin": {
+      "country": "France",
+      "city": "Paris"
+    },
+    "headquarters": {
+      "country": "France",
+      "city": "Paris"
+    },
+    "founded": 1854,
+    "manufacturing": [
+      "France",
+      "Spain",
+      "Italy",
+      "Switzerland"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Part of LVMH"
+  },
+  "chanel": {
+    "origin": {
+      "country": "France",
+      "city": "Paris"
+    },
+    "headquarters": {
+      "country": "France",
+      "city": "Paris"
+    },
+    "founded": 1910,
+    "manufacturing": [
+      "France",
+      "Italy",
+      "Switzerland"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Founded by Gabrielle Chanel"
+  },
+  "gucci": {
+    "origin": {
+      "country": "Italy",
+      "city": "Florence"
+    },
+    "headquarters": {
+      "country": "Italy",
+      "city": "Florence"
+    },
+    "founded": 1921,
+    "manufacturing": [
+      "Italy",
+      "France",
+      "Switzerland"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Part of Kering"
+  },
+  "prada": {
+    "origin": {
+      "country": "Italy",
+      "city": "Milan"
+    },
+    "headquarters": {
+      "country": "Italy",
+      "city": "Milan"
+    },
+    "founded": 1913,
+    "manufacturing": [
+      "Italy",
+      "Turkey",
+      "Romania"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Founded by Mario Prada"
+  },
+  "rolex": {
+    "origin": {
+      "country": "Switzerland",
+      "city": "Geneva"
+    },
+    "headquarters": {
+      "country": "Switzerland",
+      "city": "Geneva"
+    },
+    "founded": 1905,
+    "manufacturing": [
+      "Switzerland"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Founded by Hans Wilsdorf"
+  },
+  "omega": {
+    "origin": {
+      "country": "Switzerland",
+      "city": "Biel"
+    },
+    "headquarters": {
+      "country": "Switzerland",
+      "city": "Biel"
+    },
+    "founded": 1848,
+    "manufacturing": [
+      "Switzerland"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Part of Swatch Group"
+  },
+  "coca-cola": {
+    "origin": {
+      "country": "USA",
+      "city": "Atlanta"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Atlanta",
+      "state": "Georgia"
+    },
+    "founded": 1886,
+    "manufacturing": [
+      "Global bottling network"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Invented by John Pemberton"
+  },
+  "pepsi": {
+    "origin": {
+      "country": "USA",
+      "city": "Purchase"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Purchase",
+      "state": "New York"
+    },
+    "founded": 1893,
+    "manufacturing": [
+      "Global bottling network"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Originally Brad's Drink"
+  },
+  "mcdonalds": {
+    "origin": {
+      "country": "USA",
+      "city": "Chicago"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Chicago",
+      "state": "Illinois"
+    },
+    "founded": 1940,
+    "manufacturing": [
+      "Franchise model"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Founded by McDonald brothers"
+  },
+  "ikea": {
+    "origin": {
+      "country": "Sweden",
+      "city": "Delft"
+    },
+    "headquarters": {
+      "country": "Netherlands",
+      "city": "Delft"
+    },
+    "founded": 1943,
+    "manufacturing": [
+      "Poland",
+      "Romania",
+      "China",
+      "Lithuania"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Founded in Sweden by Ingvar Kamprad"
+  },
+  "h&m": {
+    "origin": {
+      "country": "Sweden",
+      "city": "Stockholm"
+    },
+    "headquarters": {
+      "country": "Sweden",
+      "city": "Stockholm"
+    },
+    "founded": 1947,
+    "manufacturing": [
+      "China",
+      "Bangladesh",
+      "Turkey",
+      "Myanmar"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Hennes & Mauritz"
+  },
+  "lego": {
+    "origin": {
+      "country": "Denmark",
+      "city": "Billund"
+    },
+    "headquarters": {
+      "country": "Denmark",
+      "city": "Billund"
+    },
+    "founded": 1932,
+    "manufacturing": [
+      "Denmark",
+      "Hungary",
+      "Mexico",
+      "China"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Founded by Ole Kirk Christiansen"
+  },
+  "mattel": {
+    "origin": {
+      "country": "USA",
+      "city": "El Segundo"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "El Segundo",
+      "state": "California"
+    },
+    "founded": 1945,
+    "manufacturing": [
+      "China",
+      "Mexico",
+      "Malaysia",
+      "Indonesia"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Barbie, Hot Wheels"
+  },
+  "hasbro": {
+    "origin": {
+      "country": "USA",
+      "city": "Pawtucket"
+    },
+    "headquarters": {
+      "country": "USA",
+      "city": "Pawtucket",
+      "state": "Rhode Island"
+    },
+    "founded": 1923,
+    "manufacturing": [
+      "China",
+      "Vietnam",
+      "India"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Transformers, G.I. Joe"
+  },
+  "philips": {
+    "origin": {
+      "country": "Netherlands",
+      "city": "Amsterdam"
+    },
+    "headquarters": {
+      "country": "Netherlands",
+      "city": "Amsterdam"
+    },
+    "founded": 1891,
+    "manufacturing": [
+      "Netherlands",
+      "China",
+      "Mexico",
+      "India"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Founded by Gerard Philips"
+  },
+  "bosch": {
+    "origin": {
+      "country": "Germany",
+      "city": "Stuttgart"
+    },
+    "headquarters": {
+      "country": "Germany",
+      "city": "Stuttgart"
+    },
+    "founded": 1886,
+    "manufacturing": [
+      "Germany",
+      "China",
+      "India",
+      "Mexico"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Founded by Robert Bosch"
+  },
+  "siemens": {
+    "origin": {
+      "country": "Germany",
+      "city": "Munich"
+    },
+    "headquarters": {
+      "country": "Germany",
+      "city": "Munich"
+    },
+    "founded": 1847,
+    "manufacturing": [
+      "Germany",
+      "China",
+      "USA",
+      "India"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Founded by Werner von Siemens"
+  },
+  "doogee": {
+    "origin": {
+      "country": "China",
+      "city": "Shenzhen"
+    },
+    "headquarters": {
+      "country": "China",
+      "city": "Shenzhen"
+    },
+    "founded": 2013,
+    "manufacturing": [
+      "China"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Smartphone manufacturer, confirmed Shenzhen origin"
+  },
+  "vesgantti": {
+    "origin": {
+      "country": "UK",
+      "city": "Sheffield"
+    },
+    "headquarters": {
+      "country": "UK",
+      "city": "Sheffield"
+    },
+    "founded": 2017,
+    "manufacturing": [
+      "UK",
+      "China"
+    ],
+    "fulfillment": "UK/EU",
+    "verified": true,
+    "notes": "Mattress brand, UK-based company"
+  },
+  "shan zu": {
+    "origin": {
+      "country": "China",
+      "city": "Yangjiang"
+    },
+    "headquarters": {
+      "country": "China",
+      "city": "Yangjiang"
+    },
+    "founded": 2015,
+    "manufacturing": [
+      "China"
+    ],
+    "fulfillment": "Global",
+    "verified": true,
+    "notes": "Kitchen knife manufacturer, Yangjiang Guangdong"
+  }
+}

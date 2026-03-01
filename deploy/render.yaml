@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: dsp-backend
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: ""
+    startCommand: gunicorn backend.api.app:app
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: ML_ASSETS_DIR
+        value: /app/ml
+    buildFilter:
+      paths:
+        - backend/**

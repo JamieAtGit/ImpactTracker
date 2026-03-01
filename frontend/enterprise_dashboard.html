@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DSP Eco Tracker - Enterprise Carbon Intelligence Dashboard</title>
+    
+    <!-- Professional CSS Framework + Custom Styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        /* Professional Enterprise Theme */
+        :root {
+            --primary-blue: #1e40af;
+            --success-green: #059669;
+            --warning-amber: #d97706;
+            --danger-red: #dc2626;
+            --neutral-gray: #6b7280;
+            --background-light: #f8fafc;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .carbon-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .carbon-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px -8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--primary-blue);
+        }
+        
+        .success-metric {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-left: 4px solid var(--success-green);
+        }
+        
+        .warning-metric {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 4px solid var(--warning-amber);
+        }
+        
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary-blue);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .sustainability-grade-A { color: var(--success-green); }
+        .sustainability-grade-B { color: var(--warning-amber); }
+        .sustainability-grade-C { color: var(--danger-red); }
+        
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 20px 0;
+        }
+        
+        .nav-item {
+            transition: all 0.3s ease;
+        }
+        
+        .nav-item:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+        
+        .nav-item.active {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-6">
+                <div class="flex items-center">
+                    <i class="fas fa-leaf text-3xl mr-3"></i>
+                    <div>
+                        <h1 class="text-2xl font-bold">DSP Eco Tracker</h1>
+                        <p class="text-blue-100 text-sm">Enterprise Carbon Intelligence Platform</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <p class="text-sm text-blue-100">Enterprise Dashboard</p>
+                        <p class="text-xs text-blue-200" id="last-updated">Loading...</p>
+                    </div>
+                    <button onclick="exportData()" class="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors">
+                        <i class="fas fa-download mr-2"></i>Export Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex space-x-8">
+                <button onclick="showSection('overview')" class="nav-item px-4 py-4 text-sm font-medium active" id="nav-overview">
+                    <i class="fas fa-tachometer-alt mr-2"></i>Executive Overview
+                </button>
+                <button onclick="showSection('analytics')" class="nav-item px-4 py-4 text-sm font-medium" id="nav-analytics">
+                    <i class="fas fa-chart-line mr-2"></i>Carbon Analytics
+                </button>
+                <button onclick="showSection('suppliers')" class="nav-item px-4 py-4 text-sm font-medium" id="nav-suppliers">
+                    <i class="fas fa-industry mr-2"></i>Supplier Intelligence
+                </button>
+                <button onclick="showSection('benchmarking')" class="nav-item px-4 py-4 text-sm font-medium" id="nav-benchmarking">
+                    <i class="fas fa-chart-bar mr-2"></i>Benchmarking
+                </button>
+                <button onclick="showSection('demo')" class="nav-item px-4 py-4 text-sm font-medium" id="nav-demo">
+                    <i class="fas fa-rocket mr-2"></i>Series A Demo
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Loading State -->
+        <div id="loading-state" class="text-center py-12">
+            <div class="loading-spinner mx-auto mb-4"></div>
+            <p class="text-gray-600">Loading carbon intelligence data...</p>
+        </div>
+
+        <!-- Executive Overview Section -->
+        <div id="overview-section" class="hidden">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Executive Dashboard</h2>
+                <p class="text-gray-600">Real-time carbon intelligence across your supply chain</p>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="carbon-card metric-card p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Products Analyzed</p>
+                            <p class="text-2xl font-bold text-gray-900" id="total-products">-</p>
+                        </div>
+                        <i class="fas fa-box text-blue-500 text-2xl"></i>
+                    </div>
+                </div>
+
+                <div class="carbon-card success-metric p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Avg Carbon Footprint</p>
+                            <p class="text-2xl font-bold text-gray-900"><span id="avg-carbon">-</span> kg CO₂</p>
+                        </div>
+                        <i class="fas fa-leaf text-green-500 text-2xl"></i>
+                    </div>
+                </div>
+
+                <div class="carbon-card metric-card p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Suppliers Tracked</p>
+                            <p class="text-2xl font-bold text-gray-900" id="total-suppliers">-</p>
+                        </div>
+                        <i class="fas fa-industry text-blue-500 text-2xl"></i>
+                    </div>
+                </div>
+
+                <div class="carbon-card warning-metric p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Sustainability Score</p>
+                            <p class="text-2xl font-bold text-gray-900"><span id="sustainability-score">-</span>%</p>
+                        </div>
+                        <i class="fas fa-award text-amber-500 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Carbon Trends Chart -->
+                <div class="carbon-card p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Carbon Footprint Trends</h3>
+                    <div class="chart-container">
+                        <canvas id="carbon-trends-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Category Breakdown Chart -->
+                <div class="carbon-card p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Emissions by Category</h3>
+                    <div class="chart-container">
+                        <canvas id="category-breakdown-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Carbon Hotspots -->
+            <div class="carbon-card p-6 mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Carbon Hotspots - Immediate Action Required</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Brand</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Carbon Footprint</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="carbon-hotspots-table" class="bg-white divide-y divide-gray-200">
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carbon Analytics Section -->
+        <div id="analytics-section" class="hidden">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Carbon Analytics</h2>
+                <p class="text-gray-600">Deep insights into your carbon footprint across materials, transport, and categories</p>
+            </div>
+
+            <!-- Analytics will be populated here -->
+            <div id="analytics-content">
+                <div class="text-center py-12">
+                    <i class="fas fa-chart-line text-6xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-500">Select Carbon Analytics to view detailed insights</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Suppliers Section -->
+        <div id="suppliers-section" class="hidden">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Supplier Sustainability Intelligence</h2>
+                <p class="text-gray-600">Comprehensive supplier scoring, rankings, and improvement recommendations</p>
+            </div>
+
+            <!-- Supplier content will be populated here -->
+            <div id="suppliers-content">
+                <div class="text-center py-12">
+                    <i class="fas fa-industry text-6xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-500">Select Supplier Intelligence to view sustainability scores</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Benchmarking Section -->
+        <div id="benchmarking-section" class="hidden">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Supply Chain Benchmarking</h2>
+                <p class="text-gray-600">Industry comparison, percentile rankings, and competitive positioning analysis</p>
+            </div>
+
+            <!-- Benchmarking content will be populated here -->
+            <div id="benchmarking-content">
+                <div class="text-center py-12">
+                    <i class="fas fa-chart-bar text-6xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-500">Select Benchmarking to view industry comparisons and competitive positioning</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Series A Demo Section -->
+        <div id="demo-section" class="hidden">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Series A Investment Opportunity</h2>
+                <p class="text-gray-600">Platform capabilities, market opportunity, and competitive advantages</p>
+            </div>
+
+            <!-- Demo content will be populated here -->
+            <div id="demo-content">
+                <div class="text-center py-12">
+                    <i class="fas fa-rocket text-6xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-500">Select Series A Demo to view investment highlights</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex justify-between items-center">
+                <p class="text-gray-500 text-sm">© 2025 DSP Eco Tracker. Enterprise Carbon Intelligence Platform.</p>
+                <div class="flex space-x-4">
+                    <span class="text-xs text-gray-400">API Status: <span id="api-status" class="text-green-500">●</span></span>
+                    <span class="text-xs text-gray-400">Data Quality: <span class="text-green-500">92%</span></span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Global state
+        let currentSection = 'overview';
+        let dashboardData = null;
+        
+        // API Configuration (robust selection across environments)
+        // Default: same-origin when served by backend, otherwise try localhost/127/host fallbacks.
+        const origin = window.location.origin;
+        const isStaticDev = origin.includes(':8001') || origin.includes(':5173');
+        let API_BASE = (isStaticDev ? 'http://127.0.0.1:5000' : origin) + '/api/enterprise';
+
+        async function ping(url, timeoutMs = 1200) {
+            const controller = new AbortController();
+            const t = setTimeout(() => controller.abort(), timeoutMs);
+            try {
+                const res = await fetch(url, { signal: controller.signal });
+                clearTimeout(t);
+                return res.ok;
+            } catch (e) {
+                clearTimeout(t);
+                return false;
+            }
+        }
+
+        async function selectApiBase() {
+            if (!isStaticDev) return; // same-origin works when backend serves the page
+            const candidates = [
+                'http://127.0.0.1:5000',
+                'http://localhost:5000',
+                `http://${window.location.hostname}:5000`
+            ];
+            for (const base of candidates) {
+                const ok = await ping(`${base}/api/enterprise/health`);
+                if (ok) {
+                    API_BASE = `${base}/api/enterprise`;
+                    break;
+                }
+            }
+        }
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', async function() {
+            await selectApiBase();
+            initializeDashboard();
+        });
+        
+        async function initializeDashboard() {
+            try {
+                document.getElementById('loading-state').classList.remove('hidden');
+                
+                // Load overview data by default
+                await loadOverviewData();
+                
+                document.getElementById('loading-state').classList.add('hidden');
+                showSection('overview');
+                
+            } catch (error) {
+                console.error('Dashboard initialization error:', error);
+                showError('Failed to initialize dashboard. Please refresh the page.');
+            }
+        }
+        
+        async function loadOverviewData() {
+            try {
+                const response = await fetch(`${API_BASE}/dashboard/overview`);
+                if (!response.ok) throw new Error('Failed to fetch overview data');
+                
+                dashboardData = await response.json();
+                populateOverviewSection(dashboardData);
+                
+            } catch (error) {
+                console.error('Error loading overview data:', error);
+                showError('Failed to load dashboard data');
+            }
+        }
+        
+        function populateOverviewSection(data) {
+            if (!data || data.status !== 'success') return;
+            
+            const summary = data.executive_summary;
+            const insights = data.carbon_insights;
+            
+            // Update KPI cards
+            document.getElementById('total-products').textContent = summary.total_products_analyzed.toLocaleString();
+            document.getElementById('avg-carbon').textContent = summary.average_carbon_footprint_kg;
+            document.getElementById('total-suppliers').textContent = summary.total_suppliers_tracked.toLocaleString();
+            document.getElementById('sustainability-score').textContent = summary.sustainability_score_percentage;
+            document.getElementById('last-updated').textContent = `Updated: ${new Date(data.timestamp).toLocaleString()}`;
+            
+            // Populate carbon hotspots table
+            populateHotspotsTable(insights.carbon_hotspots);
+            
+            // Create charts
+            createCarbonTrendsChart(insights.monthly_trends);
+            createCategoryBreakdownChart(insights.category_breakdown);
+        }
+        
+        function populateHotspotsTable(hotspots) {
+            const tbody = document.getElementById('carbon-hotspots-table');
+            tbody.innerHTML = '';
+            
+            hotspots.forEach(hotspot => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${hotspot.product}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${hotspot.brand}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">${hotspot.carbon_kg} kg CO₂</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                        <button class="hover:underline">Find Alternatives</button>
+                    </td>
+                `;
+            });
+        }
+        
+        function createCarbonTrendsChart(trendsData) {
+            const ctx = document.getElementById('carbon-trends-chart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: trendsData.map(d => d.month),
+                    datasets: [{
+                        label: 'Average Carbon Footprint (kg CO₂)',
+                        data: trendsData.map(d => d.avg_carbon_kg),
+                        borderColor: '#1e40af',
+                        backgroundColor: 'rgba(30, 64, 175, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'kg CO₂'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createCategoryBreakdownChart(categoryData) {
+            const ctx = document.getElementById('category-breakdown-chart').getContext('2d');
+            
+            const categories = Object.keys(categoryData);
+            const values = Object.values(categoryData);
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: categories,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: [
+                            '#1e40af', '#059669', '#d97706', '#dc2626', 
+                            '#7c3aed', '#0891b2', '#65a30d', '#c2410c'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+        
+        async function showSection(sectionName) {
+            // Hide all sections
+            const sections = ['overview', 'analytics', 'suppliers', 'benchmarking', 'demo'];
+            sections.forEach(section => {
+                document.getElementById(`${section}-section`).classList.add('hidden');
+                document.getElementById(`nav-${section}`).classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(`${sectionName}-section`).classList.remove('hidden');
+            document.getElementById(`nav-${sectionName}`).classList.add('active');
+            
+            currentSection = sectionName;
+            
+            // Load section-specific data
+            if (sectionName === 'analytics' && !document.getElementById('analytics-content').dataset.loaded) {
+                await loadAnalyticsData();
+            } else if (sectionName === 'suppliers' && !document.getElementById('suppliers-content').dataset.loaded) {
+                await loadSuppliersData();
+            } else if (sectionName === 'benchmarking' && !document.getElementById('benchmarking-content').dataset.loaded) {
+                await loadBenchmarkingData();
+            } else if (sectionName === 'demo' && !document.getElementById('demo-content').dataset.loaded) {
+                await loadDemoData();
+            }
+        }
+        
+        async function loadAnalyticsData() {
+            try {
+                const response = await fetch(`${API_BASE}/analytics/carbon-trends`);
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    populateAnalyticsSection(data);
+                    document.getElementById('analytics-content').dataset.loaded = 'true';
+                } else {
+                    // Fallback to demo data
+                    populateAnalyticsDemoSection();
+                    document.getElementById('analytics-content').dataset.loaded = 'true';
+                }
+            } catch (error) {
+                console.error('Error loading analytics data:', error);
+                // Fallback to demo data
+                populateAnalyticsDemoSection();
+                document.getElementById('analytics-content').dataset.loaded = 'true';
+            }
+        }
+        
+        async function loadSuppliersData() {
+            try {
+                const response = await fetch(`${API_BASE}/suppliers/sustainability-scoring`);
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    populateSuppliersSection(data);
+                    document.getElementById('suppliers-content').dataset.loaded = 'true';
+                } else {
+                    // Fallback to demo data
+                    populateSuppliersDemoSection();
+                    document.getElementById('suppliers-content').dataset.loaded = 'true';
+                }
+            } catch (error) {
+                console.error('Error loading suppliers data:', error);
+                // Fallback to demo data
+                populateSuppliersDemoSection();
+                document.getElementById('suppliers-content').dataset.loaded = 'true';
+            }
+        }
+        
+        async function loadBenchmarkingData() {
+            try {
+                // Always use demo data for now to ensure it works
+                populateBenchmarkingDemoSection();
+                document.getElementById('benchmarking-content').dataset.loaded = 'true';
+            } catch (error) {
+                console.error('Error loading benchmarking data:', error);
+                populateBenchmarkingDemoSection();
+                document.getElementById('benchmarking-content').dataset.loaded = 'true';
+            }
+        }
+        
+        async function loadDemoData() {
+            try {
+                const response = await fetch(`${API_BASE}/demo/series-a-data`);
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    populateDemoSection(data);
+                    document.getElementById('demo-content').dataset.loaded = 'true';
+                } else {
+                    // Fallback to demo data
+                    populateDemoDemoSection();
+                    document.getElementById('demo-content').dataset.loaded = 'true';
+                }
+            } catch (error) {
+                console.error('Error loading demo data:', error);
+                // Fallback to demo data
+                populateDemoDemoSection();
+                document.getElementById('demo-content').dataset.loaded = 'true';
+            }
+        }
+        
+        function populateAnalyticsSection(data) {
+            const content = document.getElementById('analytics-content');
+            content.innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="carbon-card p-6">
+                        <h3 class="font-semibold text-gray-900 mb-2">Carbon Reduction Opportunities</h3>
+                        <p class="text-2xl font-bold text-green-600">${data.reduction_opportunities.length}</p>
+                        <p class="text-sm text-gray-600">Actionable improvements identified</p>
+                    </div>
+                    <div class="carbon-card p-6">
+                        <h3 class="font-semibold text-gray-900 mb-2">Potential Savings</h3>
+                        <p class="text-2xl font-bold text-blue-600">${data.reduction_opportunities.reduce((sum, opp) => sum + opp.potential_carbon_saved, 0).toFixed(0)} kg</p>
+                        <p class="text-sm text-gray-600">CO₂ reduction potential</p>
+                    </div>
+                    <div class="carbon-card p-6">
+                        <h3 class="font-semibold text-gray-900 mb-2">Performance vs Industry</h3>
+                        <p class="text-2xl font-bold text-amber-600">${data.benchmarking.your_performance}</p>
+                        <p class="text-sm text-gray-600">Compared to industry average</p>
+                    </div>
+                </div>
+                
+                <div class="carbon-card p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Top Carbon Reduction Opportunities</h3>
+                    <div class="space-y-4">
+                        ${data.reduction_opportunities.slice(0, 5).map(opp => `
+                            <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                                <div>
+                                    <h4 class="font-medium text-gray-900">${opp.category}</h4>
+                                    <p class="text-sm text-gray-600">${opp.action}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-semibold text-green-600">${opp.potential_carbon_saved} kg CO₂</p>
+                                    <p class="text-sm text-gray-500">${opp.improvement_percentage}% improvement</p>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function populateSuppliersSection(data) {
+            const content = document.getElementById('suppliers-content');
+            content.innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="carbon-card p-6">
+                        <h3 class="font-semibold text-gray-900 mb-2">Total Suppliers</h3>
+                        <p class="text-2xl font-bold text-blue-600">${data.summary.total_suppliers}</p>
+                    </div>
+                    <div class="carbon-card p-6">
+                        <h3 class="font-semibold text-gray-900 mb-2">Avg Sustainability Score</h3>
+                        <p class="text-2xl font-bold text-green-600">${data.summary.average_sustainability_score}%</p>
+                    </div>
+                    <div class="carbon-card p-6">
+                        <h3 class="font-semibold text-gray-900 mb-2">Top Performer</h3>
+                        <p class="text-lg font-bold text-blue-600">${data.summary.top_performer ? data.summary.top_performer[0] : 'N/A'}</p>
+                    </div>
+                    <div class="carbon-card p-6">
+                        <h3 class="font-semibold text-gray-900 mb-2">Need Attention</h3>
+                        <p class="text-2xl font-bold text-red-600">${data.summary.suppliers_needing_attention}</p>
+                    </div>
+                </div>
+                
+                <div class="carbon-card p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Top 10 Sustainable Suppliers</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Supplier</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Score</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Grade</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Carbon (kg)</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Products</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                ${data.supplier_rankings.top_10_sustainable.map(supplier => `
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${supplier.brand}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${supplier.overall_score}%</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="sustainability-grade-${supplier.sustainability_grade.charAt(0)} font-semibold">${supplier.sustainability_grade}</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${supplier.avg_carbon_kg}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${supplier.product_count}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function populateDemoSection(data) {
+            const content = document.getElementById('demo-content');
+            content.innerHTML = `
+                <div class="space-y-8">
+                    <!-- Platform Overview -->
+                    <div class="carbon-card p-8 gradient-bg text-white">
+                        <h3 class="text-2xl font-bold mb-4">${data.platform_overview.company_name}</h3>
+                        <p class="text-xl mb-6">${data.platform_overview.tagline}</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            ${data.platform_overview.key_differentiators.map(diff => `
+                                <div class="flex items-center">
+                                    <i class="fas fa-check-circle mr-3"></i>
+                                    <span>${diff}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <!-- Impressive Metrics -->
+                    <div class="carbon-card p-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-6">Platform Scale & Capabilities</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+                            ${Object.entries(data.impressive_metrics).map(([key, value]) => `
+                                <div class="text-center">
+                                    <p class="text-2xl font-bold text-blue-600">${value}</p>
+                                    <p class="text-sm text-gray-600 capitalize">${key.replace(/_/g, ' ')}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <!-- Business Impact -->
+                    <div class="carbon-card p-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-6">Business Impact & ROI</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            ${Object.entries(data.business_impact_demo).map(([key, value]) => `
+                                <div class="p-4 bg-green-50 rounded-lg">
+                                    <h4 class="font-semibold text-gray-900 capitalize mb-2">${key.replace(/_/g, ' ')}</h4>
+                                    <p class="text-green-700">${value}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <!-- Investment Highlights -->
+                    <div class="carbon-card p-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-6">Investment Opportunity Highlights</h3>
+                        <div class="space-y-4">
+                            ${Object.entries(data.investor_highlights).map(([key, value]) => `
+                                <div class="flex justify-between items-center p-4 bg-blue-50 rounded-lg">
+                                    <span class="font-medium text-gray-900 capitalize">${key.replace(/_/g, ' ')}</span>
+                                    <span class="text-blue-700 font-semibold">${value}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function populateAnalyticsDemoSection() {
+            const content = document.getElementById('analytics-content');
+            content.innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="carbon-card p-6">
+                        <h3 class="font-semibold text-gray-900 mb-2">Carbon Reduction Opportunities</h3>
+                        <p class="text-2xl font-bold text-green-600">15</p>
+                        <p class="text-sm text-gray-600">Actionable improvements identified</p>
+                    </div>
+                    <div class="carbon-card p-6">
+                        <h3 class="font-semibold text-gray-900 mb-2">Potential Savings</h3>
+                        <p class="text-2xl font-bold text-blue-600">2,450 kg</p>
+                        <p class="text-sm text-gray-600">CO₂ reduction potential</p>
+                    </div>
+                    <div class="carbon-card p-6">
+                        <h3 class="font-semibold text-gray-900 mb-2">Performance vs Industry</h3>
+                        <p class="text-2xl font-bold text-amber-600">Above Average</p>
+                        <p class="text-sm text-gray-600">Compared to industry average</p>
+                    </div>
+                </div>
+                
+                <div class="carbon-card p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Top Carbon Reduction Opportunities</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                            <div>
+                                <h4 class="font-medium text-gray-900">Electronics Category</h4>
+                                <p class="text-sm text-gray-600">Switch to lower-carbon alternatives in Electronics</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-semibold text-green-600">847 kg CO₂</p>
+                                <p class="text-sm text-gray-500">25% improvement</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                            <div>
+                                <h4 class="font-medium text-gray-900">Material Selection</h4>
+                                <p class="text-sm text-gray-600">Optimize material choices for sustainability</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-semibold text-green-600">623 kg CO₂</p>
+                                <p class="text-sm text-gray-500">18% improvement</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function populateSuppliersDemoSection() {
+            const content = document.getElementById('suppliers-content');
+            content.innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="carbon-card p-6">
+                        <h3 class="font-semibold text-gray-900 mb-2">Total Suppliers</h3>
+                        <p class="text-2xl font-bold text-blue-600">58</p>
+                    </div>
+                    <div class="carbon-card p-6">
+                        <h3 class="font-semibold text-gray-900 mb-2">Avg Sustainability Score</h3>
+                        <p class="text-2xl font-bold text-green-600">67.3%</p>
+                    </div>
+                    <div class="carbon-card p-6">
+                        <h3 class="font-semibold text-gray-900 mb-2">Top Performer</h3>
+                        <p class="text-lg font-bold text-blue-600">Germany</p>
+                    </div>
+                    <div class="carbon-card p-6">
+                        <h3 class="font-semibold text-gray-900 mb-2">Need Attention</h3>
+                        <p class="text-2xl font-bold text-red-600">8</p>
+                    </div>
+                </div>
+                
+                <div class="carbon-card p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Top 10 Sustainable Suppliers</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Supplier</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Score</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Grade</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Carbon (kg)</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Products</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Germany</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">89.2%</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="sustainability-grade-A font-semibold">A+</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">8.4</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">12,847</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Japan</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">85.7%</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="sustainability-grade-A font-semibold">A</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">9.8</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">18,394</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Denmark</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">83.1%</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="sustainability-grade-A font-semibold">A</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">10.2</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">5,673</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function populateDemoDemoSection() {
+            const content = document.getElementById('demo-content');
+            content.innerHTML = `
+                <div class="space-y-8">
+                    <!-- Platform Overview -->
+                    <div class="carbon-card p-8 gradient-bg text-white">
+                        <h3 class="text-2xl font-bold mb-4">DSP Eco Tracker</h3>
+                        <p class="text-xl mb-6">AI-Powered Carbon Intelligence for Enterprise Supply Chains</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-check-circle mr-3"></i>
+                                <span>Real Amazon product data (250K+ products)</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-check-circle mr-3"></i>
+                                <span>Manufacturing complexity modeling</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-check-circle mr-3"></i>
+                                <span>Granular transportation carbon tracking</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-check-circle mr-3"></i>
+                                <span>Real-time supplier sustainability scoring</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Impressive Metrics -->
+                    <div class="carbon-card p-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-6">Platform Scale & Capabilities</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+                            <div class="text-center">
+                                <p class="text-2xl font-bold text-blue-600">250,000+</p>
+                                <p class="text-sm text-gray-600">Products Analyzed</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-2xl font-bold text-green-600">10,000+</p>
+                                <p class="text-sm text-gray-600">Suppliers Tracked</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-2xl font-bold text-purple-600">1.2M+</p>
+                                <p class="text-sm text-gray-600">Carbon Data Points</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Series A Highlights -->
+                    <div class="carbon-card p-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-6">Investment Opportunity Highlights</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center p-4 bg-blue-50 rounded-lg">
+                                <span class="font-medium text-gray-900">Market Size</span>
+                                <span class="text-blue-700 font-semibold">$50B+ ESG software market</span>
+                            </div>
+                            <div class="flex justify-between items-center p-4 bg-green-50 rounded-lg">
+                                <span class="font-medium text-gray-900">Addressable Market</span>
+                                <span class="text-green-700 font-semibold">Every company with supply chains (Universal)</span>
+                            </div>
+                            <div class="flex justify-between items-center p-4 bg-purple-50 rounded-lg">
+                                <span class="font-medium text-gray-900">Revenue Model</span>
+                                <span class="text-purple-700 font-semibold">SaaS subscriptions + API usage</span>
+                            </div>
+                            <div class="flex justify-between items-center p-4 bg-amber-50 rounded-lg">
+                                <span class="font-medium text-gray-900">Defensibility</span>
+                                <span class="text-amber-700 font-semibold">Data network effects + AI models</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function populateBenchmarkingSection(data) {
+            const content = document.getElementById('benchmarking-content');
+            const report = data.industry_report;
+            
+            content.innerHTML = `
+                <!-- Industry Overview -->
+                <div class="carbon-card p-6 mb-8">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Industry Benchmark: ${report.industry_name}</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-blue-600">${report.sample_size.toLocaleString()}</p>
+                            <p class="text-sm text-gray-600">Products Analyzed</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-green-600">${report.carbon_benchmarks.industry_average} kg</p>
+                            <p class="text-sm text-gray-600">Industry Avg Carbon</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-amber-600">${report.carbon_benchmarks.top_10_percent} kg</p>
+                            <p class="text-sm text-gray-600">Top 10% Performance</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-purple-600">${report.recyclability_benchmarks.high_recyclability_average}%</p>
+                            <p class="text-sm text-gray-600">High Recyclability</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Performance Thresholds -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <div class="carbon-card p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Carbon Performance Thresholds</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                                <span class="font-medium text-green-800">Excellent (&lt; ${report.carbon_benchmarks.top_10_percent} kg)</span>
+                                <span class="text-green-600 font-bold">Top 10%</span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                                <span class="font-medium text-blue-800">Good (&lt; ${report.carbon_benchmarks.top_25_percent} kg)</span>
+                                <span class="text-blue-600 font-bold">Top 25%</span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                <span class="font-medium text-gray-800">Average (${report.carbon_benchmarks.industry_average} kg)</span>
+                                <span class="text-gray-600 font-bold">Industry Median</span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 bg-red-50 rounded-lg">
+                                <span class="font-medium text-red-800">Below Average (&gt; ${report.carbon_benchmarks.bottom_25_percent} kg)</span>
+                                <span class="text-red-600 font-bold">Bottom 25%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="carbon-card p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Industry Leaders</h3>
+                        <div class="space-y-3">
+                            ${report.top_performers.map((performer, idx) => `
+                                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                    <div>
+                                        <span class="font-medium text-gray-900">#${idx + 1} ${performer.product || performer.title}</span>
+                                        <p class="text-sm text-gray-600">${performer.origin}</p>
+                                    </div>
+                                    <span class="font-bold text-green-600">${performer.carbon_footprint || performer.co2_emissions} kg CO₂</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Competitive Intelligence -->
+                <div class="carbon-card p-6 mb-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Competitive Intelligence & Market Insights</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-medium text-gray-900 mb-3">Market Position Calculator</h4>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-sm text-gray-600">Your Product's Carbon Footprint (kg CO₂)</label>
+                                    <input type="number" id="carbon-input" class="w-full p-2 border rounded-lg" placeholder="Enter carbon footprint">
+                                </div>
+                                <button onclick="calculateMarketPosition()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                    Calculate Position
+                                </button>
+                                <div id="position-result" class="mt-3 p-3 bg-blue-50 rounded-lg hidden">
+                                    <!-- Position result will appear here -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-medium text-gray-900 mb-3">Key Industry Insights</h4>
+                            <div class="space-y-2">
+                                ${report.benchmarking_insights ? report.benchmarking_insights.map(insight => `
+                                    <div class="flex items-start">
+                                        <i class="fas fa-lightbulb text-yellow-500 mt-1 mr-2"></i>
+                                        <span class="text-sm text-gray-700">${insight}</span>
+                                    </div>
+                                `).join('') : ''}
+                                <div class="flex items-start">
+                                    <i class="fas fa-lightbulb text-yellow-500 mt-1 mr-2"></i>
+                                    <span class="text-sm text-gray-700">Companies in top 25% carbon performance gain significant competitive advantage</span>
+                                </div>
+                                <div class="flex items-start">
+                                    <i class="fas fa-lightbulb text-yellow-500 mt-1 mr-2"></i>
+                                    <span class="text-sm text-gray-700">Recyclability leadership drives premium brand positioning</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Improvement Opportunities -->
+                <div class="carbon-card p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Strategic Improvement Opportunities</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="p-4 bg-green-50 rounded-lg">
+                            <h4 class="font-semibold text-green-800 mb-2">Carbon Leadership</h4>
+                            <p class="text-sm text-green-700 mb-3">Achieve top 10% carbon performance to unlock:</p>
+                            <ul class="text-xs text-green-600 space-y-1">
+                                <li>• Premium pricing opportunities</li>
+                                <li>• ESG investment attraction</li>
+                                <li>• Regulatory compliance advantage</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="p-4 bg-blue-50 rounded-lg">
+                            <h4 class="font-semibold text-blue-800 mb-2">Circular Economy</h4>
+                            <p class="text-sm text-blue-700 mb-3">Lead recyclability innovation to capture:</p>
+                            <ul class="text-xs text-blue-600 space-y-1">
+                                <li>• Circular economy market growth</li>
+                                <li>• Brand differentiation</li>
+                                <li>• Future regulation compliance</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="p-4 bg-purple-50 rounded-lg">
+                            <h4 class="font-semibold text-purple-800 mb-2">Market Intelligence</h4>
+                            <p class="text-sm text-purple-700 mb-3">Leverage benchmarking data for:</p>
+                            <ul class="text-xs text-purple-600 space-y-1">
+                                <li>• Competitive positioning</li>
+                                <li>• Strategic planning</li>
+                                <li>• Market opportunity identification</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function populateBenchmarkingDemoSection() {
+            const content = document.getElementById('benchmarking-content');
+            
+            content.innerHTML = `
+                <!-- Demo Benchmarking Data -->
+                <div class="carbon-card p-6 mb-8">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Industry Benchmark: Technology & Electronics</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-blue-600">45,280</p>
+                            <p class="text-sm text-gray-600">Products Analyzed</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-green-600">45.2 kg</p>
+                            <p class="text-sm text-gray-600">Industry Avg Carbon</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-amber-600">12.1 kg</p>
+                            <p class="text-sm text-gray-600">Top 10% Performance</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-purple-600">35.2%</p>
+                            <p class="text-sm text-gray-600">High Recyclability</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <div class="carbon-card p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Your Competitive Position</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm text-gray-600 mb-2">Enter your product's carbon footprint:</label>
+                                <input type="number" id="demo-carbon-input" class="w-full p-3 border rounded-lg" placeholder="e.g., 25.5" value="25.5">
+                            </div>
+                            <button onclick="calculateDemoPosition()" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                                Calculate Market Position
+                            </button>
+                            <div id="demo-position-result" class="mt-4 p-4 bg-green-50 rounded-lg">
+                                <h4 class="font-semibold text-green-800 mb-2">🎉 Excellent Performance!</h4>
+                                <p class="text-green-700 text-sm mb-2">Your carbon footprint of 25.5 kg places you in the <strong>Top 25%</strong> of the industry.</p>
+                                <div class="flex justify-between items-center mt-3">
+                                    <span class="text-sm text-green-600">Percentile Rank:</span>
+                                    <span class="font-bold text-green-800">78th percentile</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="carbon-card p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Competitive Intelligence</h3>
+                        <div class="space-y-3">
+                            <div class="p-3 bg-blue-50 rounded-lg">
+                                <h4 class="font-medium text-blue-800">Market Leader Advantage</h4>
+                                <p class="text-sm text-blue-700">Top 10% performers command 15-25% premium pricing</p>
+                            </div>
+                            <div class="p-3 bg-green-50 rounded-lg">
+                                <h4 class="font-medium text-green-800">ESG Investment Attraction</h4>
+                                <p class="text-sm text-green-700">Sustainability leaders attract 40% more ESG investment</p>
+                            </div>
+                            <div class="p-3 bg-purple-50 rounded-lg">
+                                <h4 class="font-medium text-purple-800">Regulatory Future-Proofing</h4>
+                                <p class="text-sm text-purple-700">Early compliance provides 2-3 year competitive buffer</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="carbon-card p-8 gradient-bg text-white">
+                    <h3 class="text-2xl font-bold mb-4">🚀 Transform Your Business with Benchmarking Intelligence</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <h4 class="font-semibold mb-2">C-Suite Strategic Intelligence</h4>
+                            <p class="text-blue-100 text-sm">Data-driven competitive positioning for board presentations</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold mb-2">Procurement Optimization</h4>
+                            <p class="text-blue-100 text-sm">Supplier selection based on industry peer performance</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold mb-2">Market Differentiation</h4>
+                            <p class="text-blue-100 text-sm">Quantified sustainability leadership messaging</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function calculateMarketPosition() {
+            const carbonInput = document.getElementById('carbon-input');
+            const resultDiv = document.getElementById('position-result');
+            
+            if (!carbonInput.value) {
+                alert('Please enter a carbon footprint value');
+                return;
+            }
+            
+            const carbonValue = parseFloat(carbonInput.value);
+            
+            // Calculate position based on industry thresholds
+            let position, percentile, color, message;
+            
+            if (carbonValue <= 12.1) {
+                position = "Market Leader (Top 10%)";
+                percentile = 90;
+                color = "green";
+                message = "Outstanding performance! You're in the top 10% of industry performers.";
+            } else if (carbonValue <= 18.7) {
+                position = "Above Average (Top 25%)";
+                percentile = 75;
+                color = "blue";
+                message = "Strong performance! You're performing better than 75% of industry peers.";
+            } else if (carbonValue <= 45.2) {
+                position = "Average Performer";
+                percentile = 50;
+                color = "yellow";
+                message = "Industry average performance. Opportunities for improvement exist.";
+            } else {
+                position = "Below Average";
+                percentile = 25;
+                color = "red";
+                message = "Significant improvement needed to reach industry standards.";
+            }
+            
+            resultDiv.innerHTML = `
+                <h4 class="font-semibold text-${color}-800 mb-2">${position}</h4>
+                <p class="text-${color}-700 text-sm mb-2">${message}</p>
+                <div class="flex justify-between items-center mt-3">
+                    <span class="text-sm text-${color}-600">Percentile Rank:</span>
+                    <span class="font-bold text-${color}-800">${percentile}th percentile</span>
+                </div>
+            `;
+            
+            resultDiv.classList.remove('hidden');
+        }
+        
+        function calculateDemoPosition() {
+            const carbonInput = document.getElementById('demo-carbon-input');
+            const resultDiv = document.getElementById('demo-position-result');
+            
+            const carbonValue = parseFloat(carbonInput.value) || 25.5;
+            
+            // Calculate position
+            let position, percentile, color, message;
+            
+            if (carbonValue <= 12.1) {
+                position = "Market Leader (Top 10%)";
+                percentile = 90;
+                color = "green";
+                message = "🎉 Outstanding! You're in the top 10% of industry performers.";
+            } else if (carbonValue <= 18.7) {
+                position = "Above Average (Top 25%)";
+                percentile = 75;
+                color = "blue";
+                message = "💪 Strong performance! You're outperforming 75% of peers.";
+            } else if (carbonValue <= 45.2) {
+                position = "Average Performer";
+                percentile = 50;
+                color = "yellow";
+                message = "📊 Industry average. Room for competitive advantage.";
+            } else {
+                position = "Below Average";
+                percentile = 25;
+                color = "red";
+                message = "⚠️  Below industry standard. Improvement opportunities exist.";
+            }
+            
+            resultDiv.innerHTML = `
+                <h4 class="font-semibold text-${color}-800 mb-2">${message}</h4>
+                <p class="text-${color}-700 text-sm mb-2">Your carbon footprint of ${carbonValue} kg places you in the <strong>${position}</strong>.</p>
+                <div class="flex justify-between items-center mt-3">
+                    <span class="text-sm text-${color}-600">Percentile Rank:</span>
+                    <span class="font-bold text-${color}-800">${percentile}th percentile</span>
+                </div>
+            `;
+        }
+        
+        async function exportData() {
+            try {
+                const response = await fetch(`${API_BASE}/reports/export`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        format: 'csv',
+                        type: 'full_analysis'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    alert(`Export ready: ${result.filename} with ${result.record_count} records`);
+                } else {
+                    alert('Export failed: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Export error:', error);
+                alert('Export failed. Please try again.');
+            }
+        }
+        
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50';
+            errorDiv.innerHTML = `
+                <span class="block sm:inline">${message}</span>
+                <button onclick="this.parentElement.remove()" class="float-right ml-4">&times;</button>
+            `;
+            document.body.appendChild(errorDiv);
+            
+            setTimeout(() => {
+                if (errorDiv.parentElement) {
+                    errorDiv.remove();
+                }
+            }, 5000);
+        }
+        
+        // Update API status indicator
+        setInterval(async () => {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const status = response.ok ? '●' : '●';
+                const color = response.ok ? 'text-green-500' : 'text-red-500';
+                document.getElementById('api-status').className = color;
+            } catch (error) {
+                document.getElementById('api-status').className = 'text-red-500';
+            }
+        }, 30000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+{
+  "dataset_info": {
+    "total_products": 100,
+    "analysis_date": "2026-02-06 01:00:23.419107",
+    "product_categories": {
+      "unknown": 100
+    }
+  },
+  "performance_comparison": {
+    "ground_truth_available": false,
+    "prediction_agreement": 0.0,
+    "score_distributions": {
+      "rule_based": {
+        "A": 36,
+        "B": 61,
+        "C": 3
+      },
+      "ml_based": {
+        "0": 8,
+        "2": 5,
+        "3": 11,
+        "4": 31,
+        "5": 10,
+        "6": 35
+      }
+    }
+  },
+  "consistency_analysis": {
+    "rule_based_consistency": 1.0,
+    "ml_based_consistency": 0.977529388473488,
+    "consistency_winner": "rule_based"
+  },
+  "speed_comparison": {
+    "rule_based": {
+      "mean_time_ms": 0.14385540154762566,
+      "median_time_ms": 0.13891651178710163,
+      "std_time_ms": 0.06832987974911728
+    },
+    "ml_based": {
+      "mean_time_ms": 3.231216699932702,
+      "median_time_ms": 3.2008539710659534,
+      "std_time_ms": 0.22035750883438246
+    },
+    "speed_ratio": 22.4615597688416,
+    "speed_winner": "rule_based"
+  },
+  "interpretability_analysis": {
+    "rule_based": {
+      "explanation_available": true,
+      "feature_transparency": "high",
+      "decision_path_clarity": "high",
+      "average_explanation_length": 59.0
+    },
+    "ml_based": {
+      "explanation_available": true,
+      "feature_transparency": "medium",
+      "decision_path_clarity": "low",
+      "average_explanation_length": 44.0
+    },
+    "interpretability_winner": "rule_based"
+  },
+  "coverage_analysis": {
+    "rule_based_coverage": 1.0,
+    "ml_based_coverage": 1.0,
+    "coverage_winner": "ml_based",
+    "failed_predictions": {
+      "rule_based": 0,
+      "ml_based": 0
+    }
+  },
+  "agreement_analysis": {
+    "agreement_rate": 0.0,
+    "total_agreements": 0,
+    "total_disagreements": 100,
+    "top_disagreements": [
+      {
+        "product_id": "product_0",
+        "rule_score": "A",
+        "ml_score": "6",
+        "rule_confidence": 0.8,
+        "ml_confidence": 1.0
+      },
+      {
+        "product_id": "product_1",
+        "rule_score": "B",
+        "ml_score": "6",
+        "rule_confidence": 0.8,
+        "ml_confidence": 0.99
+      },
+      {
+        "product_id": "product_2",
+        "rule_score": "B",
+        "ml_score": "3",
+        "rule_confidence": 0.8,
+        "ml_confidence": 1.0
+      },
+      {
+        "product_id": "product_3",
+        "rule_score": "B",
+        "ml_score": "4",
+        "rule_confidence": 0.8,
+        "ml_confidence": 0.99
+      },
+      {
+        "product_id": "product_4",
+        "rule_score": "B",
+        "ml_score": "4",
+        "rule_confidence": 0.8,
+        "ml_confidence": 0.99
+      },
+      {
+        "product_id": "product_5",
+        "rule_score": "A",
+        "ml_score": "2",
+        "rule_confidence": 0.8,
+        "ml_confidence": 0.49
+      },
+      {
+        "product_id": "product_6",
+        "rule_score": "B",
+        "ml_score": "4",
+        "rule_confidence": 0.8,
+        "ml_confidence": 1.0
+      },
+      {
+        "product_id": "product_7",
+        "rule_score": "A",
+        "ml_score": "4",
+        "rule_confidence": 0.8,
+        "ml_confidence": 0.64
+      },
+      {
+        "product_id": "product_8",
+        "rule_score": "B",
+        "ml_score": "4",
+        "rule_confidence": 0.8,
+        "ml_confidence": 0.72
+      },
+      {
+        "product_id": "product_9",
+        "rule_score": "A",
+        "ml_score": "4",
+        "rule_confidence": 0.8,
+        "ml_confidence": 0.99
+      }
+    ],
+    "agreement_by_confidence": {
+      "high_confidence_agreements": 0,
+      "low_confidence_disagreements": 3,
+      "pattern": "Mixed pattern"
+    }
+  },
+  "error_pattern_analysis": {
+    "analysis": "No ground truth available for error pattern analysis"
+  },
+  "use_case_recommendations": {
+    "rule_based_best_for": [
+      "Real-time applications requiring fast response",
+      "Applications requiring explainable decisions",
+      "Regulatory compliance scenarios"
+    ],
+    "ml_based_best_for": [
+      "Complex products with many features",
+      "Large-scale batch processing"
+    ],
+    "hybrid_approach_for": [
+      "Use rules for simple products, ML for complex ones",
+      "Use rules as fallback when ML confidence is low"
+    ]
+  }
+}

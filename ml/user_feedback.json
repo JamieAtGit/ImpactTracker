@@ -1,0 +1,62 @@
+[
+  {
+    "vote": "up",
+    "title": "unknown",
+    "prediction": "D",
+    "confidence": "100.0%",
+    "raw_input": {
+      "material": "Plastic",
+      "origin": "China",
+      "recyclability": "Low",
+      "transport": "Air",
+      "weight": 1
+    },
+    "encoded_input": {
+      "material": 21,
+      "origin": 2,
+      "recyclability": 1,
+      "transport": 0,
+      "weight": 1,
+      "weight_bin": 1
+    },
+    "feature_impact": {
+      "material": 3.5224032642259897,
+      "origin": 0.7793703527021252,
+      "recyclability": 0.13755511678549337,
+      "transport": 0,
+      "weight": 0.22487269906341095,
+      "weight_bin": 0.03472581046504793
+    },
+    "timestamp": "2025-05-08T00:24:43.811Z"
+  },
+  {
+    "vote": "up",
+    "title": "unknown",
+    "prediction": "D",
+    "confidence": "70.0%",
+    "raw_input": {
+      "material": "Plastic",
+      "origin": "Turkey",
+      "recyclability": "Low",
+      "transport": "Air",
+      "weight": 1
+    },
+    "encoded_input": {
+      "material": 25,
+      "origin": 10,
+      "recyclability": 1,
+      "transport": 0,
+      "weight": 1,
+      "weight_bin": 1
+    },
+    "feature_impact": {
+      "material": 6.25,
+      "origin": 1.5,
+      "recyclability": 0.15,
+      "transport": 0,
+      "weight_bin": 0.1,
+      "weight_log": 0.1039720770839918
+    },
+    "timestamp": "2025-05-25T18:09:00.026Z"
+  }
+]

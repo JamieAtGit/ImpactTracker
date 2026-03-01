@@ -1,0 +1,414 @@
+{
+  "transport_hubs": {
+    "shanghai_port": {
+      "type": "seaport",
+      "country": "China",
+      "city": "Shanghai",
+      "coordinates": {
+        "lat": 31.2304,
+        "lng": 121.4737
+      },
+      "annual_teu": 47030000,
+      "world_ranking": 1,
+      "primary_routes": [
+        "Trans-Pacific",
+        "Asia-Europe",
+        "Intra-Asia"
+      ],
+      "co2_intensity_per_teu": 0.024,
+      "connected_manufacturing": [
+        "shenzhen_electronics",
+        "guangzhou_textiles",
+        "suzhou_precision"
+      ],
+      "specializations": [
+        "Container shipping",
+        "Electronics",
+        "Textiles"
+      ]
+    },
+    "singapore_port": {
+      "type": "seaport",
+      "country": "Singapore",
+      "city": "Singapore",
+      "coordinates": {
+        "lat": 1.2966,
+        "lng": 103.8506
+      },
+      "annual_teu": 37500000,
+      "world_ranking": 2,
+      "primary_routes": [
+        "Asia-Europe",
+        "Trans-Pacific",
+        "Middle East"
+      ],
+      "co2_intensity_per_teu": 0.022,
+      "connected_manufacturing": [
+        "singapore_tech",
+        "malaysian_electronics"
+      ],
+      "specializations": [
+        "Transshipment",
+        "Electronics",
+        "Chemicals"
+      ]
+    },
+    "ningbo_zhoushan_port": {
+      "type": "seaport",
+      "country": "China",
+      "city": "Ningbo",
+      "coordinates": {
+        "lat": 29.8746,
+        "lng": 121.5506
+      },
+      "annual_teu": 33350000,
+      "world_ranking": 3,
+      "primary_routes": [
+        "Trans-Pacific",
+        "Asia-Europe"
+      ],
+      "co2_intensity_per_teu": 0.025,
+      "connected_manufacturing": [
+        "yiwu_small_goods",
+        "hangzhou_manufacturing"
+      ],
+      "specializations": [
+        "Manufacturing goods",
+        "Small commodities"
+      ]
+    },
+    "shenzhen_port": {
+      "type": "seaport",
+      "country": "China",
+      "city": "Shenzhen",
+      "coordinates": {
+        "lat": 22.4694,
+        "lng": 114.1242
+      },
+      "annual_teu": 28770000,
+      "world_ranking": 4,
+      "primary_routes": [
+        "Trans-Pacific",
+        "Asia-Europe"
+      ],
+      "co2_intensity_per_teu": 0.024,
+      "connected_manufacturing": [
+        "shenzhen_electronics",
+        "dongguan_manufacturing"
+      ],
+      "specializations": [
+        "Electronics",
+        "High-tech goods"
+      ]
+    },
+    "guangzhou_port": {
+      "type": "seaport",
+      "country": "China",
+      "city": "Guangzhou",
+      "coordinates": {
+        "lat": 23.0965,
+        "lng": 113.3212
+      },
+      "annual_teu": 25230000,
+      "world_ranking": 5,
+      "primary_routes": [
+        "Trans-Pacific",
+        "Asia-Europe"
+      ],
+      "co2_intensity_per_teu": 0.024,
+      "connected_manufacturing": [
+        "guangzhou_textiles",
+        "dongguan_manufacturing"
+      ],
+      "specializations": [
+        "Textiles",
+        "Consumer goods"
+      ]
+    },
+    "los_angeles_port": {
+      "type": "seaport",
+      "country": "USA",
+      "city": "Los Angeles",
+      "coordinates": {
+        "lat": 33.7365,
+        "lng": -118.2523
+      },
+      "annual_teu": 10720000,
+      "world_ranking": 17,
+      "primary_routes": [
+        "Trans-Pacific",
+        "Latin America"
+      ],
+      "co2_intensity_per_teu": 0.028,
+      "connected_manufacturing": [
+        "silicon_valley_tech",
+        "mexican_maquiladoras"
+      ],
+      "specializations": [
+        "Import gateway",
+        "Consumer electronics"
+      ]
+    },
+    "long_beach_port": {
+      "type": "seaport",
+      "country": "USA",
+      "city": "Long Beach",
+      "coordinates": {
+        "lat": 33.767,
+        "lng": -118.1927
+      },
+      "annual_teu": 8113000,
+      "world_ranking": 21,
+      "primary_routes": [
+        "Trans-Pacific",
+        "Latin America"
+      ],
+      "co2_intensity_per_teu": 0.028,
+      "connected_manufacturing": [
+        "silicon_valley_tech",
+        "mexican_maquiladoras"
+      ],
+      "specializations": [
+        "Import gateway",
+        "Automotive"
+      ]
+    },
+    "hamburg_port": {
+      "type": "seaport",
+      "country": "Germany",
+      "city": "Hamburg",
+      "coordinates": {
+        "lat": 53.5453,
+        "lng": 9.9083
+      },
+      "annual_teu": 8690000,
+      "world_ranking": 18,
+      "primary_routes": [
+        "Asia-Europe",
+        "Trans-Atlantic"
+      ],
+      "co2_intensity_per_teu": 0.018,
+      "connected_manufacturing": [
+        "stuttgart_engineering",
+        "munich_technology"
+      ],
+      "specializations": [
+        "European gateway",
+        "Automotive",
+        "Machinery"
+      ]
+    },
+    "rotterdam_port": {
+      "type": "seaport",
+      "country": "Netherlands",
+      "city": "Rotterdam",
+      "coordinates": {
+        "lat": 51.9225,
+        "lng": 4.4792
+      },
+      "annual_teu": 15280000,
+      "world_ranking": 8,
+      "primary_routes": [
+        "Asia-Europe",
+        "Trans-Atlantic"
+      ],
+      "co2_intensity_per_teu": 0.019,
+      "connected_manufacturing": [
+        "german_manufacturing",
+        "uk_manufacturing"
+      ],
+      "specializations": [
+        "European distribution",
+        "Chemicals",
+        "Energy"
+      ]
+    },
+    "hong_kong_airport": {
+      "type": "airport",
+      "country": "Hong Kong",
+      "city": "Hong Kong",
+      "coordinates": {
+        "lat": 22.308,
+        "lng": 113.9185
+      },
+      "annual_cargo_tonnes": 5100000,
+      "world_ranking": 1,
+      "primary_routes": [
+        "Asia-Pacific",
+        "Trans-Pacific",
+        "Asia-Europe"
+      ],
+      "co2_intensity_per_tonne_km": 0.602,
+      "connected_manufacturing": [
+        "shenzhen_electronics",
+        "guangzhou_textiles"
+      ],
+      "specializations": [
+        "High-value electronics",
+        "Time-sensitive goods"
+      ]
+    },
+    "memphis_airport": {
+      "type": "airport",
+      "country": "USA",
+      "city": "Memphis",
+      "coordinates": {
+        "lat": 35.0424,
+        "lng": -89.9767
+      },
+      "annual_cargo_tonnes": 4940000,
+      "world_ranking": 2,
+      "primary_routes": [
+        "North America",
+        "Trans-Atlantic",
+        "Trans-Pacific"
+      ],
+      "co2_intensity_per_tonne_km": 0.612,
+      "connected_manufacturing": [
+        "usa_manufacturing",
+        "mexican_manufacturing"
+      ],
+      "specializations": [
+        "Express delivery",
+        "E-commerce",
+        "Pharmaceuticals"
+      ]
+    },
+    "shanghai_pudong_airport": {
+      "type": "airport",
+      "country": "China",
+      "city": "Shanghai",
+      "coordinates": {
+        "lat": 31.1443,
+        "lng": 121.8083
+      },
+      "annual_cargo_tonnes": 3635000,
+      "world_ranking": 3,
+      "primary_routes": [
+        "Asia-Pacific",
+        "Trans-Pacific",
+        "Asia-Europe"
+      ],
+      "co2_intensity_per_tonne_km": 0.588,
+      "connected_manufacturing": [
+        "shanghai_manufacturing",
+        "suzhou_precision"
+      ],
+      "specializations": [
+        "High-tech goods",
+        "Pharmaceuticals"
+      ]
+    },
+    "incheon_airport": {
+      "type": "airport",
+      "country": "South Korea",
+      "city": "Seoul",
+      "coordinates": {
+        "lat": 37.4602,
+        "lng": 126.4407
+      },
+      "annual_cargo_tonnes": 3200000,
+      "world_ranking": 4,
+      "primary_routes": [
+        "Asia-Pacific",
+        "Trans-Pacific"
+      ],
+      "co2_intensity_per_tonne_km": 0.595,
+      "connected_manufacturing": [
+        "seoul_electronics",
+        "korean_manufacturing"
+      ],
+      "specializations": [
+        "Electronics",
+        "Semiconductors",
+        "Automotive parts"
+      ]
+    },
+    "frankfurt_airport": {
+      "type": "airport",
+      "country": "Germany",
+      "city": "Frankfurt",
+      "coordinates": {
+        "lat": 50.0379,
+        "lng": 8.5622
+      },
+      "annual_cargo_tonnes": 2280000,
+      "world_ranking": 9,
+      "primary_routes": [
+        "Asia-Europe",
+        "Trans-Atlantic",
+        "Middle East"
+      ],
+      "co2_intensity_per_tonne_km": 0.542,
+      "connected_manufacturing": [
+        "stuttgart_engineering",
+        "munich_technology"
+      ],
+      "specializations": [
+        "European distribution",
+        "Pharmaceuticals",
+        "Automotive"
+      ]
+    },
+    "china_rail_network": {
+      "type": "rail_network",
+      "country": "China",
+      "coverage": "National",
+      "total_length_km": 146000,
+      "high_speed_length_km": 40000,
+      "co2_intensity_per_tonne_km": 0.048,
+      "connected_manufacturing": [
+        "all_chinese_locations"
+      ],
+      "specializations": [
+        "Domestic distribution",
+        "Raw materials",
+        "Containers"
+      ]
+    },
+    "european_rail_network": {
+      "type": "rail_network",
+      "country": "Europe",
+      "coverage": "Continental",
+      "total_length_km": 202313,
+      "high_speed_length_km": 8400,
+      "co2_intensity_per_tonne_km": 0.041,
+      "connected_manufacturing": [
+        "all_european_locations"
+      ],
+      "specializations": [
+        "Cross-border freight",
+        "Automotive",
+        "Chemicals"
+      ]
+    },
+    "north_american_rail": {
+      "type": "rail_network",
+      "country": "USA/Canada/Mexico",
+      "coverage": "Continental",
+      "total_length_km": 250000,
+      "high_speed_length_km": 735,
+      "co2_intensity_per_tonne_km": 0.052,
+      "connected_manufacturing": [
+        "all_north_american_locations"
+      ],
+      "specializations": [
+        "Bulk goods",
+        "Containers",
+        "Automotive"
+      ]
+    }
+  },
+  "metadata": {
+    "total_hubs": 17,
+    "version": "1.0",
+    "description": "Global transport hubs with real logistics data and CO2 intensities",
+    "features": [
+      "Real annual cargo volumes",
+      "Verified CO2 intensities per transport mode",
+      "Major shipping routes mapping",
+      "Manufacturing location connections",
+      "World ranking data"
+    ]
+  }
+}

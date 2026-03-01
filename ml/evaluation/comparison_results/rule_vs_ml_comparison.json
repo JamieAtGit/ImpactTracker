@@ -1,0 +1,92 @@
+{
+  "dataset_info": {
+    "total_products": 100,
+    "analysis_date": "2025-05-24 20:32:18.683420",
+    "product_categories": {
+      "unknown": 100
+    }
+  },
+  "performance_comparison": {
+    "ground_truth_available": false,
+    "prediction_agreement": 1.0,
+    "score_distributions": {
+      "rule_based": {
+        "F": 100
+      },
+      "ml_based": {
+        "F": 100
+      }
+    }
+  },
+  "consistency_analysis": {
+    "rule_based_consistency": 0.0,
+    "ml_based_consistency": 0.0,
+    "consistency_winner": "ml_based"
+  },
+  "speed_comparison": {
+    "rule_based": {
+      "mean_time_ms": 23.266945998184383,
+      "median_time_ms": 0.33224999788217247,
+      "std_time_ms": 228.11587052493044
+    },
+    "ml_based": {
+      "mean_time_ms": 0.34633500734344125,
+      "median_time_ms": 0.3365500015206635,
+      "std_time_ms": 0.0466354236528147
+    },
+    "speed_ratio": 0.014885280060841126,
+    "speed_winner": "ml_based"
+  },
+  "interpretability_analysis": {
+    "rule_based": {
+      "explanation_available": true,
+      "feature_transparency": "high",
+      "decision_path_clarity": "high",
+      "average_explanation_length": 17.0
+    },
+    "ml_based": {
+      "explanation_available": true,
+      "feature_transparency": "medium",
+      "decision_path_clarity": "low",
+      "average_explanation_length": 17.0
+    },
+    "interpretability_winner": "rule_based"
+  },
+  "coverage_analysis": {
+    "rule_based_coverage": 0.0,
+    "ml_based_coverage": 0.0,
+    "coverage_winner": "ml_based",
+    "failed_predictions": {
+      "rule_based": 100,
+      "ml_based": 100
+    }
+  },
+  "agreement_analysis": {
+    "agreement_rate": 1.0,
+    "total_agreements": 100,
+    "total_disagreements": 0,
+    "top_disagreements": [],
+    "agreement_by_confidence": {
+      "high_confidence_agreements": 0,
+      "low_confidence_disagreements": 0,
+      "pattern": "Mixed pattern"
+    }
+  },
+  "error_pattern_analysis": {
+    "analysis": "No ground truth available for error pattern analysis"
+  },
+  "use_case_recommendations": {
+    "rule_based_best_for": [
+      "Applications requiring explainable decisions",
+      "Regulatory compliance scenarios"
+    ],
+    "ml_based_best_for": [
+      "Complex products with many features",
+      "Large-scale batch processing"
+    ],
+    "hybrid_approach_for": [
+      "Use rules for simple products, ML for complex ones",
+      "Use rules as fallback when ML confidence is low"
+    ]
+  }
+}

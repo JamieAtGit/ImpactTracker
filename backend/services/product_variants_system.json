@@ -1,0 +1,168 @@
+{
+  "variants": {
+    "size_variants": {
+      "clothing_sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "electronics_storage": [
+        "32GB",
+        "64GB",
+        "128GB",
+        "256GB",
+        "512GB",
+        "1TB"
+      ],
+      "container_sizes": [
+        "250ml",
+        "500ml",
+        "1L",
+        "2L",
+        "5L"
+      ],
+      "tool_sizes": [
+        "Mini",
+        "Compact",
+        "Standard",
+        "Pro",
+        "Heavy Duty"
+      ],
+      "weight_impact_factor": {
+        "smaller": 0.7,
+        "standard": 1.0,
+        "larger": 1.4
+      }
+    },
+    "color_variants": {
+      "electronics_colors": [
+        "Black",
+        "White",
+        "Silver",
+        "Gold",
+        "Rose Gold",
+        "Blue"
+      ],
+      "clothing_colors": [
+        "Black",
+        "White",
+        "Navy",
+        "Gray",
+        "Red",
+        "Blue",
+        "Green"
+      ],
+      "home_colors": [
+        "White",
+        "Black",
+        "Stainless Steel",
+        "Wood Grain",
+        "Silver"
+      ],
+      "manufacturing_impact": {
+        "black": 1.0,
+        "white": 1.05,
+        "colored": 1.15,
+        "metallic": 1.25
+      }
+    },
+    "bundle_types": {
+      "starter_kit": {
+        "co2_multiplier": 0.85,
+        "examples": [
+          "Camera + Lens kit",
+          "Kitchen starter set",
+          "Office bundle"
+        ]
+      },
+      "family_pack": {
+        "co2_multiplier": 0.75,
+        "examples": [
+          "4-pack batteries",
+          "Family vitamin set",
+          "Multi-device chargers"
+        ]
+      },
+      "professional_set": {
+        "co2_multiplier": 0.9,
+        "examples": [
+          "Tool sets",
+          "Pro makeup kit",
+          "Business laptop bundle"
+        ]
+      },
+      "seasonal_bundle": {
+        "co2_multiplier": 0.8,
+        "examples": [
+          "Holiday decoration set",
+          "Summer outdoor kit",
+          "Back to school bundle"
+        ]
+      }
+    },
+    "refurbished_options": {
+      "certified_refurbished": {
+        "co2_reduction_factor": 0.3,
+        "quality_factor": 0.95,
+        "applicable_categories": [
+          "electronics",
+          "smartphones",
+          "laptops",
+          "appliances"
+        ]
+      },
+      "amazon_renewed": {
+        "co2_reduction_factor": 0.25,
+        "quality_factor": 0.9,
+        "applicable_categories": [
+          "electronics",
+          "home",
+          "tools"
+        ]
+      },
+      "open_box": {
+        "co2_reduction_factor": 0.1,
+        "quality_factor": 0.98,
+        "applicable_categories": [
+          "all"
+        ]
+      }
+    },
+    "condition_types": {
+      "new": {
+        "co2_factor": 1.0,
+        "quality_factor": 1.0
+      },
+      "like_new": {
+        "co2_factor": 0.95,
+        "quality_factor": 0.98
+      },
+      "very_good": {
+        "co2_factor": 0.9,
+        "quality_factor": 0.95
+      },
+      "good": {
+        "co2_factor": 0.85,
+        "quality_factor": 0.9
+      },
+      "acceptable": {
+        "co2_factor": 0.8,
+        "quality_factor": 0.85
+      }
+    }
+  },
+  "metadata": {
+    "version": "1.0",
+    "description": "Product variants system for size, color, bundles, refurbished",
+    "features": [
+      "Size variations with weight impacts",
+      "Color variants with manufacturing impacts",
+      "Bundle products with CO2 savings",
+      "Refurbished options with major CO2 reductions",
+      "Condition-based adjustments"
+    ]
+  }
+}

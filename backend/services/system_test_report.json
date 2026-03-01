@@ -1,0 +1,139 @@
+{
+  "system_info": {
+    "categories_available": 31,
+    "materials_available": 62,
+    "brands_available": 86,
+    "dataset_path": "/Users/jamie/Documents/University/ImpactTracker/common/data/csv/enhanced_eco_dataset.csv"
+  },
+  "database_integration": {
+    "categories_loaded": 31,
+    "materials_loaded": 62,
+    "brands_loaded": 86,
+    "integration_tests": [
+      {
+        "test": "category_material_lookup",
+        "category": "smartphones",
+        "primary_material": "aluminum",
+        "co2_score": 9.2,
+        "status": "PASS"
+      },
+      {
+        "test": "brand_category_alignment",
+        "electronics_brands_found": 31,
+        "sample_brands": [
+          "apple",
+          "microsoft",
+          "samsung",
+          "lenovo",
+          "hp"
+        ],
+        "status": "PASS"
+      },
+      {
+        "test": "complete_product_simulation",
+        "product_created": true,
+        "product_sample": {
+          "name": "Generic Laptops Product",
+          "category": "laptops",
+          "material": "aluminum",
+          "co2_intensity": 9.2,
+          "estimated_weight": 1.8,
+          "transport": "ship",
+          "brand_origin": {
+            "origin": {
+              "country": "Unknown",
+              "city": "Unknown"
+            },
+            "verified": false,
+            "notes": "Brand 'generic' not found in Amazon-focused database"
+          }
+        },
+        "status": "PASS"
+      }
+    ]
+  },
+  "dataset_functionality": {
+    "dataset_accessible": true,
+    "sample_queries": [
+      {
+        "query": "find_aluminum_products",
+        "results_found": 0,
+        "sample_results": [],
+        "status": "FAIL"
+      },
+      {
+        "query": "find_eco_friendly_products",
+        "results_found": 0,
+        "sample_results": [],
+        "status": "FAIL"
+      }
+    ],
+    "data_quality_checks": {
+      "empty_titles": 0,
+      "invalid_weights": 0,
+      "invalid_co2": 0,
+      "rows_checked": 5000,
+      "quality_score": 1.0
+    },
+    "sample_rows_loaded": 5
+  },
+  "usage_scenarios": {
+    "scenarios": [
+      {
+        "scenario": "search_iphone",
+        "matches_found": 20,
+        "sample_matches": [
+          {
+            "title": "Crystal Garments Global iPhone Max 512GB",
+            "material": "Plastic",
+            "eco_score": "G",
+            "co2": "503.84"
+          },
+          {
+            "title": "DevelopmentCo iPhone Pro 512GB",
+            "material": "Plastic",
+            "eco_score": "G",
+            "co2": "53.79"
+          },
+          {
+            "title": "PremiumWare iPhone Advanced 256GB",
+            "material": "Electronic",
+            "eco_score": "G",
+            "co2": "3126.4"
+          }
+        ],
+        "status": "PASS"
+      },
+      {
+        "scenario": "material_impact_comparison",
+        "aluminum_co2": 9.2,
+        "plastic_co2": 4.1,
+        "comparison_valid": true,
+        "status": "PASS"
+      },
+      {
+        "scenario": "category_eco_recommendations",
+        "total_kitchen_products": 50,
+        "eco_friendly_count": 50,
+        "recommendation_ratio": 1.0,
+        "status": "PASS"
+      },
+      {
+        "scenario": "brand_origin_lookup",
+        "apple_found": true,
+        "nike_found": true,
+        "apple_origin": "USA",
+        "nike_origin": "USA",
+        "status": "PASS"
+      }
+    ]
+  },
+  "summary": {
+    "integration_score": 1.0,
+    "functionality_score": 0.0,
+    "scenario_score": 1.0,
+    "overall_score": 0.6666666666666666,
+    "status": "FAIL",
+    "ready_for_production": false
+  }
+}

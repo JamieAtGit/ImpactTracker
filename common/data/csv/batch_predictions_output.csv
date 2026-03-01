@@ -1,0 +1,4 @@
+material,weight,transport,recyclability,origin,material_encoded,transport_encoded,recycle_encoded,origin_encoded,predicted_eco_score
+Bamboo,0.5,Ship,High,China,2,2,0,1,D
+Aluminum,1.0,Land,Medium,Germany,1,1,2,3,D
+Glass,2.0,Ship,High,France,6,2,0,2,D

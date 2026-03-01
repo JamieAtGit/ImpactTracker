@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "Eco Tooltip + Estimator",
+  "version": "3",
+  "description": "Estimates emissions and shows eco tooltips on Amazon.",
+
+  "permissions": ["storage", "activeTab", "scripting"],
+
+  "host_permissions": [
+    "http://localhost:5000/*",
+    "https://web-production-a62d7.up.railway.app/*",
+    "https://dsp-environmentaltracker-1.onrender.com/*",
+    "https://www.amazon.co.uk/*",
+    "https://www.amazon.com/*"
+  ],
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "32": "icon32.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+
+  "icons": {
+    "16": "icon16.png",
+    "32": "icon32.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.amazon.co.uk/*",
+        "https://www.amazon.com/*"
+      ],
+      "js": ["src/overlay.js"],
+      "css": ["src/styles/overlay.css"]
+    }
+  ],
+
+  "web_accessible_resources": [
+    {
+      "resources": ["material_insights.json"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

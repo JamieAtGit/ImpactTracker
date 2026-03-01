@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Materials System Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f1f;
+            color: #fff;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        .test-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .test-card h3 {
+            margin: 0 0 10px 0;
+            color: #00d4ff;
+        }
+        .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status.pending { background: #3b82f6; }
+        .status.testing { background: #f59e0b; }
+        .status.success { background: #10b981; }
+        .status.error { background: #ef4444; }
+        .materials-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        button {
+            background: linear-gradient(135deg, #00d4ff, #7c3aed);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .api-selector {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .api-selector select {
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧪 Materials Detection System Test</h1>
+        <p>Testing the 5-tier materials intelligence across different product categories</p>
+    </div>
+
+    <div class="api-selector">
+        <label>API Endpoint: </label>
+        <select id="apiSelect">
+            <option value="https://web-production-a62d7.up.railway.app">Production (Railway)</option>
+            <option value="http://localhost:5000">Local Development</option>
+        </select>
+        <button onclick="runAllTests()">Run All Tests</button>
+    </div>
+
+    <div class="test-grid" id="testGrid"></div>
+
+    <script>
+        const TEST_PRODUCTS = [
+            {
+                category: "Electronics",
+                url: "https://www.amazon.com/dp/B0BDHWDR12",
+                name: "iPhone Case",
+                expected: "Silicone/Plastic"
+            },
+            {
+                category: "Kitchen",
+                url: "https://www.amazon.com/dp/B00004OCNS",
+                name: "Kitchen Knife",
+                expected: "Stainless Steel"
+            },
+            {
+                category: "Fitness",
+                url: "https://www.amazon.com/dp/B000P0ZSHK",
+                name: "Whey Protein",
+                expected: "Plastic Container"
+            },
+            {
+                category: "Furniture",
+                url: "https://www.amazon.com/dp/B073W8NPYD",
+                name: "Office Chair",
+                expected: "Mesh/Plastic/Metal"
+            },
+            {
+                category: "Clothing",
+                url: "https://www.amazon.com/dp/B07XQXQWVY",
+                name: "T-Shirt",
+                expected: "Cotton/Polyester"
+            },
+            {
+                category: "Books",
+                url: "https://www.amazon.com/dp/0134580990",
+                name: "Textbook",
+                expected: "Paper"
+            },
+            {
+                category: "Toys",
+                url: "https://www.amazon.com/dp/B00T0BUKW8",
+                name: "LEGO Set",
+                expected: "ABS Plastic"
+            },
+            {
+                category: "Home",
+                url: "https://www.amazon.com/dp/B00FLYWNYQ",
+                name: "Instant Pot",
+                expected: "Stainless Steel/Plastic"
+            }
+        ];
+
+        function createTestCard(product, index) {
+            return `
+                <div class="test-card" id="test-${index}">
+                    <h3>${product.category}: ${product.name}</h3>
+                    <p style="color: #a1a1aa; font-size: 12px;">Expected: ${product.expected}</p>
+                    <div class="status pending">Pending</div>
+                    <div class="materials-info" style="display: none;"></div>
+                    <button onclick="testProduct(${index})" style="margin-top: 10px;">Test This Product</button>
+                </div>
+            `;
+        }
+
+        function initializeTests() {
+            const grid = document.getElementById('testGrid');
+            grid.innerHTML = TEST_PRODUCTS.map((p, i) => createTestCard(p, i)).join('');
+        }
+
+        async function testProduct(index) {
+            const product = TEST_PRODUCTS[index];
+            const card = document.getElementById(`test-${index}`);
+            const status = card.querySelector('.status');
+            const info = card.querySelector('.materials-info');
+            const apiUrl = document.getElementById('apiSelect').value;
+
+            status.textContent = 'Testing...';
+            status.className = 'status testing';
+            info.style.display = 'none';
+
+            try {
+                const response = await fetch(`${apiUrl}/estimate_emissions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        amazon_url: product.url,
+                        postcode: 'SW1A 1AA'
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const materials = data?.data?.attributes?.materials;
+
+                    if (materials) {
+                        status.textContent = `Success - Tier ${materials.tier}`;
+                        status.className = 'status success';
+                        
+                        let materialsHtml = `
+                            <strong>Tier ${materials.tier}: ${materials.tier_name}</strong><br>
+                            Primary: ${materials.primary_material}${materials.primary_percentage ? ` (${materials.primary_percentage}%)` : ''}<br>
+                        `;
+                        
+                        if (materials.secondary_materials?.length > 0) {
+                            const secondary = materials.secondary_materials.map(m => 
+                                m.percentage ? `${m.name} (${m.percentage}%)` : m.name
+                            ).join(', ');
+                            materialsHtml += `Secondary: ${secondary}<br>`;
+                        }
+                        
+                        materialsHtml += `Confidence: ${(materials.confidence * 100).toFixed(0)}%`;
+                        
+                        info.innerHTML = materialsHtml;
+                        info.style.display = 'block';
+                    } else {
+                        status.textContent = 'No materials data';
+                        status.className = 'status error';
+                    }
+                } else {
+                    status.textContent = `Error: ${response.status}`;
+                    status.className = 'status error';
+                }
+            } catch (error) {
+                status.textContent = 'Network error';
+                status.className = 'status error';
+                console.error('Test failed:', error);
+            }
+        }
+
+        async function runAllTests() {
+            for (let i = 0; i < TEST_PRODUCTS.length; i++) {
+                await testProduct(i);
+                // Small delay between tests
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
+
+        // Initialize on load
+        initializeTests();
+    </script>
+</body>
+</html>

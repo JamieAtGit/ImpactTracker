@@ -1,0 +1,40 @@
+# macOS
+.DS_Store
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.env.*
+
+# Logs & runtime dumps
+logs/
+*.log
+*.rdb
+dump.rdb
+
+# Node / Vite
+node_modules/
+frontend/website/node_modules/
+frontend/website/dist/
+frontend/extension/node_modules/
+frontend/extension/dist/
+
+# Build artifacts
+*.egg-info/
+.eggs/
+
+# Caches
+.cache/
+frontend/website/.vite/
+
+# Coverage
+.coverage
+htmlcov/
+
+# Misc
+*.swp
+*.swo

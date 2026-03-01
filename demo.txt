@@ -1,0 +1,83 @@
+Demo script and showcase checklist
+
+1) Demo script (run these commands in order)
+
+```bash
+# activate virtualenv
+source venv/bin/activate
+
+# make the demo runner executable (one-time)
+chmod +x demo/run_demo.sh
+
+# run the demo orchestrator (starts backend + static frontend, waits for health, posts sample request)
+./demo/run_demo.sh
+
+# If you prefer to run pieces manually:
+# Start backend (gunicorn if available, otherwise Flask):
+# gunicorn --bind 127.0.0.1:8000 backend.api.app:app --workers 2
+# or
+# python backend/api/app.py
+
+# Serve frontend statically (if built into frontend/ or dist/):
+# python -m http.server 8001 --directory frontend
+
+# Quick manual API check (after health passes):
+curl -v -X POST "http://127.0.0.1:8000/estimate_emissions" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com/product-page", "postcode": "SW1A1AA"}'
+```
+
+2) What to showcase during the demo (short checklist)
+
+- Start screen: project root and `README.md` to orient viewers
+- Show the running backend process and its entrypoint: `backend/api/app.py`
+
+  - Point out the CORS handling and `ALLOWED_ORIGINS` change (explain why this fixed extension preflight failures)
+
+- Show the scrapers directory or relevant scraper functions (where network extraction happens)
+  - Highlight how input URL -> scraped product data
+
+- Show enrichment/feature engineering: the transformation that creates features consumed by the ML model
+  - e.g., locate `generate_enhanced_dataset.py` or the feature functions used in inference
+
+- Show the ML inference path and fallback logic
+  - Where the model is called, and how fallback/defaults are produced when model confidence is low
+
+- Demonstrate an end-to-end request:
+  - Use the `curl` POST above or run the demo runner; show the request, backend logs, and the JSON response
+  - Point to `demo/logs/api_response.json` (or `demo/logs/` files) for the saved response and logs
+  
+- Open `logs/` to show historic logs and `demo/logs/` for the run you just executed
+- Show tests and CI entrypoints: `tests/` and `demo/run_demo.sh` (explain how to run the quick scraper test)
+- Show `deploy/` folder to explain deployment artifacts (Procfile, docker-compose, render/railway configs)
+
+3) Suggested narrative flow (2–5 minutes)
+
+- 30s: Problem and architecture overview — show `docs/system_diagram.md`
+- 30s: Start demo runner and explain what components will start
+- 45s: Highlight key code paths (scraper → enrichment → feature engineering → model/fallback)
+- 45s: Trigger an example request and show result + logs
+- 30s: Summarize operational notes (CORS, deployment, where to find logs and tests)
+
+4) Troubleshooting tips during recording
+
+- If frontend doesn't load, ensure static server bound to 8001 (or open the built frontend)
+- If the backend returns 400, check request JSON for required fields (`url`, `postcode`)
+- To stop background processes started by the demo script run:
+
+```bash
+# from the demo runner output, or if you started manually:
+kill $BACKEND_PID ${FRONTEND_PID-}
+```
+
+5) Files to link in the demo notes
+
+- docs/system_diagram.md
+- backend/api/app.py
+- generate_enhanced_dataset.py
+- demo/run_demo.sh
+- tests/
+- deploy/
+- logs/ and demo/logs/
+
+End of demo notes.
