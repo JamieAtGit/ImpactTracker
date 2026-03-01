@@ -84,7 +84,8 @@ from backend.scrapers.amazon.integrated_scraper import (
     origin_hubs, 
     uk_hub
 )
-from backend.services.prediction_consistency import apply_material_title_consistency, normalize_amazon_url
+from backend.models.database import db, ScrapedProduct, EmissionCalculation, find_cached_emission_calculation, get_or_create_scraped_product, save_emission_calculation
+from backend.services.prediction_consistency import apply_material_title_consistency, normalize_amazon_url, extract_asin_from_amazon_url
 from backend.services.response_standardizer import standardize_attributes
 
 import csv
@@ -110,6 +111,17 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'None' if is_production else 'Lax'
 app.config['SESSION_COOKIE_DOMAIN'] = None  # Allow cross-domain cookies
 app.config['PERMANENT_SESSION_LIFETIME'] = 7200  # 2 hours
+
+app.config.setdefault('SQLALCHEMY_DATABASE_URI', os.getenv('DATABASE_URL', 'sqlite:///impacttracker_local.db'))
+app.config.setdefault('SQLALCHEMY_TRACK_MODIFICATIONS', False)
+try:
+    if 'sqlalchemy' not in app.extensions:
+        db.init_app(app)
+    with app.app_context():
+        db.create_all()
+    print("✅ Local database cache initialized")
+except Exception as db_init_error:
+    print(f"⚠️ Database initialization skipped: {db_init_error}")
 
 def extract_weight_from_title(title: str) -> float:
     """
@@ -1530,6 +1542,16 @@ def get_dashboard_metrics():
             print(f"⚠️ Could not load submissions: {e}")
         
         # 3. Calculate totals
+        try:
+            db_product_count = ScrapedProduct.query.count()
+            db_calculation_count = EmissionCalculation.query.count()
+            metrics["total_products"] += db_product_count
+            metrics["total_predictions"] = max(metrics["total_predictions"], db_calculation_count)
+            metrics["recent_activity"] = max(metrics["recent_activity"], db_calculation_count)
+            print(f"📊 Added DB counts: {db_product_count} scraped products, {db_calculation_count} calculations")
+        except Exception as db_metrics_error:
+            print(f"⚠️ Could not load DB metrics: {db_metrics_error}")
+
         metrics["total_materials"] = len(metrics["material_distribution"])
         
         # 4. Convert to frontend-friendly format
@@ -1646,6 +1668,95 @@ def estimate_emissions():
         # Validate inputs
         if not url or not postcode:
             return jsonify({"error": "Missing URL or postcode"}), 400
+
+        asin_key = extract_asin_from_amazon_url(url)
+        cached_calc = find_cached_emission_calculation(asin=asin_key, amazon_url=url, postcode=postcode)
+        if cached_calc and cached_calc.scraped_product:
+            cached_product = cached_calc.scraped_product
+            cached_total = float(cached_calc.final_emission or 0.0)
+            cached_weight = float(cached_product.weight or 0.5)
+            cached_origin = cached_product.origin_country or "Unknown"
+            cached_distance = float(cached_calc.transport_distance or 0.0)
+            cached_eco_score = calculate_eco_score(
+                cached_total,
+                "Medium",
+                cached_distance,
+                cached_weight,
+            )
+            try:
+                cached_confidence_numeric = float(cached_calc.confidence_level or 0.7)
+            except Exception:
+                cached_confidence_numeric = 0.7
+            if cached_confidence_numeric >= 0.85:
+                cached_origin_confidence = "high"
+            elif cached_confidence_numeric >= 0.6:
+                cached_origin_confidence = "medium"
+            else:
+                cached_origin_confidence = "low"
+
+            cached_attributes = {
+                "carbon_kg": round(cached_total, 2),
+                "weight_kg": round(cached_weight, 2),
+                "raw_product_weight_kg": round(cached_weight, 2),
+                "origin": cached_origin,
+                "country_of_origin": cached_origin,
+                "facility_origin": cached_origin,
+                "origin_source": "database_cache",
+                "origin_confidence": cached_origin_confidence,
+                "intl_distance_km": round(float(cached_calc.transport_distance or 0.0), 2),
+                "uk_distance_km": 0.0,
+                "distance_from_origin_km": round(float(cached_calc.transport_distance or 0.0), 2),
+                "distance_from_uk_hub_km": 0.0,
+                "dimensions_cm": "Not found",
+                "material_type": cached_product.material or "Unknown",
+                "materials": {},
+                "recyclability": "Not found",
+                "recyclability_percentage": 30,
+                "recyclability_description": "Assessment pending",
+                "transport_mode": cached_calc.transport_mode or "Unknown",
+                "default_transport_mode": cached_calc.transport_mode or "Unknown",
+                "selected_transport_mode": override_mode or None,
+                "emission_factors": {},
+                "eco_score_ml": cached_eco_score,
+                "eco_score_ml_confidence": None,
+                "eco_score_rule_based": cached_eco_score,
+                "eco_score_rule_based_local_only": cached_eco_score,
+                "method_agreement": "Yes",
+                "prediction_methods": {
+                    "ml_prediction": {
+                        "score": cached_eco_score,
+                        "confidence": "N/A",
+                        "method": "Database cache",
+                        "features_used": {"feature_count": 0, "features": []}
+                    },
+                    "rule_based_prediction": {
+                        "score": cached_eco_score,
+                        "confidence": "N/A",
+                        "method": "Database cache"
+                    }
+                },
+                "trees_to_offset": round(cached_total / 20, 1)
+            }
+
+            cached_attributes = standardize_attributes(cached_attributes, [
+                "origin",
+                "country_of_origin",
+                "facility_origin",
+                "origin_source",
+                "origin_confidence",
+                "dimensions_cm",
+                "material_type",
+                "recyclability",
+            ])
+
+            return jsonify({
+                "title": cached_product.title or "Unknown Product",
+                "cache_hit": True,
+                "cache_source": "emission_calculation",
+                "data": {
+                    "attributes": cached_attributes
+                }
+            })
 
         # Scrape product using production scraper with category intelligence
         print(f"🔍 Scraping URL: {url}")
@@ -2393,6 +2504,43 @@ def estimate_emissions():
             "material_type",
             "recyclability",
         ])
+
+        try:
+            confidence_label = str(response_origin_confidence or "medium").strip().lower()
+            confidence_to_score = {
+                "high": 0.9,
+                "medium": 0.7,
+                "low": 0.5,
+                "unknown": 0.4,
+            }
+            confidence_score = confidence_to_score.get(confidence_label, 0.7)
+
+            scraped_product = get_or_create_scraped_product({
+                'amazon_url': url,
+                'asin': product.get('asin') or asin_key,
+                'title': product.get('title'),
+                'price': product.get('price'),
+                'weight': raw_weight,
+                'material': product.get('material_type'),
+                'brand': product.get('brand'),
+                'origin_country': origin_country,
+                'confidence_score': product.get('confidence_score', 0.85),
+                'scraping_status': 'success'
+            })
+
+            save_emission_calculation({
+                'scraped_product_id': scraped_product.id,
+                'user_postcode': postcode,
+                'transport_distance': origin_distance_km,
+                'transport_mode': transport_mode,
+                'ml_prediction': float(carbon_kg),
+                'rule_based_prediction': float(carbon_kg),
+                'final_emission': float(carbon_kg),
+                'confidence_level': confidence_score,
+                'calculation_method': 'combined'
+            })
+        except Exception as db_save_error:
+            print(f"⚠️ Database save error: {db_save_error}")
 
         return jsonify({
             "title": product.get("title"),

@@ -63,3 +63,11 @@ def normalize_amazon_url(url: str) -> str:
         return f"https://{domain}/dp/{asin}"
 
     return normalized
+
+
+def extract_asin_from_amazon_url(url: str) -> str:
+    value = str(url or '').strip()
+    if not value:
+        return ""
+    match = re.search(r'([A-Z0-9]{10})', value, flags=re.IGNORECASE)
+    return match.group(1).upper() if match else ""

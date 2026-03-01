@@ -22,7 +22,7 @@ sys.path.append(BASE_DIR)
 
 # Import database models
 from backend.models.database import db, User, Product, ScrapedProduct, EmissionCalculation, AdminReview
-from backend.models.database import save_scraped_product, save_emission_calculation
+from backend.models.database import save_scraped_product, save_emission_calculation, get_or_create_scraped_product, find_cached_emission_calculation
 
 # Import scrapers and utilities
 from backend.scrapers.amazon.unified_scraper import scrape_amazon_product_page
@@ -30,8 +30,9 @@ from backend.scrapers.amazon.integrated_scraper import (
     estimate_origin_country, resolve_brand_origin, haversine, origin_hubs, uk_hub
 )
 from backend.scrapers.amazon.guess_material import smart_guess_material
-from backend.services.prediction_consistency import apply_material_title_consistency, normalize_brand_for_lookup, normalize_amazon_url
+from backend.services.prediction_consistency import apply_material_title_consistency, normalize_brand_for_lookup, normalize_amazon_url, extract_asin_from_amazon_url
 from backend.services.response_standardizer import standardize_attributes
+from backend.routes.api import calculate_eco_score
 from werkzeug.security import generate_password_hash, check_password_hash
 
 import joblib
@@ -218,6 +219,76 @@ def create_app(config_name='production'):
             # Validate inputs
             if not url or not postcode:
                 return jsonify({"error": "Missing URL or postcode"}), 400
+
+            asin_key = extract_asin_from_amazon_url(url)
+            cached_calc = find_cached_emission_calculation(asin=asin_key, amazon_url=url, postcode=postcode)
+            if cached_calc and cached_calc.scraped_product:
+                cached_product = cached_calc.scraped_product
+                try:
+                    cached_confidence_numeric = float(cached_calc.confidence_level or 0.7)
+                except Exception:
+                    cached_confidence_numeric = 0.7
+                if cached_confidence_numeric >= 0.85:
+                    cached_origin_confidence = "high"
+                elif cached_confidence_numeric >= 0.6:
+                    cached_origin_confidence = "medium"
+                else:
+                    cached_origin_confidence = "low"
+                cached_attributes = {
+                    "material_type": cached_product.material or "Unknown",
+                    "weight_kg": round(float(cached_product.weight or 0.5), 2),
+                    "origin": cached_product.origin_country or "Unknown",
+                    "country_of_origin": cached_product.origin_country or "Unknown",
+                    "facility_origin": cached_product.origin_country or "Unknown",
+                    "origin_source": "database_cache",
+                    "origin_confidence": cached_origin_confidence,
+                    "dimensions_cm": "Not found",
+                    "brand": cached_product.brand,
+                    "price": cached_product.price,
+                    "asin": cached_product.asin,
+                    "image_url": "Not found",
+                    "manufacturer": "Not found",
+                    "category": "Not found",
+                }
+                cached_attributes = standardize_attributes(cached_attributes, [
+                    "origin",
+                    "country_of_origin",
+                    "facility_origin",
+                    "origin_source",
+                    "origin_confidence",
+                    "dimensions_cm",
+                    "material_type",
+                    "brand",
+                    "price",
+                    "asin",
+                    "image_url",
+                    "manufacturer",
+                    "category",
+                ])
+
+                cached_total = float(cached_calc.final_emission or 0.0)
+                cached_distance = float(cached_calc.transport_distance or 0.0)
+                cached_weight = float(cached_product.weight or 0.5)
+                cached_response = {
+                    "title": cached_product.title or "Unknown Product",
+                    "cache_hit": True,
+                    "cache_source": "emission_calculation",
+                    "data": {
+                        "attributes": cached_attributes,
+                        "environmental_metrics": {
+                            "carbon_footprint": round(cached_total, 2),
+                            "recyclability_score": 30,
+                            "eco_score": calculate_eco_score(cached_total, "Medium", cached_distance, cached_weight),
+                            "efficiency": "22%"
+                        },
+                        "recommendations": [
+                            "Consider products made from recycled materials",
+                            "Look for items manufactured closer to your location",
+                            "Choose products with minimal packaging"
+                        ]
+                    }
+                }
+                return jsonify(cached_response)
             
             # Scrape product - using unified scraper in production
             print(f"🔍 Scraping URL: {url}")
@@ -585,9 +656,18 @@ def create_app(config_name='production'):
             
             # Save to database
             try:
-                scraped_product = save_scraped_product({
+                confidence_label = str(final_origin_confidence or 'medium').strip().lower()
+                confidence_to_score = {
+                    "high": 0.9,
+                    "medium": 0.7,
+                    "low": 0.5,
+                    "unknown": 0.4,
+                }
+                confidence_score = confidence_to_score.get(confidence_label, 0.7)
+
+                scraped_product = get_or_create_scraped_product({
                     'amazon_url': url,
-                    'asin': product.get('asin'),
+                    'asin': product.get('asin') or asin_key,
                     'title': product.get('title'),
                     'price': product.get('price'),
                     'weight': weight,
@@ -606,7 +686,7 @@ def create_app(config_name='production'):
                     'ml_prediction': ml_co2,
                     'rule_based_prediction': rule_co2,
                     'final_emission': (ml_co2 + rule_co2) / 2,
-                    'confidence_level': response_data['emissions']['confidence_level'],
+                    'confidence_level': confidence_score,
                     'calculation_method': 'combined'
                 })
             except Exception as e:

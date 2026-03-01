@@ -232,3 +232,64 @@ def save_emission_calculation(calculation_data):
     db.session.add(emission)
     db.session.commit()
     return emission
+
+
+def get_or_create_scraped_product(product_data, user_id=None):
+    """Get existing scraped product by ASIN/URL or create/update one."""
+    asin = str(product_data.get('asin') or '').strip().upper()
+    amazon_url = str(product_data.get('amazon_url') or '').strip()
+
+    existing = None
+    if asin:
+        existing = (
+            ScrapedProduct.query
+            .filter(ScrapedProduct.asin == asin)
+            .order_by(ScrapedProduct.id.desc())
+            .first()
+        )
+    if not existing and amazon_url:
+        existing = (
+            ScrapedProduct.query
+            .filter(ScrapedProduct.amazon_url == amazon_url)
+            .order_by(ScrapedProduct.id.desc())
+            .first()
+        )
+
+    if existing:
+        existing.title = product_data.get('title') or existing.title
+        existing.price = product_data.get('price') if product_data.get('price') is not None else existing.price
+        existing.weight = product_data.get('weight') if product_data.get('weight') is not None else existing.weight
+        existing.material = product_data.get('material') or existing.material
+        existing.brand = product_data.get('brand') or existing.brand
+        existing.origin_country = product_data.get('origin_country') or existing.origin_country
+        existing.confidence_score = product_data.get('confidence_score') if product_data.get('confidence_score') is not None else existing.confidence_score
+        existing.scraping_status = product_data.get('scraping_status', existing.scraping_status)
+        if amazon_url:
+            existing.amazon_url = amazon_url
+        if asin:
+            existing.asin = asin
+        db.session.commit()
+        return existing
+
+    return save_scraped_product(product_data, user_id=user_id)
+
+
+def find_cached_emission_calculation(asin=None, amazon_url=None, postcode=None):
+    """Find most recent emission calculation for same ASIN/URL and postcode."""
+    query = EmissionCalculation.query.join(ScrapedProduct)
+
+    if postcode:
+        query = query.filter(EmissionCalculation.user_postcode == postcode)
+
+    has_lookup = False
+    if asin:
+        has_lookup = True
+        query = query.filter(ScrapedProduct.asin == asin)
+    elif amazon_url:
+        has_lookup = True
+        query = query.filter(ScrapedProduct.amazon_url == amazon_url)
+
+    if not has_lookup:
+        return None
+
+    return query.order_by(EmissionCalculation.id.desc()).first()
