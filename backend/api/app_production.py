@@ -250,6 +250,14 @@ def create_app(config_name='production'):
             'database': 'connected' if db.engine else 'disconnected',
             'ml_model': 'loaded' if hasattr(app, 'xgb_model') and app.xgb_model else 'not loaded'
         })
+
+    @app.route('/', methods=['GET'])
+    def root_status():
+        return jsonify({
+            'status': 'ok',
+            'service': 'impacttracker-api',
+            'mode': config_name
+        }), 200
     
     @app.route('/estimate_emissions', methods=['POST', 'OPTIONS'])
     def estimate_emissions():
@@ -1205,6 +1213,7 @@ def create_app(config_name='production'):
     
     # Database is already set up at app initialization
     
+    print("✅ app_production routes initialized")
     return app
 
 def calculate_emissions_for_product(product_data, user_postcode, app):
@@ -1358,6 +1367,7 @@ def calculate_rule_based_emission(product_data, distance, transport_mode):
 
 # Create the Flask app
 app = create_app(os.getenv('FLASK_ENV', 'production'))
+print("✅ app_production module initialized")
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
