@@ -23,16 +23,6 @@ sys.path.append(BASE_DIR)
 # Import database models
 from backend.models.database import db, User, Product, ScrapedProduct, EmissionCalculation, AdminReview
 from backend.models.database import save_scraped_product, save_emission_calculation, get_or_create_scraped_product, find_cached_emission_calculation
-
-# Import scrapers and utilities
-from backend.scrapers.amazon.unified_scraper import scrape_amazon_product_page
-from backend.scrapers.amazon.integrated_scraper import (
-    estimate_origin_country, resolve_brand_origin, haversine, origin_hubs, uk_hub
-)
-from backend.scrapers.amazon.guess_material import smart_guess_material
-from backend.services.prediction_consistency import apply_material_title_consistency, normalize_brand_for_lookup, normalize_amazon_url, extract_asin_from_amazon_url
-from backend.services.response_standardizer import standardize_attributes
-from backend.routes.api import calculate_eco_score
 from werkzeug.security import generate_password_hash, check_password_hash
 
 import joblib
@@ -41,6 +31,48 @@ import numpy as np
 import pgeocode
 import json
 import re
+
+
+_ESTIMATION_DEPS = None
+
+
+def _load_estimation_dependencies():
+    global _ESTIMATION_DEPS
+    if _ESTIMATION_DEPS is None:
+        from backend.scrapers.amazon.unified_scraper import scrape_amazon_product_page
+        from backend.scrapers.amazon.integrated_scraper import (
+            estimate_origin_country,
+            resolve_brand_origin,
+            haversine,
+            origin_hubs,
+            uk_hub,
+        )
+        from backend.scrapers.amazon.guess_material import smart_guess_material
+        from backend.services.prediction_consistency import (
+            apply_material_title_consistency,
+            normalize_brand_for_lookup,
+            normalize_amazon_url,
+            extract_asin_from_amazon_url,
+        )
+        from backend.services.response_standardizer import standardize_attributes
+        from backend.routes.api import calculate_eco_score
+
+        _ESTIMATION_DEPS = {
+            'scrape_amazon_product_page': scrape_amazon_product_page,
+            'estimate_origin_country': estimate_origin_country,
+            'resolve_brand_origin': resolve_brand_origin,
+            'haversine': haversine,
+            'origin_hubs': origin_hubs,
+            'uk_hub': uk_hub,
+            'smart_guess_material': smart_guess_material,
+            'apply_material_title_consistency': apply_material_title_consistency,
+            'normalize_brand_for_lookup': normalize_brand_for_lookup,
+            'normalize_amazon_url': normalize_amazon_url,
+            'extract_asin_from_amazon_url': extract_asin_from_amazon_url,
+            'standardize_attributes': standardize_attributes,
+            'calculate_eco_score': calculate_eco_score,
+        }
+    return _ESTIMATION_DEPS
 
 def create_app(config_name='production'):
     """Application factory pattern"""
@@ -213,6 +245,21 @@ def create_app(config_name='production'):
     def estimate_emissions():
         """Main endpoint for estimating product emissions - matches localhost functionality"""
         print("🔔 Route hit: /estimate_emissions")
+
+        deps = _load_estimation_dependencies()
+        scrape_amazon_product_page = deps['scrape_amazon_product_page']
+        estimate_origin_country = deps['estimate_origin_country']
+        resolve_brand_origin = deps['resolve_brand_origin']
+        haversine = deps['haversine']
+        origin_hubs = deps['origin_hubs']
+        uk_hub = deps['uk_hub']
+        smart_guess_material = deps['smart_guess_material']
+        apply_material_title_consistency = deps['apply_material_title_consistency']
+        normalize_brand_for_lookup = deps['normalize_brand_for_lookup']
+        normalize_amazon_url = deps['normalize_amazon_url']
+        extract_asin_from_amazon_url = deps['extract_asin_from_amazon_url']
+        standardize_attributes = deps['standardize_attributes']
+        calculate_eco_score = deps['calculate_eco_score']
         
         # Handle preflight OPTIONS request
         if request.method == "OPTIONS":
@@ -899,13 +946,25 @@ def create_app(config_name='production'):
             # Return array directly (not wrapped in object) to match frontend expectations
             eco_data = []
             for product in products:
+                origin_value = (
+                    getattr(product, 'origin_country', None)
+                    or getattr(product, 'origin', None)
+                    or 'Unknown'
+                )
+                weight_value = (
+                    getattr(product, 'weight', None)
+                    or getattr(product, 'weight_kg', None)
+                    or 0
+                )
+                price_value = getattr(product, 'price', None) or 0
+
                 eco_data.append({
                     'id': product.id,
                     'title': product.title,
                     'material': product.material,
-                    'origin': product.origin_country or 'Unknown',
-                    'weight': product.weight or 0,
-                    'price': product.price or 0,
+                    'origin': origin_value,
+                    'weight': weight_value,
+                    'price': price_value,
                     'true_eco_score': ['A+', 'A', 'B', 'C', 'D', 'E', 'F'][product.id % 7],  # Vary scores like localhost
                     'ml_prediction': product.material or 'Unknown',
                     'confidence': 0.85
@@ -1159,6 +1218,8 @@ def calculate_emissions_for_product(product_data, user_postcode, app):
 def calculate_transport_distance(origin_country, user_postcode):
     """Calculate transport distance and mode"""
     try:
+        from backend.scrapers.amazon.integrated_scraper import haversine, origin_hubs, uk_hub
+
         # Get origin coordinates
         origin_coords = origin_hubs.get(origin_country, origin_hubs['CN'])
         
