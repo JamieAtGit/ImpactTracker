@@ -1,0 +1,65 @@
+{
+  "dataset": {
+    "path": "/Users/jamie/Documents/University/ImpactTracker/common/data/csv/enhanced_amazon_dataset.csv",
+    "rows_used": 4561,
+    "features": [
+      "material_encoded",
+      "transport_encoded",
+      "recyclability_encoded",
+      "origin_encoded",
+      "weight_log",
+      "weight_bin_encoded"
+    ],
+    "classes": [
+      "A",
+      "A+",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F"
+    ],
+    "folds": 5
+  },
+  "model_summary": {
+    "random_forest": {
+      "accuracy_mean": 0.7507138602255914,
+      "accuracy_std": 0.007312763525778228,
+      "f1_macro_mean": 0.6131232178560448,
+      "f1_macro_std": 0.005822554003581856,
+      "f1_weighted_mean": 0.7507203432415371,
+      "log_loss_mean": 1.0266474333372309,
+      "brier_multiclass_mean": 0.3221865708925565,
+      "ece_mean": 0.07115210872723973
+    },
+    "xgboost": {
+      "accuracy_mean": 0.7522506293115043,
+      "accuracy_std": 0.00918300674032411,
+      "f1_macro_mean": 0.637731377480949,
+      "f1_macro_std": 0.017538882324326356,
+      "f1_weighted_mean": 0.7660827042278224,
+      "log_loss_mean": 0.7773958676190535,
+      "brier_multiclass_mean": 0.3319332647439925,
+      "ece_mean": 0.08620939049661822
+    }
+  },
+  "calibration": {
+    "raw_accuracy": 0.7579408543263965,
+    "calibrated_accuracy": 0.7612267250821467,
+    "raw_f1_macro": 0.651115285647183,
+    "calibrated_f1_macro": 0.6354524716521833,
+    "raw_log_loss": 0.7265807264883832,
+    "calibrated_log_loss": 0.7417401335240489,
+    "raw_brier": 0.31578518201426486,
+    "calibrated_brier": 0.3087492599876336,
+    "raw_ece": 0.08261081462099672,
+    "calibrated_ece": 0.15390405074276037
+  },
+  "statistical_test": {
+    "test": "paired_t_test",
+    "p_value": 0.03713113175163325,
+    "wilcoxon_p_value": 0.125,
+    "mean_f1_macro_delta_xgb_minus_rf": 0.024608159624904168,
+    "winner": "xgboost"
+  }
+}
