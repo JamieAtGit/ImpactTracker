@@ -581,24 +581,22 @@ if not allowed_origins or allowed_origins == ['']:
         "http://localhost:5173",  # Vite dev server
         "http://localhost:5174",  # Vite dev server (alt port)
         "http://localhost:3000",  # Alternative dev server
+        "https://impacttracker.netlify.app",  # Production Netlify site
+        "https://silly-cuchufli-b154e2.netlify.app",  # Legacy Netlify site
         "chrome-extension://*"    # Chrome extension
     ]
+else:
+    allowed_origins = [origin.strip() for origin in allowed_origins if origin.strip()]
 
 # Configure CORS with proper production settings
 CORS(app, 
      supports_credentials=True,
-     origins=[
-         "http://localhost:5173",
-         "http://localhost:5174", 
-         "http://localhost:3000",
-             "https://silly-cuchufli-b154e2.netlify.app",  # Your Netlify domain
-             "https://*.netlify.app",  # All Netlify preview deployments
-             # Allow Amazon product pages (extension content script runs in-page)
-             "https://www.amazon.co.uk",
-             "https://amazon.co.uk",
-             "https://smile.amazon.co.uk",
-             "https://www.amazon.com",
-         "chrome-extension://*"
+     origins=allowed_origins + [
+         # Allow Amazon product pages (extension content script runs in-page)
+         "https://www.amazon.co.uk",
+         "https://amazon.co.uk",
+         "https://smile.amazon.co.uk",
+         "https://www.amazon.com",
      ],
      methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
      allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
@@ -612,6 +610,7 @@ ALLOWED_ORIGINS = {
     "http://localhost:5173",
     "http://localhost:5174",
     "http://localhost:3000",
+    "https://impacttracker.netlify.app",
     "https://silly-cuchufli-b154e2.netlify.app",
     "https://www.amazon.co.uk",
     "https://amazon.co.uk",

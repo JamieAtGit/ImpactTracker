@@ -85,7 +85,12 @@ def create_app(config_name='production'):
     # Initialize extensions
     db.init_app(app)
     migrate = Migrate(app, db)
-    CORS(app, origins=['http://localhost:5173', 'https://silly-cuchufli-b154e2.netlify.app'])
+    CORS(app, origins=[
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'https://impacttracker.netlify.app',
+        'https://silly-cuchufli-b154e2.netlify.app'
+    ])
     
     # IMMEDIATELY fix the database schema before any routes can be called
     with app.app_context():
