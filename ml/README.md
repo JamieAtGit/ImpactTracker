@@ -13,3 +13,14 @@ Structure:
 Notes:
 - The environment variable ML_ASSETS_DIR can override the default path (this folder).
 - Legacy imports from `backend.ml` will work temporarily via a shim, but please update to use `ml`.
+
+## Rigor Evaluation Pipeline
+
+Use the new evaluation script to produce reproducible, dissertation-ready model comparison outputs.
+
+Run:
+- `/Users/jamie/Documents/University/ImpactTracker/venv/bin/python ml/evaluation/ml_rigor_pipeline.py --max-rows 30000 --folds 5`
+
+Outputs:
+- `ml/reports/ml_rigor_cv_folds.csv` (per-fold metrics for each model)
+- `ml/reports/ml_rigor_report.json` (summary metrics, calibration results, significance tests)
