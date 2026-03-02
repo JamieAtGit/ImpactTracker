@@ -1097,14 +1097,75 @@ except Exception as e:
             model = FallbackModel()
             print("✅ Created fallback rule-based model")
 
-# Load basic encoders
-material_encoder = joblib.load(os.path.join(encoders_dir, "material_encoder.pkl"))
+class SimpleLabelEncoderFallback:
+    def __init__(self, classes):
+        self.classes_ = np.array(classes)
+        self._index_map = {label: idx for idx, label in enumerate(self.classes_)}
+
+    def transform(self, values):
+        return np.array([self._index_map.get(value, 0) for value in values], dtype=int)
+
+    def inverse_transform(self, indices):
+        return np.array([
+            self.classes_[idx] if 0 <= int(idx) < len(self.classes_) else self.classes_[0]
+            for idx in indices
+        ])
+
+
+def _is_git_lfs_pointer(file_path):
+    try:
+        with open(file_path, "rb") as file_handle:
+            first_line = file_handle.readline(128)
+        return first_line.startswith(b"version https://git-lfs.github.com/spec/v1")
+    except Exception:
+        return False
+
+
+def _load_encoder_or_fallback(filename, fallback_classes, encoder_name):
+    file_path = os.path.join(encoders_dir, filename)
+
+    if _is_git_lfs_pointer(file_path):
+        print(
+            f"⚠️ {filename} is a Git LFS pointer file on this deployment. "
+            f"Using fallback {encoder_name}."
+        )
+        return SimpleLabelEncoderFallback(fallback_classes)
+
+    try:
+        return joblib.load(file_path)
+    except Exception as error:
+        print(f"⚠️ Failed to load {filename}: {error}. Using fallback {encoder_name}.")
+        return SimpleLabelEncoderFallback(fallback_classes)
+
+
+# Load basic encoders (with Railway-safe fallback for missing LFS objects)
+material_encoder = _load_encoder_or_fallback(
+    "material_encoder.pkl",
+    ["Other", "Plastic", "Wood", "Glass", "Aluminium", "Steel", "Paper", "Cardboard", "Cotton", "Bamboo"],
+    "material encoder",
+)
 print("🧩 Loaded material encoder classes:", material_encoder.classes_)
 
-transport_encoder = joblib.load(os.path.join(encoders_dir, "transport_encoder.pkl"))
-recycle_encoder = joblib.load(os.path.join(encoders_dir, "recycle_encoder.pkl"))
-label_encoder = joblib.load(os.path.join(encoders_dir, "label_encoder.pkl"))
-origin_encoder = joblib.load(os.path.join(encoders_dir, "origin_encoder.pkl"))
+transport_encoder = _load_encoder_or_fallback(
+    "transport_encoder.pkl",
+    ["Land", "Ship", "Air", "Truck", "Rail", "Other"],
+    "transport encoder",
+)
+recycle_encoder = _load_encoder_or_fallback(
+    "recycle_encoder.pkl",
+    ["Medium", "Low", "High", "Unknown"],
+    "recycle encoder",
+)
+label_encoder = _load_encoder_or_fallback(
+    "label_encoder.pkl",
+    ["A+", "A", "B", "C", "D", "E", "F"],
+    "label encoder",
+)
+origin_encoder = _load_encoder_or_fallback(
+    "origin_encoder.pkl",
+    ["Other", "Uk", "China", "Usa", "Germany", "France", "India"],
+    "origin encoder",
+)
 
 # Load enhanced encoders for 16-feature model
 try:
