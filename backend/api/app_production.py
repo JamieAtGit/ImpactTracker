@@ -154,37 +154,44 @@ def create_app(config_name='production'):
     ML_ASSETS_DIR = os.environ.get("ML_ASSETS_DIR", os.path.join(BASE_DIR, "ml"))
     model_dir = ML_ASSETS_DIR
     encoders_dir = os.path.join(ML_ASSETS_DIR, "encoders")
-    
-    try:
-        # Load XGBoost model
-        import xgboost as xgb
-        xgb_model_path = os.path.join(model_dir, "xgb_model.json")
-        if os.path.exists(xgb_model_path):
-            xgb_model = xgb.XGBClassifier()
-            xgb_model.load_model(xgb_model_path)
-            app.xgb_model = xgb_model
-            print("✅ XGBoost model loaded successfully")
-        
-        # Load encoders
-        encoders = {}
-        encoder_files = [
-            'material_encoder.pkl', 'transport_encoder.pkl', 'recyclability_encoder.pkl',
-            'origin_encoder.pkl', 'weight_bin_encoder.pkl'
-        ]
-        
-        for encoder_file in encoder_files:
-            encoder_path = os.path.join(encoders_dir, encoder_file)
-            if os.path.exists(encoder_path):
-                encoder_name = encoder_file.replace('.pkl', '')
-                encoders[encoder_name] = joblib.load(encoder_path)
-        
-        app.encoders = encoders
-        print(f"✅ Loaded {len(encoders)} encoders successfully")
-        
-    except Exception as e:
-        print(f"⚠️ Error loading ML models: {e}")
-        app.xgb_model = None
-        app.encoders = {}
+
+    app.xgb_model = None
+    app.encoders = {}
+
+    load_ml_on_startup = os.environ.get("LOAD_ML_ON_STARTUP", "").strip().lower()
+    if config_name == 'production' and load_ml_on_startup not in {"1", "true", "yes"}:
+        print("ℹ️ Skipping ML model preload in production startup (set LOAD_ML_ON_STARTUP=1 to enable).")
+    else:
+        try:
+            # Load XGBoost model
+            import xgboost as xgb
+            xgb_model_path = os.path.join(model_dir, "xgb_model.json")
+            if os.path.exists(xgb_model_path):
+                xgb_model = xgb.XGBClassifier()
+                xgb_model.load_model(xgb_model_path)
+                app.xgb_model = xgb_model
+                print("✅ XGBoost model loaded successfully")
+
+            # Load encoders
+            encoders = {}
+            encoder_files = [
+                'material_encoder.pkl', 'transport_encoder.pkl', 'recyclability_encoder.pkl',
+                'origin_encoder.pkl', 'weight_bin_encoder.pkl'
+            ]
+
+            for encoder_file in encoder_files:
+                encoder_path = os.path.join(encoders_dir, encoder_file)
+                if os.path.exists(encoder_path):
+                    encoder_name = encoder_file.replace('.pkl', '')
+                    encoders[encoder_name] = joblib.load(encoder_path)
+
+            app.encoders = encoders
+            print(f"✅ Loaded {len(encoders)} encoders successfully")
+
+        except Exception as e:
+            print(f"⚠️ Error loading ML models: {e}")
+            app.xgb_model = None
+            app.encoders = {}
     
     # === ROUTES ===
     
