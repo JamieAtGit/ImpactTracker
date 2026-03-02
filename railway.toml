@@ -2,7 +2,7 @@
 builder = "NIXPACKS"
 
 [deploy]
-startCommand = "gunicorn backend.api.app_production:app --bind 0.0.0.0:$PORT --workers 1 --worker-class gthread --threads 2 --timeout 180 --graceful-timeout 30 --keep-alive 5 --access-logfile - --error-logfile - --log-level info"
+startCommand = "python -m backend.api.app_production"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
