@@ -25,10 +25,6 @@ from backend.models.database import db, User, Product, ScrapedProduct, EmissionC
 from backend.models.database import save_scraped_product, save_emission_calculation, get_or_create_scraped_product, find_cached_emission_calculation
 from werkzeug.security import generate_password_hash, check_password_hash
 
-import joblib
-import pandas as pd
-import numpy as np
-import pgeocode
 import json
 import re
 
@@ -200,6 +196,8 @@ def create_app(config_name='production'):
         print("ℹ️ Skipping ML model preload in production startup (set LOAD_ML_ON_STARTUP=1 to enable).")
     else:
         try:
+            import joblib
+
             # Load XGBoost model
             import xgboost as xgb
             xgb_model_path = os.path.join(model_dir, "xgb_model.json")
@@ -252,6 +250,9 @@ def create_app(config_name='production'):
     def estimate_emissions():
         """Main endpoint for estimating product emissions - matches localhost functionality"""
         print("🔔 Route hit: /estimate_emissions")
+
+        import pandas as pd
+        import pgeocode
 
         deps = _load_estimation_dependencies()
         scrape_amazon_product_page = deps['scrape_amazon_product_page']
@@ -1248,6 +1249,8 @@ def calculate_emissions_for_product(product_data, user_postcode, app):
 def calculate_transport_distance(origin_country, user_postcode):
     """Calculate transport distance and mode"""
     try:
+        import pandas as pd
+        import pgeocode
         from backend.scrapers.amazon.integrated_scraper import haversine, origin_hubs, uk_hub
 
         # Get origin coordinates
@@ -1282,6 +1285,7 @@ def calculate_transport_distance(origin_country, user_postcode):
 def prepare_ml_features(product_data, encoders):
     """Prepare features for ML model"""
     try:
+        import numpy as np
         features = []
         
         # Material encoding
