@@ -94,11 +94,11 @@ def create_app(config_name='production'):
                 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
                 print(f"✅ Database URL configured from DATABASE_URL")
             else:
-                # Emergency fallback - use hardcoded Railway MySQL (temporary)
-                print("⚠️ Using emergency fallback MySQL connection")
-                database_url = "mysql+pymysql://root:cgQaUmXRHAEYDdFViOBDeazUaAznbVMd@maglev.proxy.rlwy.net:34274/railway"
+                # Stable fallback for production when DB env vars are missing
+                print("⚠️ No production DB env found. Falling back to local SQLite for service availability.")
+                database_url = 'sqlite:///production_fallback.db'
                 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-                print("✅ Emergency MySQL connection configured")
+                print("✅ SQLite fallback DB configured")
         
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'railway-production-key')
@@ -112,7 +112,12 @@ def create_app(config_name='production'):
     
     # Initialize extensions
     db.init_app(app)
-    migrate = Migrate(app, db)
+    enable_migrations = os.getenv('ENABLE_DB_MIGRATIONS', '').strip().lower() in {'1', 'true', 'yes'}
+    if config_name != 'production' or enable_migrations:
+        migrate = Migrate(app, db)
+    else:
+        migrate = None
+        print("ℹ️ Skipping Flask-Migrate initialization in production startup (set ENABLE_DB_MIGRATIONS=1 to enable).")
     CORS(app, origins=[
         'http://localhost:5173',
         'http://localhost:5174',
