@@ -874,58 +874,61 @@ def create_app(config_name='production'):
     
     @app.route('/api/dashboard-metrics', methods=['GET'])
     def dashboard_metrics():
-        """Dashboard metrics for frontend analytics"""
+        """Dashboard metrics for frontend analytics - reads from CSV to match localhost"""
         try:
-            # Match localhost exactly - hardcode values since we're simulating CSV data
-            total_products = 50000  # Exact match to localhost
-            use_db_metrics = os.getenv('USE_DB_METRICS', '').strip().lower() in {'1', 'true', 'yes'}
-            if config_name == 'production' and not use_db_metrics:
-                total_scraped = 0
-                total_calculations = 0
-            else:
+            import pandas as pd
+            dataset_path = os.path.join(BASE_DIR, 'common', 'data', 'csv', 'expanded_eco_dataset.csv')
+
+            total_products = 0
+            total_materials = 0
+            material_distribution = []
+            score_distribution = []
+
+            if os.path.exists(dataset_path):
+                df = pd.read_csv(dataset_path)
+                df_clean = df.dropna(subset=['material', 'true_eco_score'])
+                total_products = len(df_clean)
+
+                material_counts = df_clean['material'].value_counts()
+                material_distribution = [
+                    {'name': str(m), 'value': int(c)}
+                    for m, c in material_counts.head(10).items()
+                ]
+                total_materials = len(material_counts)
+
+                score_counts = df_clean['true_eco_score'].value_counts()
+                score_distribution = [
+                    {'name': str(s), 'value': int(c)}
+                    for s, c in score_counts.items()
+                ]
+
+            total_scraped = 0
+            total_calculations = 0
+            try:
                 total_scraped = ScrapedProduct.query.count()
                 total_calculations = EmissionCalculation.query.count()
-            
-            # Match localhost material distribution exactly
-            material_distribution = [
-                {'name': 'Plastic', 'value': 11900},
-                {'name': 'Steel', 'value': 6712},
-                {'name': 'Paper', 'value': 5618},
-                {'name': 'Other', 'value': 4945},
-                {'name': 'Glass', 'value': 4909},
-                {'name': 'Wood', 'value': 4448},
-                {'name': 'Aluminum', 'value': 3094},
-                {'name': 'Polyester', 'value': 2563},
-                {'name': 'Cotton', 'value': 2510},
-                {'name': 'Rubber', 'value': 1948}
-            ]
-            
+            except Exception:
+                pass
+
             return jsonify({
                 'success': True,
                 'stats': {
-                    'total_products': 50000,
-                    'total_materials': 35,  # Match localhost exactly
+                    'total_products': total_products,
+                    'total_materials': total_materials,
                     'total_predictions': total_calculations,
                     'recent_activity': total_scraped
                 },
                 'material_distribution': material_distribution,
-                'score_distribution': [
-                    {'name': 'A+', 'value': 3500},
-                    {'name': 'A', 'value': 8200},
-                    {'name': 'B', 'value': 12400},
-                    {'name': 'C', 'value': 11300},
-                    {'name': 'D', 'value': 8900},
-                    {'name': 'E', 'value': 4200},
-                    {'name': 'F', 'value': 1500}
-                ],
+                'score_distribution': score_distribution,
                 'data': {
-                    'total_products': 50000,
+                    'total_products': total_products,
                     'total_scraped_products': total_scraped,
                     'total_calculations': total_calculations,
                     'database_status': 'connected'
                 }
             })
         except Exception as e:
+            print(f"Error in dashboard-metrics: {e}")
             return jsonify({'error': str(e)}), 500
     
     @app.route('/insights', methods=['GET'])
@@ -962,63 +965,33 @@ def create_app(config_name='production'):
     
     @app.route('/api/eco-data', methods=['GET'])
     def eco_data():
-        """Eco data for tables and analytics - returns array directly"""
+        """Eco data for tables and analytics - reads from CSV to match localhost"""
         try:
-            # Return array directly (not wrapped in object) to match frontend expectations
-            eco_data = []
-            use_db_metrics = os.getenv('USE_DB_METRICS', '').strip().lower() in {'1', 'true', 'yes'}
-            if config_name == 'production' and not use_db_metrics:
-                sample_materials = ["Plastic", "Steel", "Paper", "Glass", "Wood", "Aluminum", "Polyester", "Cotton", "Rubber", "Other"]
-                sample_origins = ["UK", "China", "Germany", "France", "USA", "India", "Netherlands", "Poland"]
-                for idx in range(1, 101):
-                    material = sample_materials[idx % len(sample_materials)]
-                    eco_data.append({
-                        'id': idx,
-                        'title': f'Sample Product {idx}',
-                        'material': material,
-                        'origin': sample_origins[idx % len(sample_origins)],
-                        'weight': round(0.2 + (idx % 8) * 0.35, 2),
-                        'price': round(4.99 + (idx % 20) * 1.5, 2),
-                        'true_eco_score': ['A+', 'A', 'B', 'C', 'D', 'E', 'F'][idx % 7],
-                        'ml_prediction': material,
-                        'confidence': 0.85
-                    })
-            else:
-                # Get first 100 products with all required fields
-                products = Product.query.filter(
-                    Product.title.isnot(None),
-                    Product.material.isnot(None)
-                ).limit(100).all()
+            import pandas as pd
+            dataset_path = os.path.join(BASE_DIR, 'common', 'data', 'csv', 'expanded_eco_dataset.csv')
+            if not os.path.exists(dataset_path):
+                print(f"⚠️ Dataset not found: {dataset_path}")
+                return jsonify([]), 200
 
-                for product in products:
-                    origin_value = (
-                        getattr(product, 'origin_country', None)
-                        or getattr(product, 'origin', None)
-                        or 'Unknown'
-                    )
-                    weight_value = (
-                        getattr(product, 'weight', None)
-                        or getattr(product, 'weight_kg', None)
-                        or 0
-                    )
-                    price_value = getattr(product, 'price', None) or 0
+            df = pd.read_csv(dataset_path)
+            df = df.dropna(subset=['material', 'true_eco_score'])
+            df = df.where(pd.notnull(df), None)
 
-                    eco_data.append({
-                        'id': product.id,
-                        'title': product.title,
-                        'material': product.material,
-                        'origin': origin_value,
-                        'weight': weight_value,
-                        'price': price_value,
-                        'true_eco_score': ['A+', 'A', 'B', 'C', 'D', 'E', 'F'][product.id % 7],  # Vary scores like localhost
-                        'ml_prediction': product.material or 'Unknown',
-                        'confidence': 0.85
-                    })
-            
-            return jsonify(eco_data)
+            limit = request.args.get('limit', type=int, default=1000)
+            limit = min(limit, 50000)
+            df_limited = df.head(limit)
+
+            return jsonify({
+                'products': df_limited.to_dict(orient='records'),
+                'metadata': {
+                    'total_products_in_dataset': len(df),
+                    'products_returned': len(df_limited),
+                    'limit_applied': limit
+                }
+            })
         except Exception as e:
             print(f"Error in eco-data endpoint: {e}")
-            return jsonify([]), 500
+            return jsonify([]), 200
     
     @app.route('/admin/submissions', methods=['GET'])
     def admin_submissions():
