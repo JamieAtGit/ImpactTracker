@@ -122,7 +122,8 @@ def create_app(config_name='production'):
         'http://localhost:5173',
         'http://localhost:5174',
         'https://impacttracker.netlify.app',
-        'https://silly-cuchufli-b154e2.netlify.app'
+        'https://silly-cuchufli-b154e2.netlify.app',
+        r'^https://.*--impacttracker\.netlify\.app$'
     ])
     
     run_db_bootstrap = os.getenv('RUN_DB_BOOTSTRAP', '').strip().lower() in {'1', 'true', 'yes'}

@@ -10,6 +10,7 @@ CORS(
     origins=[
         'https://impacttracker.netlify.app',
         'https://silly-cuchufli-b154e2.netlify.app',
+        r'^https://.*--impacttracker\.netlify\.app$',
         'http://localhost:5173',
         'http://localhost:5174',
     ],

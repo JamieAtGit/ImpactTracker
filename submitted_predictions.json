@@ -10,5 +10,17 @@
     },
     "predicted_label": "F",
     "confidence": "94.4%"
+  },
+  {
+    "title": "Reusable plastic bottle",
+    "raw_input": {
+      "material": "Plastic",
+      "weight": 0.4,
+      "transport": "Truck",
+      "recyclability": "Medium",
+      "origin": "Uk"
+    },
+    "predicted_label": "C",
+    "confidence": "84.0%"
   }
 ]
