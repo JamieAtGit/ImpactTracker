@@ -71,25 +71,31 @@ def _load_estimation_dependencies():
     return _ESTIMATION_DEPS
 
 def _seed_products_from_csv(app):
-    """Populate the products table from CSV if it's empty. Runs once at first startup."""
+    """Populate the products table from CSV. Re-seeds if a previous run was partial."""
     try:
         with app.app_context():
-            existing = Product.query.count()
-            if existing > 0:
-                print(f"ℹ️ Products table already has {existing} rows — skipping seed.")
-                return
+            import pandas as pd
             dataset_path = os.path.join(BASE_DIR, 'common', 'data', 'csv', 'expanded_eco_dataset.csv')
             if not os.path.exists(dataset_path):
                 print(f"⚠️ CSV not found at {dataset_path} — cannot seed products table.")
                 return
-            import pandas as pd
+
             df = pd.read_csv(dataset_path)
             df = df.where(pd.notnull(df), None)
-            # Rename 'origin' column to match model field if needed
-            if 'origin' in df.columns and 'origin_country' not in df.columns:
-                pass  # model uses 'origin' column name via to_dict, field is also 'origin'
+            expected = len(df)
+
+            existing = Product.query.count()
+            if existing >= int(expected * 0.99):
+                print(f"ℹ️ Products table already has {existing}/{expected} rows — skipping seed.")
+                return
+
+            if existing > 0:
+                print(f"⚠️ Partial seed detected ({existing}/{expected} rows). Clearing and re-seeding...")
+                Product.query.delete()
+                db.session.commit()
+
             records = df.to_dict(orient='records')
-            BATCH = 1000
+            BATCH = 5000
             total = len(records)
             print(f"🌱 Seeding {total} products into DB from CSV...")
             for i in range(0, total, BATCH):
