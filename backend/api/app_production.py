@@ -70,56 +70,59 @@ def _load_estimation_dependencies():
         }
     return _ESTIMATION_DEPS
 
-def _seed_products_from_csv(app):
-    """Populate the products table from CSV. Re-seeds if a previous run was partial."""
+def _seed_products_from_csv():
+    """Populate the products table from CSV. Must be called from within an active app context."""
     try:
-        with app.app_context():
-            import pandas as pd
-            dataset_path = os.path.join(BASE_DIR, 'common', 'data', 'csv', 'expanded_eco_dataset.csv')
-            if not os.path.exists(dataset_path):
-                print(f"⚠️ CSV not found at {dataset_path} — cannot seed products table.")
-                return
+        import pandas as pd
+        dataset_path = os.path.join(BASE_DIR, 'common', 'data', 'csv', 'expanded_eco_dataset.csv')
+        if not os.path.exists(dataset_path):
+            print(f"⚠️ CSV not found at {dataset_path} — cannot seed products table.")
+            return
 
-            df = pd.read_csv(dataset_path)
-            df = df.where(pd.notnull(df), None)
-            expected = len(df)
+        df = pd.read_csv(dataset_path)
+        df = df.where(pd.notnull(df), None)
+        expected = len(df)
 
-            existing = Product.query.count()
-            if existing >= int(expected * 0.99):
-                print(f"ℹ️ Products table already has {existing}/{expected} rows — skipping seed.")
-                return
+        existing = Product.query.count()
+        if existing >= int(expected * 0.99):
+            print(f"ℹ️ Products table already has {existing}/{expected} rows — skipping seed.")
+            return
 
-            if existing > 0:
-                print(f"⚠️ Partial seed detected ({existing}/{expected} rows). Clearing and re-seeding...")
-                Product.query.delete()
-                db.session.commit()
+        if existing > 0:
+            print(f"⚠️ Partial seed detected ({existing}/{expected} rows). Clearing and re-seeding...")
+            Product.query.delete()
+            db.session.commit()
 
-            records = df.to_dict(orient='records')
-            BATCH = 5000
-            total = len(records)
-            print(f"🌱 Seeding {total} products into DB from CSV...")
-            for i in range(0, total, BATCH):
-                batch = records[i:i + BATCH]
-                db.session.bulk_insert_mappings(Product, [
-                    {
-                        'title': r.get('title'),
-                        'material': r.get('material'),
-                        'weight': r.get('weight'),
-                        'transport': r.get('transport'),
-                        'recyclability': r.get('recyclability'),
-                        'true_eco_score': r.get('true_eco_score'),
-                        'co2_emissions': r.get('co2_emissions'),
-                        'origin': r.get('origin'),
-                        'category': r.get('category'),
-                        'search_term': r.get('search_term'),
-                    }
-                    for r in batch
-                ])
-                db.session.commit()
-                print(f"  ✅ Inserted rows {i+1}–{min(i+BATCH, total)}")
-            print(f"🌱 Seeding complete — {total} products in DB.")
+        records = df.to_dict(orient='records')
+        BATCH = 5000
+        total = len(records)
+        print(f"🌱 Seeding {total} products into DB from CSV...")
+        for i in range(0, total, BATCH):
+            batch = records[i:i + BATCH]
+            db.session.bulk_insert_mappings(Product, [
+                {
+                    'title': r.get('title'),
+                    'material': r.get('material'),
+                    'weight': r.get('weight'),
+                    'transport': r.get('transport'),
+                    'recyclability': r.get('recyclability'),
+                    'true_eco_score': r.get('true_eco_score'),
+                    'co2_emissions': r.get('co2_emissions'),
+                    'origin': r.get('origin'),
+                    'category': r.get('category'),
+                    'search_term': r.get('search_term'),
+                }
+                for r in batch
+            ])
+            db.session.commit()
+            print(f"  ✅ Inserted rows {i+1}–{min(i+BATCH, total)}")
+        print(f"🌱 Seeding complete — {total} products in DB.")
     except Exception as e:
         print(f"⚠️ Product seeding failed (non-fatal): {e}")
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
 
 
 def create_app(config_name='production'):
@@ -234,7 +237,7 @@ def create_app(config_name='production'):
                 # Create all other tables
                 db.create_all()
                 print("✅ Database ready for signup requests")
-                _seed_products_from_csv(app)
+                _seed_products_from_csv()
 
             except Exception as e:
                 print(f"❌ Database setup error: {e}")
@@ -248,7 +251,7 @@ def create_app(config_name='production'):
                 try:
                     db.create_all()
                     print("⚠️ Using fallback table creation")
-                    _seed_products_from_csv(app)
+                    _seed_products_from_csv()
                 except Exception as e2:
                     print(f"❌ Complete database failure: {e2}")
     else:
@@ -1011,7 +1014,7 @@ def create_app(config_name='production'):
                 print(f"DB query error in dashboard-metrics: {db_err}")
 
             # CSV fallback for charts if DB is empty/not seeded yet
-            if total_products == 0:
+            if total_products < 45000:
                 try:
                     import pandas as pd
                     dataset_path = os.path.join(BASE_DIR, 'common', 'data', 'csv', 'expanded_eco_dataset.csv')
