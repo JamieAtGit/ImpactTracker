@@ -104,7 +104,7 @@ class ScrapedProduct(db.Model):
     __table_args__ = (
         db.Index('idx_asin', 'asin'),
         db.Index('idx_brand', 'brand'),
-        db.Index('idx_created_at', 'created_at'),
+        db.Index('idx_scraped_created_at', 'created_at'),
     )
     
     def to_dict(self):
@@ -143,7 +143,7 @@ class EmissionCalculation(db.Model):
     # Indexes
     __table_args__ = (
         db.Index('idx_postcode', 'user_postcode'),
-        db.Index('idx_created_at', 'created_at'),
+        db.Index('idx_emission_created_at', 'created_at'),
     )
     
     def to_dict(self):
