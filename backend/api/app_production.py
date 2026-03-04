@@ -70,6 +70,14 @@ def _load_estimation_dependencies():
         }
     return _ESTIMATION_DEPS
 
+def _safe_float(val):
+    """Convert val to float, returning None if not a valid number."""
+    try:
+        return float(val) if val is not None else None
+    except (ValueError, TypeError):
+        return None
+
+
 def _seed_products_from_csv():
     """Seed products table from CSV. Each batch uses engine.begin() so it auto-commits."""
     try:
@@ -117,17 +125,20 @@ def _seed_products_from_csv():
                 {
                     'title': r.get('title'),
                     'material': r.get('material'),
-                    'weight': r.get('weight'),
+                    'weight': _safe_float(r.get('weight')),
                     'transport': r.get('transport'),
                     'recyclability': r.get('recyclability'),
                     'true_eco_score': r.get('true_eco_score'),
-                    'co2_emissions': r.get('co2_emissions'),
+                    'co2_emissions': _safe_float(r.get('co2_emissions')),
                     'origin': r.get('origin'),
                     'category': r.get('category') or '',
                     'search_term': r.get('search_term') or '',
                 }
                 for r in records[i:i + BATCH]
+                if r.get('title') and str(r.get('title')).lower() != 'title'
             ]
+            if not batch:
+                continue
             with db.engine.begin() as conn:   # auto-commits on exit, rolls back on error
                 conn.execute(insert_sql, batch)
             print(f"  ✅ Committed rows {i+1}–{min(i+BATCH, total)}")
@@ -207,70 +218,16 @@ def create_app(config_name='production'):
     run_db_bootstrap = os.getenv('RUN_DB_BOOTSTRAP', '').strip().lower() in {'1', 'true', 'yes'}
 
     if config_name != 'production' or run_db_bootstrap:
-        # IMMEDIATELY fix the database schema before any routes can be called
         with app.app_context():
             try:
-                print("🔄 IMMEDIATELY fixing users table schema...")
-
-                # Drop and recreate users table with raw SQL
-                from sqlalchemy import text
-
-                # First check if table exists
-                check_table_sql = text("SHOW TABLES LIKE 'users'")
-                result = db.session.execute(check_table_sql)
-                table_exists = result.fetchone() is not None
-                print(f"🔍 Users table exists: {table_exists}")
-
-                if table_exists:
-                    # Check if username column exists
-                    check_column_sql = text("SHOW COLUMNS FROM users LIKE 'username'")
-                    result = db.session.execute(check_column_sql)
-                    username_exists = result.fetchone() is not None
-                    print(f"🔍 Username column exists: {username_exists}")
-
-                    if not username_exists:
-                        print("🔨 Adding username column to existing table")
-                        # Add username column to existing table
-                        add_column_sql = text("ALTER TABLE users ADD COLUMN username VARCHAR(255) NOT NULL UNIQUE")
-                        db.session.execute(add_column_sql)
-                        db.session.commit()
-                        print("✅ Added username column to existing table")
-                    else:
-                        print("✅ Users table with username column already exists")
-                else:
-                    print("🔨 Creating new users table")
-                    create_users_sql = text("""
-                    CREATE TABLE users (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        username VARCHAR(255) NOT NULL UNIQUE,
-                        password_hash VARCHAR(255) NOT NULL,
-                        role ENUM('user', 'admin') DEFAULT 'user'
-                    )
-                    """)
-                    db.session.execute(create_users_sql)
-                    db.session.commit()
-                    print("✅ Created new users table with username column")
-
-                # Create all other tables
+                print("🔄 Creating/verifying database tables...")
                 db.create_all()
-                print("✅ Database ready for signup requests")
+                print("✅ Database tables ready")
                 _seed_products_from_csv()
-
             except Exception as e:
                 print(f"❌ Database setup error: {e}")
-                # Emergency fallback - drop conflicting indexes then create all tables
-                try:
-                    from sqlalchemy import text
-                    db.session.execute(text("DROP INDEX IF EXISTS idx_created_at"))
-                    db.session.commit()
-                except Exception:
-                    db.session.rollback()
-                try:
-                    db.create_all()
-                    print("⚠️ Using fallback table creation")
-                    _seed_products_from_csv()
-                except Exception as e2:
-                    print(f"❌ Complete database failure: {e2}")
+                import traceback
+                traceback.print_exc()
     else:
         print("ℹ️ Skipping DB bootstrap in production startup (set RUN_DB_BOOTSTRAP=1 to enable).")
     
