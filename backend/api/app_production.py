@@ -386,7 +386,7 @@ def create_app(config_name='production'):
 
             asin_key = extract_asin_from_amazon_url(url)
             cached_calc = find_cached_emission_calculation(asin=asin_key, amazon_url=url, postcode=postcode)
-            _BAD_TITLES = {'amazon product', 'unknown product', 'consumer product', 'unknown', ''}
+            _BAD_TITLES = {'amazon product', 'unknown product', 'unknown', ''}
             _cache_usable = (
                 cached_calc
                 and cached_calc.scraped_product
@@ -465,11 +465,10 @@ def create_app(config_name='production'):
             print(f"🔍 Scraping URL: {url}")
             product = scrape_amazon_product_page(url)
             
-            _BAD_SCRAPE_TITLES = {'unknown product', 'consumer product', 'amazon product', 'unknown', ''}
+            _BAD_SCRAPE_TITLES = {'unknown product', 'amazon product', 'unknown', ''}
             _scraped_title = (product.get('title') or '').strip().lower()
-            _quality = (product.get('quality_score') or 100)
-            if not product or _scraped_title in _BAD_SCRAPE_TITLES or _quality < 50:
-                return jsonify({"error": "Could not extract real product data from this URL. Amazon may be blocking the request — please try again in a moment."}), 400
+            if not product or _scraped_title in _BAD_SCRAPE_TITLES:
+                return jsonify({"error": "Failed to scrape product data"}), 400
                 
             print(f"✅ Scraper success: {product.get('title', '')[:50]}...")
             
