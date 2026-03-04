@@ -179,7 +179,13 @@ def create_app(config_name='production'):
 
             except Exception as e:
                 print(f"❌ Database setup error: {e}")
-                # Emergency fallback
+                # Emergency fallback - drop conflicting indexes then create all tables
+                try:
+                    from sqlalchemy import text
+                    db.session.execute(text("DROP INDEX IF EXISTS idx_created_at"))
+                    db.session.commit()
+                except Exception:
+                    db.session.rollback()
                 try:
                     db.create_all()
                     print("⚠️ Using fallback table creation")
