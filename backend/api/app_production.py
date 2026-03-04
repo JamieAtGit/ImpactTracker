@@ -835,23 +835,6 @@ def create_app(config_name='production'):
                     'confidence_level': confidence_score,
                     'calculation_method': 'combined'
                 })
-
-                # Add to products table so the total count grows permanently
-                new_product = Product(
-                    title=product.get('title'),
-                    material=material,
-                    weight=weight,
-                    transport=mode_name,
-                    recyclability='Medium',
-                    true_eco_score=eco_score_rule_based or eco_score_ml or 'C',
-                    co2_emissions=(ml_co2 + rule_co2) / 2 if (ml_co2 and rule_co2) else total_co2,
-                    origin=origin_country,
-                    category=product.get('category'),
-                    search_term='',
-                )
-                db.session.add(new_product)
-                db.session.commit()
-                print(f"✅ Product added to DB: {new_product.title} (total now {Product.query.count()})")
             except Exception as e:
                 print(f"Database save error: {e}")
             
