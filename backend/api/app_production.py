@@ -848,6 +848,30 @@ def create_app(config_name='production'):
                     'confidence_level': confidence_score,
                     'calculation_method': 'combined'
                 })
+
+                # Add to products table — count grows permanently in PostgreSQL
+                _transport_map = {'Truck': 'Land', 'Ship': 'Ship', 'Air': 'Air', 'Land': 'Land', 'Sea': 'Sea'}
+                _material_recyclability = {
+                    'Glass': 'High', 'Aluminum': 'High', 'Steel': 'High',
+                    'Paper': 'High', 'Cardboard': 'High', 'Wood': 'High',
+                    'Bamboo': 'High', 'Cotton': 'High',
+                    'Plastic': 'Low', 'Polyester': 'Low', 'Rubber': 'Low',
+                }
+                new_product = Product(
+                    title=product.get('title'),
+                    material=material,
+                    weight=weight,
+                    transport=_transport_map.get(mode_name, 'Land'),
+                    recyclability=_material_recyclability.get(material, 'Medium'),
+                    true_eco_score=eco_score_rule_based or eco_score_ml or 'C',
+                    co2_emissions=(ml_co2 + rule_co2) / 2 if (ml_co2 and rule_co2) else total_co2,
+                    origin=(origin_country or '').upper() or 'UNKNOWN',
+                    category=product.get('category') or '',
+                    search_term='',
+                )
+                db.session.add(new_product)
+                db.session.commit()
+                print(f"✅ Product added to DB: {new_product.title} (total now {Product.query.count()})")
             except Exception as e:
                 print(f"Database save error: {e}")
             
