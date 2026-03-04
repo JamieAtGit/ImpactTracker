@@ -71,10 +71,11 @@ def _load_estimation_dependencies():
     return _ESTIMATION_DEPS
 
 def _seed_products_from_csv():
-    """Seed products table from CSV using a direct engine connection (bypasses session state)."""
+    """Seed products table from CSV. Each batch uses engine.begin() so it auto-commits."""
     try:
         import pandas as pd
         from sqlalchemy import text as _text
+
         dataset_path = os.path.join(BASE_DIR, 'common', 'data', 'csv', 'expanded_eco_dataset.csv')
         if not os.path.exists(dataset_path):
             print(f"⚠️ CSV not found at {dataset_path} — cannot seed products table.")
@@ -84,50 +85,57 @@ def _seed_products_from_csv():
         df = df.where(pd.notnull(df), None)
         expected = len(df)
 
-        with db.engine.connect() as conn:
+        # Check existing count in its own committed transaction
+        with db.engine.begin() as conn:
             existing = conn.execute(_text("SELECT COUNT(*) FROM products")).scalar() or 0
-            if existing >= int(expected * 0.99):
-                print(f"ℹ️ Products table already has {existing}/{expected} rows — skipping seed.")
-                return
 
-            if existing > 0:
-                print(f"⚠️ Partial seed detected ({existing}/{expected} rows). Clearing and re-seeding...")
-                with conn.begin():
-                    conn.execute(_text("DELETE FROM products"))
+        if existing >= int(expected * 0.99):
+            print(f"ℹ️ Products table already has {existing}/{expected} rows — skipping seed.")
+            return
 
-            records = df.to_dict(orient='records')
-            BATCH = 5000
-            total = len(records)
-            print(f"🌱 Seeding {total} products into DB from CSV...")
-            for i in range(0, total, BATCH):
-                batch = records[i:i + BATCH]
-                with conn.begin():
-                    conn.execute(
-                        _text("""INSERT INTO products
-                            (title, material, weight, transport, recyclability,
-                             true_eco_score, co2_emissions, origin, category, search_term)
-                            VALUES
-                            (:title, :material, :weight, :transport, :recyclability,
-                             :true_eco_score, :co2_emissions, :origin, :category, :search_term)
-                        """),
-                        [
-                            {
-                                'title': r.get('title'),
-                                'material': r.get('material'),
-                                'weight': r.get('weight'),
-                                'transport': r.get('transport'),
-                                'recyclability': r.get('recyclability'),
-                                'true_eco_score': r.get('true_eco_score'),
-                                'co2_emissions': r.get('co2_emissions'),
-                                'origin': r.get('origin'),
-                                'category': r.get('category') or '',
-                                'search_term': r.get('search_term') or '',
-                            }
-                            for r in batch
-                        ]
-                    )
-                print(f"  ✅ Inserted rows {i+1}–{min(i+BATCH, total)}")
-            print(f"🌱 Seeding complete — {total} products in DB.")
+        if existing > 0:
+            print(f"⚠️ Partial seed detected ({existing}/{expected} rows). Clearing and re-seeding...")
+            with db.engine.begin() as conn:
+                conn.execute(_text("DELETE FROM products"))
+
+        records = df.to_dict(orient='records')
+        BATCH = 5000
+        total = len(records)
+        print(f"🌱 Seeding {total} products into DB from CSV...")
+
+        insert_sql = _text("""
+            INSERT INTO products
+                (title, material, weight, transport, recyclability,
+                 true_eco_score, co2_emissions, origin, category, search_term)
+            VALUES
+                (:title, :material, :weight, :transport, :recyclability,
+                 :true_eco_score, :co2_emissions, :origin, :category, :search_term)
+        """)
+
+        for i in range(0, total, BATCH):
+            batch = [
+                {
+                    'title': r.get('title'),
+                    'material': r.get('material'),
+                    'weight': r.get('weight'),
+                    'transport': r.get('transport'),
+                    'recyclability': r.get('recyclability'),
+                    'true_eco_score': r.get('true_eco_score'),
+                    'co2_emissions': r.get('co2_emissions'),
+                    'origin': r.get('origin'),
+                    'category': r.get('category') or '',
+                    'search_term': r.get('search_term') or '',
+                }
+                for r in records[i:i + BATCH]
+            ]
+            with db.engine.begin() as conn:   # auto-commits on exit, rolls back on error
+                conn.execute(insert_sql, batch)
+            print(f"  ✅ Committed rows {i+1}–{min(i+BATCH, total)}")
+
+        with db.engine.begin() as conn:
+            final_count = conn.execute(_text("SELECT COUNT(*) FROM products")).scalar()
+        print(f"🌱 Seeding complete — {final_count} products now in DB.")
+
     except Exception as e:
         print(f"⚠️ Product seeding failed: {e}")
         import traceback
@@ -1024,21 +1032,7 @@ def create_app(config_name='production'):
             except Exception as db_err:
                 print(f"DB query error in dashboard-metrics: {db_err}")
 
-            # CSV fallback for charts if DB is empty/not seeded yet
-            if total_products < 45000:
-                try:
-                    import pandas as pd
-                    dataset_path = os.path.join(BASE_DIR, 'common', 'data', 'csv', 'expanded_eco_dataset.csv')
-                    if os.path.exists(dataset_path):
-                        df = pd.read_csv(dataset_path).dropna(subset=['material', 'true_eco_score'])
-                        total_products = len(df)
-                        mat_counts = df['material'].value_counts()
-                        material_distribution = [{'name': str(m), 'value': int(c)} for m, c in mat_counts.head(10).items()]
-                        total_materials = len(mat_counts)
-                        score_counts = df['true_eco_score'].value_counts()
-                        score_distribution = [{'name': str(s), 'value': int(c)} for s, c in score_counts.items()]
-                except Exception:
-                    pass
+            # No CSV fallback — always show the real DB count so frontend matches backend
 
             return jsonify({
                 'success': True,
