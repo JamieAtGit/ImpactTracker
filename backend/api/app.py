@@ -674,6 +674,19 @@ else:
 
 
 SUBMISSION_FILE = "submitted_predictions.json"
+EXPANDED_DATASET_FILE = os.path.join(BASE_DIR, "common", "data", "csv", "expanded_eco_dataset.csv")
+EXPANDED_DATASET_COLUMNS = [
+    "title",
+    "material",
+    "weight",
+    "transport",
+    "recyclability",
+    "true_eco_score",
+    "co2_emissions",
+    "origin",
+    "category",
+    "search_term",
+]
 
 
 @app.route("/admin/submissions")
@@ -727,6 +740,26 @@ def log_submission(product):
         print(f"✅ Logged submission: {product.get('title', 'Unknown')}")
     except Exception as e:
         print(f"❌ Failed to log submission: {e}")
+
+
+def append_estimation_to_expanded_dataset(entry):
+    try:
+        os.makedirs(os.path.dirname(EXPANDED_DATASET_FILE), exist_ok=True)
+        file_exists = os.path.exists(EXPANDED_DATASET_FILE)
+
+        with open(EXPANDED_DATASET_FILE, "a", newline="", encoding="utf-8") as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=EXPANDED_DATASET_COLUMNS)
+            if not file_exists or os.path.getsize(EXPANDED_DATASET_FILE) == 0:
+                writer.writeheader()
+
+            row = {column: entry.get(column, "") for column in EXPANDED_DATASET_COLUMNS}
+            writer.writerow(row)
+
+        print(f"✅ Appended estimation to expanded dataset: {row.get('title', 'Unknown Product')}")
+        return True
+    except Exception as csv_error:
+        print(f"⚠️ Could not append estimation to expanded dataset CSV: {csv_error}")
+        return False
         
 def load_material_co2_data():
     try:
@@ -2598,6 +2631,19 @@ def estimate_emissions():
                 'final_emission': float(carbon_kg),
                 'confidence_level': confidence_score,
                 'calculation_method': 'combined'
+            })
+
+            append_estimation_to_expanded_dataset({
+                'title': product.get('title') or 'Unknown Product',
+                'material': product.get('material_type') or product.get('material') or 'Other',
+                'weight': round(float(weight), 4),
+                'transport': transport_mode,
+                'recyclability': attributes.get('recyclability') or 'Medium',
+                'true_eco_score': attributes.get('eco_score_rule_based_local_only') or attributes.get('eco_score_rule_based') or attributes.get('eco_score_ml') or 'C',
+                'co2_emissions': round(float(carbon_kg), 4),
+                'origin': origin_country or 'Unknown',
+                'category': product.get('category') or '',
+                'search_term': product.get('search_term') or '',
             })
         except Exception as db_save_error:
             print(f"⚠️ Database save error: {db_save_error}")

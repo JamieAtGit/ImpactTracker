@@ -70,6 +70,52 @@ def _load_estimation_dependencies():
         }
     return _ESTIMATION_DEPS
 
+def _seed_products_from_csv(app):
+    """Populate the products table from CSV if it's empty. Runs once at first startup."""
+    try:
+        with app.app_context():
+            existing = Product.query.count()
+            if existing > 0:
+                print(f"ℹ️ Products table already has {existing} rows — skipping seed.")
+                return
+            dataset_path = os.path.join(BASE_DIR, 'common', 'data', 'csv', 'expanded_eco_dataset.csv')
+            if not os.path.exists(dataset_path):
+                print(f"⚠️ CSV not found at {dataset_path} — cannot seed products table.")
+                return
+            import pandas as pd
+            df = pd.read_csv(dataset_path)
+            df = df.where(pd.notnull(df), None)
+            # Rename 'origin' column to match model field if needed
+            if 'origin' in df.columns and 'origin_country' not in df.columns:
+                pass  # model uses 'origin' column name via to_dict, field is also 'origin'
+            records = df.to_dict(orient='records')
+            BATCH = 1000
+            total = len(records)
+            print(f"🌱 Seeding {total} products into DB from CSV...")
+            for i in range(0, total, BATCH):
+                batch = records[i:i + BATCH]
+                db.session.bulk_insert_mappings(Product, [
+                    {
+                        'title': r.get('title'),
+                        'material': r.get('material'),
+                        'weight': r.get('weight'),
+                        'transport': r.get('transport'),
+                        'recyclability': r.get('recyclability'),
+                        'true_eco_score': r.get('true_eco_score'),
+                        'co2_emissions': r.get('co2_emissions'),
+                        'origin': r.get('origin'),
+                        'category': r.get('category'),
+                        'search_term': r.get('search_term'),
+                    }
+                    for r in batch
+                ])
+                db.session.commit()
+                print(f"  ✅ Inserted rows {i+1}–{min(i+BATCH, total)}")
+            print(f"🌱 Seeding complete — {total} products in DB.")
+    except Exception as e:
+        print(f"⚠️ Product seeding failed (non-fatal): {e}")
+
+
 def create_app(config_name='production'):
     """Application factory pattern"""
     app = Flask(__name__)
@@ -176,6 +222,7 @@ def create_app(config_name='production'):
                 # Create all other tables
                 db.create_all()
                 print("✅ Database ready for signup requests")
+                _seed_products_from_csv(app)
 
             except Exception as e:
                 print(f"❌ Database setup error: {e}")
@@ -189,6 +236,7 @@ def create_app(config_name='production'):
                 try:
                     db.create_all()
                     print("⚠️ Using fallback table creation")
+                    _seed_products_from_csv(app)
                 except Exception as e2:
                     print(f"❌ Complete database failure: {e2}")
     else:
@@ -880,41 +928,60 @@ def create_app(config_name='production'):
     
     @app.route('/api/dashboard-metrics', methods=['GET'])
     def dashboard_metrics():
-        """Dashboard metrics for frontend analytics - reads from CSV to match localhost"""
+        """Dashboard metrics — counts from PostgreSQL products table (seeded from CSV)."""
         try:
-            import pandas as pd
-            dataset_path = os.path.join(BASE_DIR, 'common', 'data', 'csv', 'expanded_eco_dataset.csv')
-
             total_products = 0
             total_materials = 0
             material_distribution = []
             score_distribution = []
-
-            if os.path.exists(dataset_path):
-                df = pd.read_csv(dataset_path)
-                df_clean = df.dropna(subset=['material', 'true_eco_score'])
-                total_products = len(df_clean)
-
-                material_counts = df_clean['material'].value_counts()
-                material_distribution = [
-                    {'name': str(m), 'value': int(c)}
-                    for m, c in material_counts.head(10).items()
-                ]
-                total_materials = len(material_counts)
-
-                score_counts = df_clean['true_eco_score'].value_counts()
-                score_distribution = [
-                    {'name': str(s), 'value': int(c)}
-                    for s, c in score_counts.items()
-                ]
-
             total_scraped = 0
             total_calculations = 0
+
             try:
+                total_products = Product.query.count()
                 total_scraped = ScrapedProduct.query.count()
                 total_calculations = EmissionCalculation.query.count()
-            except Exception:
-                pass
+
+                mat_rows = (
+                    db.session.query(Product.material, db.func.count(Product.id))
+                    .filter(Product.material.isnot(None))
+                    .group_by(Product.material)
+                    .order_by(db.func.count(Product.id).desc())
+                    .limit(10)
+                    .all()
+                )
+                material_distribution = [{'name': m, 'value': c} for m, c in mat_rows]
+                total_materials = (
+                    db.session.query(db.func.count(db.distinct(Product.material)))
+                    .scalar() or 0
+                )
+
+                score_rows = (
+                    db.session.query(Product.true_eco_score, db.func.count(Product.id))
+                    .filter(Product.true_eco_score.isnot(None))
+                    .group_by(Product.true_eco_score)
+                    .all()
+                )
+                score_distribution = [{'name': s, 'value': c} for s, c in score_rows]
+
+            except Exception as db_err:
+                print(f"DB query error in dashboard-metrics: {db_err}")
+
+            # CSV fallback for charts if DB is empty/not seeded yet
+            if total_products == 0:
+                try:
+                    import pandas as pd
+                    dataset_path = os.path.join(BASE_DIR, 'common', 'data', 'csv', 'expanded_eco_dataset.csv')
+                    if os.path.exists(dataset_path):
+                        df = pd.read_csv(dataset_path).dropna(subset=['material', 'true_eco_score'])
+                        total_products = len(df)
+                        mat_counts = df['material'].value_counts()
+                        material_distribution = [{'name': str(m), 'value': int(c)} for m, c in mat_counts.head(10).items()]
+                        total_materials = len(mat_counts)
+                        score_counts = df['true_eco_score'].value_counts()
+                        score_distribution = [{'name': str(s), 'value': int(c)} for s, c in score_counts.items()]
+                except Exception:
+                    pass
 
             return jsonify({
                 'success': True,
