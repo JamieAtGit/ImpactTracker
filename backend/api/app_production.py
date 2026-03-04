@@ -170,13 +170,19 @@ def create_app(config_name='production'):
     else:
         migrate = None
         print("ℹ️ Skipping Flask-Migrate initialization in production startup (set ENABLE_DB_MIGRATIONS=1 to enable).")
-    CORS(app, origins=[
-        'http://localhost:5173',
-        'http://localhost:5174',
-        'https://impacttracker.netlify.app',
-        'https://silly-cuchufli-b154e2.netlify.app',
-        r'^https://.*--impacttracker\.netlify\.app$'
-    ])
+    CORS(
+        app,
+        supports_credentials=True,
+        origins=[
+            'http://localhost:5173',
+            'http://localhost:5174',
+            'https://impacttracker.netlify.app',
+            'https://silly-cuchufli-b154e2.netlify.app',
+            r'^https://.*--impacttracker\.netlify\.app$',
+        ],
+        methods=['GET', 'POST', 'OPTIONS'],
+        allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'],
+    )
     
     run_db_bootstrap = os.getenv('RUN_DB_BOOTSTRAP', '').strip().lower() in {'1', 'true', 'yes'}
 
@@ -368,7 +374,14 @@ def create_app(config_name='production'):
 
             asin_key = extract_asin_from_amazon_url(url)
             cached_calc = find_cached_emission_calculation(asin=asin_key, amazon_url=url, postcode=postcode)
-            if cached_calc and cached_calc.scraped_product:
+            _BAD_TITLES = {'amazon product', 'unknown product', 'unknown', ''}
+            _cache_usable = (
+                cached_calc
+                and cached_calc.scraped_product
+                and (cached_calc.scraped_product.title or '').strip().lower() not in _BAD_TITLES
+                and float(cached_calc.final_emission or 0) > 0
+            )
+            if _cache_usable:
                 cached_product = cached_calc.scraped_product
                 try:
                     cached_confidence_numeric = float(cached_calc.confidence_level or 0.7)
@@ -381,7 +394,7 @@ def create_app(config_name='production'):
                 else:
                     cached_origin_confidence = "low"
                 cached_attributes = {
-                    "material_type": cached_product.material or "Unknown",
+                    "material_type": cached_product.material or "Mixed",
                     "weight_kg": round(float(cached_product.weight or 0.5), 2),
                     "origin": cached_product.origin_country or "Unknown",
                     "country_of_origin": cached_product.origin_country or "Unknown",
@@ -453,7 +466,7 @@ def create_app(config_name='production'):
             
             # Material detection if needed
             material = product.get("material_type") or product.get("material")
-            if not material or material.lower() in ["unknown", "other", ""]:
+            if not material or material.lower() in ["unknown", "other", "", "not found", "n/a"]:
                 guessed = smart_guess_material(product.get("title", ""))
                 if guessed:
                     print(f"🧠 Guessed material: {guessed}")
