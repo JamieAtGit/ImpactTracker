@@ -71,9 +71,10 @@ def _load_estimation_dependencies():
     return _ESTIMATION_DEPS
 
 def _seed_products_from_csv():
-    """Populate the products table from CSV. Must be called from within an active app context."""
+    """Seed products table from CSV using a direct engine connection (bypasses session state)."""
     try:
         import pandas as pd
+        from sqlalchemy import text as _text
         dataset_path = os.path.join(BASE_DIR, 'common', 'data', 'csv', 'expanded_eco_dataset.csv')
         if not os.path.exists(dataset_path):
             print(f"⚠️ CSV not found at {dataset_path} — cannot seed products table.")
@@ -83,46 +84,54 @@ def _seed_products_from_csv():
         df = df.where(pd.notnull(df), None)
         expected = len(df)
 
-        existing = Product.query.count()
-        if existing >= int(expected * 0.99):
-            print(f"ℹ️ Products table already has {existing}/{expected} rows — skipping seed.")
-            return
+        with db.engine.connect() as conn:
+            existing = conn.execute(_text("SELECT COUNT(*) FROM products")).scalar() or 0
+            if existing >= int(expected * 0.99):
+                print(f"ℹ️ Products table already has {existing}/{expected} rows — skipping seed.")
+                return
 
-        if existing > 0:
-            print(f"⚠️ Partial seed detected ({existing}/{expected} rows). Clearing and re-seeding...")
-            Product.query.delete()
-            db.session.commit()
+            if existing > 0:
+                print(f"⚠️ Partial seed detected ({existing}/{expected} rows). Clearing and re-seeding...")
+                with conn.begin():
+                    conn.execute(_text("DELETE FROM products"))
 
-        records = df.to_dict(orient='records')
-        BATCH = 5000
-        total = len(records)
-        print(f"🌱 Seeding {total} products into DB from CSV...")
-        for i in range(0, total, BATCH):
-            batch = records[i:i + BATCH]
-            db.session.bulk_insert_mappings(Product, [
-                {
-                    'title': r.get('title'),
-                    'material': r.get('material'),
-                    'weight': r.get('weight'),
-                    'transport': r.get('transport'),
-                    'recyclability': r.get('recyclability'),
-                    'true_eco_score': r.get('true_eco_score'),
-                    'co2_emissions': r.get('co2_emissions'),
-                    'origin': r.get('origin'),
-                    'category': r.get('category'),
-                    'search_term': r.get('search_term'),
-                }
-                for r in batch
-            ])
-            db.session.commit()
-            print(f"  ✅ Inserted rows {i+1}–{min(i+BATCH, total)}")
-        print(f"🌱 Seeding complete — {total} products in DB.")
+            records = df.to_dict(orient='records')
+            BATCH = 5000
+            total = len(records)
+            print(f"🌱 Seeding {total} products into DB from CSV...")
+            for i in range(0, total, BATCH):
+                batch = records[i:i + BATCH]
+                with conn.begin():
+                    conn.execute(
+                        _text("""INSERT INTO products
+                            (title, material, weight, transport, recyclability,
+                             true_eco_score, co2_emissions, origin, category, search_term)
+                            VALUES
+                            (:title, :material, :weight, :transport, :recyclability,
+                             :true_eco_score, :co2_emissions, :origin, :category, :search_term)
+                        """),
+                        [
+                            {
+                                'title': r.get('title'),
+                                'material': r.get('material'),
+                                'weight': r.get('weight'),
+                                'transport': r.get('transport'),
+                                'recyclability': r.get('recyclability'),
+                                'true_eco_score': r.get('true_eco_score'),
+                                'co2_emissions': r.get('co2_emissions'),
+                                'origin': r.get('origin'),
+                                'category': r.get('category') or '',
+                                'search_term': r.get('search_term') or '',
+                            }
+                            for r in batch
+                        ]
+                    )
+                print(f"  ✅ Inserted rows {i+1}–{min(i+BATCH, total)}")
+            print(f"🌱 Seeding complete — {total} products in DB.")
     except Exception as e:
-        print(f"⚠️ Product seeding failed (non-fatal): {e}")
-        try:
-            db.session.rollback()
-        except Exception:
-            pass
+        print(f"⚠️ Product seeding failed: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 def create_app(config_name='production'):
@@ -377,7 +386,7 @@ def create_app(config_name='production'):
 
             asin_key = extract_asin_from_amazon_url(url)
             cached_calc = find_cached_emission_calculation(asin=asin_key, amazon_url=url, postcode=postcode)
-            _BAD_TITLES = {'amazon product', 'unknown product', 'unknown', ''}
+            _BAD_TITLES = {'amazon product', 'unknown product', 'consumer product', 'unknown', ''}
             _cache_usable = (
                 cached_calc
                 and cached_calc.scraped_product
@@ -456,8 +465,11 @@ def create_app(config_name='production'):
             print(f"🔍 Scraping URL: {url}")
             product = scrape_amazon_product_page(url)
             
-            if not product or product.get('title', 'Unknown Product') == 'Unknown Product':
-                return jsonify({"error": "Failed to scrape product data"}), 400
+            _BAD_SCRAPE_TITLES = {'unknown product', 'consumer product', 'amazon product', 'unknown', ''}
+            _scraped_title = (product.get('title') or '').strip().lower()
+            _quality = (product.get('quality_score') or 100)
+            if not product or _scraped_title in _BAD_SCRAPE_TITLES or _quality < 50:
+                return jsonify({"error": "Could not extract real product data from this URL. Amazon may be blocking the request — please try again in a moment."}), 400
                 
             print(f"✅ Scraper success: {product.get('title', '')[:50]}...")
             
