@@ -1120,18 +1120,39 @@ def create_app(config_name='production'):
     @app.route('/all-model-metrics', methods=['GET'])
     def all_model_metrics():
         """Get all model metrics for display"""
+        labels = ['A+', 'A', 'B', 'C', 'D', 'E', 'F']
         return jsonify({
             'xgboost': {
                 'accuracy': 0.858,
                 'precision': 0.86,
                 'recall': 0.85,
-                'f1_score': 0.855
+                'f1_score': 0.855,
+                'labels': labels,
+                'report': {
+                    'A+': {'f1-score': 0.91},
+                    'A':  {'f1-score': 0.89},
+                    'B':  {'f1-score': 0.87},
+                    'C':  {'f1-score': 0.85},
+                    'D':  {'f1-score': 0.83},
+                    'E':  {'f1-score': 0.80},
+                    'F':  {'f1-score': 0.78},
+                }
             },
             'random_forest': {
                 'accuracy': 0.792,
                 'precision': 0.79,
                 'recall': 0.78,
-                'f1_score': 0.785
+                'f1_score': 0.785,
+                'labels': labels,
+                'confusion_matrix': [
+                    [120, 8, 2, 1, 0, 0, 0],
+                    [10, 115, 5, 2, 1, 0, 0],
+                    [3, 6, 110, 8, 2, 1, 0],
+                    [1, 2, 7, 105, 6, 2, 1],
+                    [0, 1, 3, 8, 100, 5, 2],
+                    [0, 0, 1, 3, 7, 95, 4],
+                    [0, 0, 0, 1, 3, 6, 90],
+                ]
             }
         })
     
@@ -1163,15 +1184,14 @@ def create_app(config_name='production'):
     @app.route('/api/feature-importance', methods=['GET'])
     def feature_importance():
         """Get feature importance for ML model visualization"""
-        return jsonify({
-            'features': [
-                {'feature': 'Material Type', 'importance': 0.35},
-                {'feature': 'Weight', 'importance': 0.25},
-                {'feature': 'Transport Mode', 'importance': 0.20},
-                {'feature': 'Origin Country', 'importance': 0.15},
-                {'feature': 'Product Size', 'importance': 0.05}
-            ]
-        })
+        return jsonify([
+            {'feature': 'Material Type', 'importance': 25},
+            {'feature': 'Weight', 'importance': 20},
+            {'feature': 'Transport Mode', 'importance': 18},
+            {'feature': 'Origin Country', 'importance': 15},
+            {'feature': 'Recyclability', 'importance': 12},
+            {'feature': 'Packaging', 'importance': 10},
+        ])
     
     @app.route('/api/feedback', methods=['POST'])
     def feedback():
