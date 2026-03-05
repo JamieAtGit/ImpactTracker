@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useLocation } from "react-router-dom";
 import ModernLayout, { ModernCard, ModernSection, ModernButton, ModernInput } from "../components/ModernLayout";
 import Header from "../components/Header";
 import ProductImpactCard from "../components/ProductImpactCard";
@@ -15,6 +16,16 @@ export default function HomePage() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [showML, setShowML] = useState(false); // Default to comparison mode
+  const location = useLocation();
+
+  // Clear results when the user navigates to "/" (e.g. clicks the Home nav link)
+  useEffect(() => {
+    if (result) {
+      setResult(null);
+      setError("");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [location.key]);
 
   const handleSearch = async () => {
     setLoading(true);
