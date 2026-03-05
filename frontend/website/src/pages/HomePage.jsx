@@ -16,15 +16,17 @@ export default function HomePage() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [showML, setShowML] = useState(false); // Default to comparison mode
+  const [dashboardKey, setDashboardKey] = useState(0);
   const location = useLocation();
 
-  // Clear results when the user navigates to "/" (e.g. clicks the Home nav link)
+  // Clear results and refresh dashboard when the user navigates to "/"
   useEffect(() => {
     if (result) {
       setResult(null);
       setError("");
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
+    setDashboardKey((k) => k + 1);
   }, [location.key]);
 
   const handleSearch = async () => {
@@ -184,7 +186,7 @@ export default function HomePage() {
               icon={true}
               delay={0.4}
             >
-              <InsightsDashboard />
+              <InsightsDashboard refreshKey={dashboardKey} />
             </ModernSection>
 
             {/* Product Log */}

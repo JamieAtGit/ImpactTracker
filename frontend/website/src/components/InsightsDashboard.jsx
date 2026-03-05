@@ -67,7 +67,7 @@ const StatCard = ({ title, value, subtitle, color = "blue" }) => {
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-export default function InsightsDashboard() {
+export default function InsightsDashboard({ refreshKey = 0 }) {
   const [scoreData, setScoreData] = useState([]);
   const [materialData, setMaterialData] = useState([]);
   const [stats, setStats] = useState({
@@ -141,7 +141,7 @@ export default function InsightsDashboard() {
           })
           .catch(() => console.error("All dashboard endpoints failed"));
       });
-  }, []);
+  }, [refreshKey]);
 
   return (
     <div className="space-y-8">
