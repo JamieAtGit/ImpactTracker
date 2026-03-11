@@ -866,25 +866,125 @@ def create_app(config_name='production'):
     def predict_ml():
         """Direct ML prediction endpoint"""
         try:
+            import numpy as np
+            import joblib
+
+            # === Lazy load model if not already loaded ===
+            if not (hasattr(app, 'xgb_model') and app.xgb_model):
+                try:
+                    app.xgb_model = joblib.load(os.path.join(model_dir, "eco_model.pkl"))
+                    print("✅ Lazy-loaded eco_model.pkl for /predict")
+                except Exception:
+                    try:
+                        import xgboost as xgb
+                        m = xgb.XGBClassifier()
+                        m.load_model(os.path.join(model_dir, "xgb_model.json"))
+                        app.xgb_model = m
+                        print("✅ Lazy-loaded xgb_model.json for /predict")
+                    except Exception as e:
+                        return jsonify({'error': f'Failed to load ML model: {str(e)}'}), 500
+
+            # === Lazy load label encoder ===
+            if not hasattr(app, 'label_encoder') or app.label_encoder is None:
+                try:
+                    app.label_encoder = joblib.load(os.path.join(encoders_dir, 'label_encoder.pkl'))
+                except Exception:
+                    class _FallbackLabelEncoder:
+                        classes_ = ["A+", "A", "B", "C", "D", "E", "F"]
+                        def inverse_transform(self, indices):
+                            return [self.classes_[min(int(i), len(self.classes_) - 1)] for i in indices]
+                    app.label_encoder = _FallbackLabelEncoder()
+
+            # === Lazy load feature encoders ===
+            if not app.encoders:
+                encoders = {}
+                for enc_name, filename in [
+                    ('material_encoder', 'material_encoder.pkl'),
+                    ('transport_encoder', 'transport_encoder.pkl'),
+                    ('recycle_encoder', 'recycle_encoder.pkl'),
+                    ('origin_encoder', 'origin_encoder.pkl'),
+                ]:
+                    try:
+                        encoders[enc_name] = joblib.load(os.path.join(encoders_dir, filename))
+                    except Exception:
+                        pass
+                app.encoders = encoders
+
             data = request.get_json()
-            
-            # Prepare features for ML model
-            features = prepare_ml_features(data, app.encoders)
-            
-            if hasattr(app, 'xgb_model') and app.xgb_model:
-                prediction = app.xgb_model.predict([features])[0]
-                prediction_proba = app.xgb_model.predict_proba([features])[0]
-                
-                return jsonify({
-                    'success': True,
-                    'prediction': prediction,
-                    'confidence': float(max(prediction_proba)),
-                    'method': 'XGBoost'
-                })
+
+            # === Helper functions ===
+            def normalize(val, default):
+                return str(val).strip() if val else default
+
+            def safe_encode(value, encoder, default):
+                if encoder is None:
+                    return 0
+                try:
+                    return encoder.transform([value])[0]
+                except Exception:
+                    try:
+                        return encoder.transform([default])[0]
+                    except Exception:
+                        return 0
+
+            # === Extract and encode features ===
+            material = normalize(data.get('material'), 'Other')
+            weight = float(data.get('weight') or 1.0)
+            recyclability = normalize(data.get('recyclability'), 'Medium')
+            origin = normalize(data.get('origin'), 'Other')
+
+            distance_km = float(data.get('distance_origin_to_uk') or 0)
+            override_transport = normalize(data.get('override_transport_mode') or data.get('transport'), '')
+            if override_transport in ['Truck', 'Ship', 'Air', 'Land']:
+                transport = override_transport
+            elif distance_km > 7000:
+                transport = 'Ship'
+            elif distance_km > 2000:
+                transport = 'Air'
             else:
-                return jsonify({'error': 'ML model not available'}), 500
-                
+                transport = 'Land'
+
+            material_encoded = safe_encode(material, app.encoders.get('material_encoder'), 'Other')
+            transport_encoded = safe_encode(transport, app.encoders.get('transport_encoder'), 'Land')
+            recycle_encoded = safe_encode(recyclability, app.encoders.get('recycle_encoder'), 'Medium')
+            origin_encoded = safe_encode(origin, app.encoders.get('origin_encoder'), 'Other')
+            weight_log = np.log1p(weight)
+            weight_bin = 0 if weight < 0.5 else 1 if weight < 2 else 2 if weight < 10 else 3
+
+            X = [[material_encoded, transport_encoded, recycle_encoded, origin_encoded, weight_log, weight_bin]]
+
+            # === Predict ===
+            prediction = app.xgb_model.predict(X)
+            decoded_score = app.label_encoder.inverse_transform([prediction[0]])[0]
+
+            confidence = 0.0
+            if hasattr(app.xgb_model, 'predict_proba'):
+                proba = app.xgb_model.predict_proba(X)
+                confidence = round(float(np.max(proba[0])) * 100, 1)
+
+            print(f"🧠 Predicted: {decoded_score} ({confidence}%)")
+
+            return jsonify({
+                'predicted_label': decoded_score,
+                'confidence': f'{confidence}%',
+                'raw_input': {
+                    'material': material,
+                    'weight': weight,
+                    'transport': transport,
+                    'recyclability': recyclability,
+                    'origin': origin,
+                },
+                'encoded_input': {
+                    'material': int(material_encoded),
+                    'transport': int(transport_encoded),
+                    'recyclability': int(recycle_encoded),
+                    'origin': int(origin_encoded),
+                    'weight_bin': int(weight_bin),
+                },
+            })
+
         except Exception as e:
+            print(f"❌ Error in /predict: {e}")
             return jsonify({'error': str(e)}), 500
     
     @app.route('/admin/products', methods=['GET'])
