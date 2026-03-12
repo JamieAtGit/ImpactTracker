@@ -951,7 +951,10 @@ def create_app(config_name='production'):
             weight_log = np.log1p(weight)
             weight_bin = 0 if weight < 0.5 else 1 if weight < 2 else 2 if weight < 10 else 3
 
-            X = [[material_encoded, transport_encoded, recycle_encoded, origin_encoded, weight_log, weight_bin]]
+            material_transport = float(material_encoded) * float(transport_encoded)
+            origin_recycle = float(origin_encoded) * float(recycle_encoded)
+
+            X = [[material_encoded, transport_encoded, recycle_encoded, origin_encoded, weight_log, weight_bin, material_transport, origin_recycle]]
 
             # === Predict ===
             prediction = app.xgb_model.predict(X)
