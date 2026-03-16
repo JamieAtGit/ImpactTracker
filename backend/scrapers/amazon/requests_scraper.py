@@ -573,8 +573,11 @@ class RequestsScraper:
         # Glass/Ceramic/Stone are last because single words like "glass" appear
         # in unrelated page content (reviews, cross-sells, etc.). Genuine glass
         # products always mention "glass" in their title and are caught above.
+        # Mixed (electronics) is intentionally excluded from page-text scan —
+        # electronics keywords like 'device'/'phone' appear on every Amazon page
+        # in navigation and cross-sells. Electronics always say so in their title.
         text_scan_order = [
-            'Mixed', 'Metal', 'Fabric', 'Leather', 'Wood', 'Rubber',
+            'Metal', 'Fabric', 'Leather', 'Wood', 'Rubber',
             'Plastic', 'Paper', 'Ceramic', 'Stone', 'Glass',
         ]
         text_lower = text.lower()

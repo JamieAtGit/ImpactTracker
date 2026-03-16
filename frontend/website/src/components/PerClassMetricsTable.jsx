@@ -120,7 +120,12 @@ export default function PerClassMetricsTable() {
   const gradeOrder = ["A+", "A", "B", "C", "D", "E", "F"];
   classEntries.sort(([a], [b]) => gradeOrder.indexOf(a) - gradeOrder.indexOf(b));
 
-  const macroAvg = xgb.report["macro avg"];
+  // Backend filters out 'macro avg' from the report — compute it from class entries
+  const macroAvg = xgb.report["macro avg"] ?? (() => {
+    const vals = classEntries.map(([, m]) => m);
+    const avg = (key) => vals.reduce((s, m) => s + (m[key] || 0), 0) / (vals.length || 1);
+    return { precision: avg("precision"), recall: avg("recall"), "f1-score": avg("f1-score"), support: vals.reduce((s, m) => s + (m.support || 0), 0) };
+  })();
 
   return (
     <div className="space-y-10">
