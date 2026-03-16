@@ -569,21 +569,29 @@ class RequestsScraper:
             if any(kw in title_lower for kw in keywords):
                 return material
 
-        # Fall back to full page text — use a safer priority order.
-        # Glass/Ceramic/Stone are last because single words like "glass" appear
-        # in unrelated page content (reviews, cross-sells, etc.). Genuine glass
-        # products always mention "glass" in their title and are caught above.
-        # Mixed (electronics) is intentionally excluded from page-text scan —
-        # electronics keywords like 'device'/'phone' appear on every Amazon page
-        # in navigation and cross-sells. Electronics always say so in their title.
+        # Fall back to full page text with two rules:
+        # 1. Order from most distinctive to least — specific compound terms first.
+        # 2. Metal uses COMPOUND-ONLY keywords for text scan. Single words like
+        #    'iron', 'chrome', 'nickel', 'copper' appear on every Amazon page
+        #    (reviews, cross-sells, pool chemistry, "chrome extension", etc.).
+        #    Genuine metal products always use phrases like "stainless steel" or
+        #    "cast iron" — those are unambiguous in any context.
+        # 3. Mixed (electronics) is excluded — 'device'/'phone' appear in nav/cross-sells.
+        text_metal_keywords = [
+            'stainless steel', 'cast iron', 'carbon steel', 'wrought iron',
+            'aluminium alloy', 'aluminum alloy', 'galvanised steel', 'galvanized steel',
+            'mild steel', 'high carbon', 'tool steel', 'spring steel',
+        ]
         text_scan_order = [
-            'Metal', 'Fabric', 'Leather', 'Wood', 'Rubber',
-            'Plastic', 'Paper', 'Ceramic', 'Stone', 'Glass',
+            'Paper', 'Leather', 'Rubber', 'Wood', 'Ceramic',
+            'Fabric', 'Plastic', 'Stone', 'Glass',
         ]
         text_lower = text.lower()
         for material in text_scan_order:
             if material in materials and any(kw in text_lower for kw in materials[material]):
                 return material
+        if any(kw in text_lower for kw in text_metal_keywords):
+            return 'Metal'
 
         return 'Unknown'
     
