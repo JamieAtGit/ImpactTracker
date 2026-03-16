@@ -187,10 +187,15 @@ class RequestsScraper:
         try:
             # Random delay
             time.sleep(random.uniform(2, 5))
-            
+
             headers = self.get_headers()
-            response = self.session.get(clean_url, headers=headers, timeout=15)
-            
+            scraperapi_key = os.environ.get('SCRAPERAPI_KEY')
+            if scraperapi_key:
+                proxy_url = f"http://api.scraperapi.com?api_key={scraperapi_key}&url={clean_url}&country_code=gb"
+                response = self.session.get(proxy_url, timeout=60)
+            else:
+                response = self.session.get(clean_url, headers=headers, timeout=15)
+
             print(f"📡 Response: {response.status_code}")
             
             if response.status_code == 200:
