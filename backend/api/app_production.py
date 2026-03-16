@@ -700,12 +700,16 @@ def create_app(config_name='production'):
                 'Cardboard':  80,
                 'Wood':       70,   # Biodegradable/recyclable
                 'Bamboo':     70,
+                'Ceramic':    60,   # Recyclable but limited infrastructure
+                'Stone':      25,   # Natural material, rarely recycled
                 'Fabric':     40,   # Limited infrastructure
                 'Cotton':     40,
+                'Leather':    10,   # Very difficult to recycle
+                'Rubber':     30,   # Some recycling routes (e.g. tyres) but limited
+                'Silicone':   20,   # Technically recyclable but rarely is
                 'Plastic':    20,   # ~9% of all plastic ever produced has been recycled
                 'Polyester':  15,
-                'Rubber':     15,
-                'Mixed':      15,   # Hard to separate
+                'Mixed':      15,   # Hard to separate components
                 'Electronic': 15,
             }
             recyclability_pct = _recyclability_rates.get(material, 50)

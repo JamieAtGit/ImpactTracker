@@ -243,23 +243,43 @@ origin_hubs = {
     "Greece": {"lat": 37.9755, "lon": 23.7348, "city": "Athens", "region": "Europe"},
     "Turkey": {"lat": 39.9334, "lon": 32.8597, "city": "Ankara", "region": "Europe"},
     
-    # 🌎 Americas  
+    # 🌍 Middle East
+    "UAE": {"lat": 25.2048, "lon": 55.2708, "city": "Dubai", "region": "Middle East"},
+    "Saudi Arabia": {"lat": 24.6877, "lon": 46.7219, "city": "Riyadh", "region": "Middle East"},
+    "Israel": {"lat": 32.0853, "lon": 34.7818, "city": "Tel Aviv", "region": "Middle East"},
+    "Iran": {"lat": 35.6892, "lon": 51.3890, "city": "Tehran", "region": "Middle East"},
+
+    # 🌎 Americas
     "USA": {"lat": 39.0458, "lon": -76.6413, "city": "Baltimore", "region": "North America"},
     "Canada": {"lat": 43.6532, "lon": -79.3832, "city": "Toronto", "region": "North America"},
     "Mexico": {"lat": 19.4326, "lon": -99.1332, "city": "Mexico City", "region": "North America"},
+    "Honduras": {"lat": 14.0723, "lon": -87.1921, "city": "Tegucigalpa", "region": "Central America"},
+    "El Salvador": {"lat": 13.6929, "lon": -89.2182, "city": "San Salvador", "region": "Central America"},
+    "Guatemala": {"lat": 14.6349, "lon": -90.5069, "city": "Guatemala City", "region": "Central America"},
+    "Colombia": {"lat": 4.7110, "lon": -74.0721, "city": "Bogota", "region": "South America"},
+    "Peru": {"lat": -12.0464, "lon": -77.0428, "city": "Lima", "region": "South America"},
     "Brazil": {"lat": -23.5505, "lon": -46.6333, "city": "Sao Paulo", "region": "South America"},
-    
+    "Argentina": {"lat": -34.6037, "lon": -58.3816, "city": "Buenos Aires", "region": "South America"},
+    "Chile": {"lat": -33.4489, "lon": -70.6693, "city": "Santiago", "region": "South America"},
+
     # 🌍 Africa
     "South Africa": {"lat": -26.2041, "lon": 28.0473, "city": "Johannesburg", "region": "Africa"},
     "Nigeria": {"lat": 6.5244, "lon": 3.3792, "city": "Lagos", "region": "Africa"},
     "Egypt": {"lat": 30.0444, "lon": 31.2357, "city": "Cairo", "region": "Africa"},
     "Kenya": {"lat": -1.2921, "lon": 36.8219, "city": "Nairobi", "region": "Africa"},
     "Morocco": {"lat": 33.9716, "lon": -6.8498, "city": "Rabat", "region": "Africa"},
+    "Tunisia": {"lat": 36.8190, "lon": 10.1658, "city": "Tunis", "region": "Africa"},
     "Ghana": {"lat": 5.6037, "lon": -0.1870, "city": "Accra", "region": "Africa"},
     "Ethiopia": {"lat": 9.1450, "lon": 40.4897, "city": "Addis Ababa", "region": "Africa"},
     "Tanzania": {"lat": -6.7924, "lon": 39.2083, "city": "Dar es Salaam", "region": "Africa"},
     "Uganda": {"lat": 0.3476, "lon": 32.5825, "city": "Kampala", "region": "Africa"},
     "Zimbabwe": {"lat": -17.8252, "lon": 31.0335, "city": "Harare", "region": "Africa"},
+    "Mauritius": {"lat": -20.1609, "lon": 57.4977, "city": "Port Louis", "region": "Africa"},
+    "Madagascar": {"lat": -18.8792, "lon": 47.5079, "city": "Antananarivo", "region": "Africa"},
+
+    # 🌏 Central Asia
+    "Uzbekistan": {"lat": 41.2995, "lon": 69.2401, "city": "Tashkent", "region": "Central Asia"},
+    "Kazakhstan": {"lat": 51.1801, "lon": 71.4460, "city": "Astana", "region": "Central Asia"},
 }
 uk_hub = {"lat": 51.8821, "lon": -0.5057, "city": "Dunstable"}
 
@@ -346,7 +366,7 @@ known_brand_origins = {
 
     # Kitchen/Cookware brands
     "zwilling": "Germany",
-    "henckels": "Germany", 
+    "henckels": "Germany",
     "wusthof": "Germany",
     "fissler": "Germany",
     "wmf": "Germany",
@@ -355,6 +375,110 @@ known_brand_origins = {
     "global": "Japan",
     "shun": "Japan",
     "miyabi": "Japan",
+    "ninja": "USA",
+    "instant pot": "USA",
+    "vitamix": "USA",
+    "nespresso": "Switzerland",
+    "de'longhi": "Italy",
+    "delonghi": "Italy",
+    "breville": "Australia",
+    "sage": "Australia",
+
+    # Audio & electronics
+    "bose": "USA",
+    "sennheiser": "Germany",
+    "beyerdynamic": "Germany",
+    "akg": "Austria",
+    "bang & olufsen": "Denmark",
+    "jabra": "Denmark",
+    "marshall": "UK",
+    "harman": "USA",
+    "skullcandy": "USA",
+    "beats": "USA",
+    "canon": "Japan",
+    "nikon": "Japan",
+    "fujifilm": "Japan",
+    "olympus": "Japan",
+    "epson": "Japan",
+    "brother": "Japan",
+    "dell": "USA",
+    "hp": "USA",
+    "intel": "USA",
+    "amd": "USA",
+    "western digital": "USA",
+    "seagate": "USA",
+    "kingston": "USA",
+    "corsair": "USA",
+    "razer": "USA",
+    "acer": "Taiwan",
+    "msi": "Taiwan",
+    "gigabyte": "Taiwan",
+    "tp-link": "China",
+    "dji": "China",
+    "oneplus": "China",
+    "realme": "China",
+
+    # Power tools & DIY
+    "dewalt": "USA",
+    "makita": "Japan",
+    "milwaukee": "USA",
+    "black & decker": "USA",
+    "black and decker": "USA",
+    "stanley": "USA",
+    "ryobi": "Japan",
+    "karcher": "Germany",
+    "kärcher": "Germany",
+    "gardena": "Germany",
+    "husqvarna": "Sweden",
+    "flymo": "Sweden",
+
+    # Sports & outdoors
+    "the north face": "USA",
+    "columbia": "USA",
+    "patagonia": "USA",
+    "arc'teryx": "Canada",
+    "arcteryx": "Canada",
+    "lululemon": "Canada",
+    "asics": "Japan",
+    "mizuno": "Japan",
+    "yonex": "Japan",
+    "callaway": "USA",
+    "titleist": "USA",
+    "wilson": "USA",
+    "head": "Austria",
+    "salomon": "France",
+    "babolat": "France",
+
+    # Beauty & health
+    "l'oreal": "France",
+    "loreal": "France",
+    "neutrogena": "USA",
+    "nivea": "Germany",
+    "dove": "UK",
+    "gillette": "USA",
+    "oral-b": "Germany",
+    "braun": "Germany",
+    "philips sonicare": "Netherlands",
+    "colgate": "USA",
+
+    # Automotive & bike
+    "michelin": "France",
+    "continental": "Germany",
+    "goodyear": "USA",
+    "halfords": "UK",
+    "shimano": "Japan",
+    "garmin": "USA",
+
+    # Stationery & art
+    "bic": "France",
+    "staedtler": "Germany",
+    "faber-castell": "Germany",
+    "pentel": "Japan",
+    "pilot": "Japan",
+    "uni": "Japan",
+    "leuchtturm1917": "Germany",
+    "moleskine": "Italy",
+    "stabilo": "Germany",
 
 }
 
