@@ -49,10 +49,22 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
+const GRADE_ORDER = ['F', 'E', 'D', 'C', 'B', 'A', 'A+'];
+
+function gradeIndex(grade) {
+  return GRADE_ORDER.indexOf(grade?.toString().toUpperCase());
+}
+
+function gradeDifference(standardGrade, mlGrade) {
+  const si = gradeIndex(standardGrade);
+  const mi = gradeIndex(mlGrade);
+  if (si < 0 || mi < 0) return null;
+  return si - mi; // positive = standard is higher (more optimistic)
+}
+
 export default function MLvsDEFRAChart({ showML, result }) {
-  const [reduction, setReduction] = useState(null);
   const [animationKey, setAnimationKey] = useState(0);
-  
+
   // Extract data from result object
   const attributes = result?.attributes || {};
   const mlScore = attributes.eco_score_ml;
@@ -113,21 +125,9 @@ export default function MLvsDEFRAChart({ showML, result }) {
     return data;
   }, [mlScore, defrScore, showML, mlConfidence]);
 
-  // Enhanced grade comparison calculation
+  // Trigger re-animation on data change
   useEffect(() => {
-    if (!showML && mlScore && defrScore) {
-      const mlNumeric = gradeToNumeric(mlScore);
-      const defrNumeric = gradeToNumeric(defrScore);
-      if (mlNumeric > defrNumeric && defrNumeric > 0) {
-        const improvement = ((mlNumeric - defrNumeric) / defrNumeric) * 100;
-        setReduction(Number.isFinite(improvement) ? improvement.toFixed(1) : null);
-      } else {
-        setReduction(null);
-      }
-    } else {
-      setReduction(null);
-    }
-    setAnimationKey(prev => prev + 1); // Trigger re-animation
+    setAnimationKey(prev => prev + 1);
   }, [mlScore, defrScore, showML]);
 
   // Error handling for missing data
@@ -148,19 +148,8 @@ export default function MLvsDEFRAChart({ showML, result }) {
     );
   }
 
-  // Determine which method performs better
-  const getBetterMethod = () => {
-    if (chartData.length === 2) {
-      const defra = chartData.find(d => d.name === "Government Baseline");
-      const ml = chartData.find(d => d.name === "AI Prediction");
-      if (defra && ml) {
-        return ml.value < defra.value ? "AI" : "Government";
-      }
-    }
-    return null;
-  };
-
-  const betterMethod = getBetterMethod();
+  // Grade difference between methods (positive = standard more optimistic than AI)
+  const diff = !showML ? gradeDifference(defrScore, mlScore) : null;
 
   return (
     <motion.div 
@@ -175,13 +164,14 @@ export default function MLvsDEFRAChart({ showML, result }) {
           <h3 className="text-xl font-display text-slate-200">
             📊 Methodology Comparison
           </h3>
-          {betterMethod && (
-            <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-              betterMethod === "AI" 
-                ? "bg-green-500/20 text-green-400 border border-green-500/30" 
-                : "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-            }`}>
-              {betterMethod === "AI" ? "⚡ AI Optimized" : "📊 Standard Calculation"}
+          {diff !== null && diff === 0 && (
+            <div className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30">
+              ✓ Methods agree
+            </div>
+          )}
+          {diff !== null && diff !== 0 && (
+            <div className="px-3 py-1 rounded-full text-xs font-medium bg-slate-700/50 text-slate-300 border border-slate-500/30">
+              {Math.abs(diff) === 1 ? "1 grade apart" : `${Math.abs(diff)} grades apart`}
             </div>
           )}
         </div>
@@ -246,47 +236,51 @@ export default function MLvsDEFRAChart({ showML, result }) {
             <span className="text-sm text-slate-400">AI Model Score:</span>
             <span className="text-lg font-bold text-cyan-300">{mlScore || "N/A"}</span>
           </div>
-          
-          {chartData.length === 2 && (
+
+          {!showML && defrScore && (
             <div className="flex justify-between items-center">
-              <span className="text-sm text-slate-400">Difference:</span>
-              <span className={`text-lg font-bold ${
-                parseFloat(reduction) > 0 ? "text-green-400" : "text-red-400"
-              }`}>
-                {Math.abs(parseFloat(reduction))}% {parseFloat(reduction) > 0 ? "lower" : "higher"}
-              </span>
+              <span className="text-sm text-slate-400">Standard Method:</span>
+              <span className="text-lg font-bold text-blue-300">{defrScore}</span>
             </div>
           )}
         </div>
-        
-        {reduction && !showML && (
-          <motion.div 
-            className={`flex items-center gap-3 p-4 rounded-lg border ${
-              parseFloat(reduction) > 0 
-                ? "bg-green-500/10 border-green-500/30" 
-                : "bg-red-500/10 border-red-500/30"
-            }`}
+
+        {/* Grade comparison insight */}
+        {diff !== null && !showML && (
+          <motion.div
+            className="flex items-center gap-3 p-4 rounded-lg border bg-slate-800/40 border-slate-600/30"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3, duration: 0.4 }}
           >
-            <span className={parseFloat(reduction) > 0 ? "text-green-400" : "text-red-400"} style={{fontSize: "1.2em"}}>
-              {parseFloat(reduction) > 0 ? "🌱" : "⚠️"}
+            <span style={{ fontSize: "1.2em" }}>
+              {diff === 0 ? "✅" : diff > 0 ? "🔍" : "🌱"}
             </span>
             <div>
-              <p className="text-sm text-slate-300 font-medium">
-                AI model predicts <span className={`font-bold ${
-                  parseFloat(reduction) > 0 ? "text-green-400" : "text-red-400"
-                }`}>{Math.abs(parseFloat(reduction))}%</span> {
-                  parseFloat(reduction) > 0 ? "lower" : "higher"
-                } emissions than government baseline
-              </p>
-              <p className="text-xs text-slate-400 mt-1">
-                {parseFloat(reduction) > 0 
-                  ? "More accurate prediction suggests better environmental impact"
-                  : "Government standards may be underestimating emissions"
-                }
-              </p>
+              {diff === 0 ? (
+                <>
+                  <p className="text-sm text-slate-300 font-medium">Both methods give the same grade</p>
+                  <p className="text-xs text-slate-400 mt-1">The rule-based formula and ML model agree on this product's impact</p>
+                </>
+              ) : diff > 0 ? (
+                <>
+                  <p className="text-sm text-slate-300 font-medium">
+                    Standard method rates this <span className="font-bold text-blue-300">{Math.abs(diff) === 1 ? "one grade" : `${Math.abs(diff)} grades`} higher</span> than the AI model
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    The rule-based formula is more optimistic — the ML model may account for factors the simple weight × distance formula misses
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-slate-300 font-medium">
+                    AI model rates this <span className="font-bold text-cyan-300">{Math.abs(diff) === 1 ? "one grade" : `${Math.abs(diff)} grades`} higher</span> than the standard method
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    The ML model is more optimistic — it may be recognising patterns associated with lower-impact products
+                  </p>
+                </>
+              )}
             </div>
           </motion.div>
         )}
@@ -294,7 +288,7 @@ export default function MLvsDEFRAChart({ showML, result }) {
         {/* Methodology note for single model view */}
         {showML && (
           <div className="text-sm text-slate-400 text-center p-3 bg-slate-800/30 rounded-lg">
-            💡 Toggle comparison mode to see AI prediction vs government baseline methodology
+            💡 Toggle comparison mode to see AI prediction vs standard calculation method
           </div>
         )}
       </div>

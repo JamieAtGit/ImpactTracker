@@ -532,7 +532,7 @@ class RequestsScraper:
             'Glass':    ['glass', 'crystal', 'borosilicate', 'tempered glass', 'stained glass'],
             'Ceramic':  ['ceramic', 'porcelain', 'terracotta', 'stoneware', 'earthenware',
                          'pottery', 'clay', 'bisque'],
-            'Stone':    ['marble', 'granite', 'slate', 'quartz', 'sandstone',
+            'Stone':    ['marble', 'granite', 'slate', 'quartz stone', 'quartz countertop', 'sandstone',
                          'limestone', 'travertine'],
             'Wood':     ['wood', 'wooden', 'timber', 'bamboo', 'acacia', 'oak', 'pine',
                          'teak', 'walnut', 'mahogany', 'birch', 'cedar', 'rattan',
