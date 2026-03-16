@@ -647,14 +647,14 @@ def create_app(config_name='production'):
                     ml_co2 = float(ml_prediction) * weight
                 else:
                     # Fallback calculation
-                    ml_co2 = weight * (mode_factor * origin_distance_km)
-                    
+                    ml_co2 = weight * (mode_factor * origin_distance_km) / 1000
+
             except Exception as e:
                 print(f"ML prediction error: {e}")
-                ml_co2 = weight * (mode_factor * origin_distance_km)
-            
+                ml_co2 = weight * (mode_factor * origin_distance_km) / 1000
+
             # Rule-based calculation
-            transport_co2 = weight * mode_factor * origin_distance_km
+            transport_co2 = weight * mode_factor * origin_distance_km / 1000
             material_intensity = {"Plastic": 2.5, "Steel": 3.0, "Paper": 1.2, 
                                 "Glass": 1.5, "Wood": 0.8, "Other": 2.0}.get(material, 2.0)
             material_co2 = weight * material_intensity

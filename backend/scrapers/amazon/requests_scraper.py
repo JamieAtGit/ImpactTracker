@@ -525,23 +525,30 @@ class RequestsScraper:
         return 1.0  # Default weight
     
     def detect_material(self, title: str, text: str) -> str:
-        """Detect material type"""
-        combined_text = (title + " " + text).lower()
-        
+        """Detect material type — checks title first to avoid false positives from page text."""
+        title_lower = title.lower()
+
         materials = {
-            'Plastic': ['plastic', 'polymer', 'container', 'bottle', 'tub'],
-            'Metal': ['metal', 'steel', 'aluminum', 'iron'],
-            'Glass': ['glass', 'crystal'],
-            'Paper': ['paper', 'cardboard', 'book'],
-            'Fabric': ['fabric', 'cotton', 'polyester', 'clothing'],
-            'Wood': ['wood', 'wooden', 'timber'],
-            'Mixed': ['electronic', 'device', 'phone', 'laptop']
+            'Glass':   ['glass', 'crystal'],
+            'Wood':    ['wood', 'wooden', 'timber', 'bamboo', 'acacia', 'oak', 'pine'],
+            'Metal':   ['metal', 'steel', 'aluminum', 'aluminium', 'stainless', 'iron'],
+            'Paper':   ['paper', 'cardboard', 'book'],
+            'Fabric':  ['fabric', 'cotton', 'polyester', 'clothing', 'textile'],
+            'Plastic': ['plastic', 'polymer', 'polypropylene', 'polyethylene'],
+            'Mixed':   ['electronic', 'device', 'phone', 'laptop']
         }
-        
+
+        # Check title first — more reliable signal
         for material, keywords in materials.items():
-            if any(keyword in combined_text for keyword in keywords):
+            if any(kw in title_lower for kw in keywords):
                 return material
-        
+
+        # Fall back to full page text
+        text_lower = text.lower()
+        for material, keywords in materials.items():
+            if any(kw in text_lower for kw in keywords):
+                return material
+
         return 'Unknown'
     
     def estimate_origin(self, brand: str) -> str:
