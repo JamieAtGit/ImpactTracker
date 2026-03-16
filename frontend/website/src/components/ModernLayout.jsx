@@ -44,13 +44,14 @@ const ModernContainer = ({ children, className = "" }) => {
 const ModernCard = ({ children, className = "", hover = false, solid = false, ...props }) => {
   const cardClass = solid ? "glass-card-solid" : "glass-card";
   const hoverClass = hover ? "card-hover" : "";
-  
+
   return (
     <motion.div
       className={`${cardClass} ${hoverClass} p-6 ${className}`}
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
+      initial={{ opacity: 0, scale: 0.98 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
       {...props}
     >
       {children}
@@ -63,24 +64,20 @@ const ModernSection = ({ children, title, icon, className = "", delay = 0 }) => 
   return (
     <motion.section
       className={`mb-12 ${className}`}
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay, ease: "easeOut" }}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
     >
       {title && (
-        <motion.div
-          className="flex items-center gap-3 mb-6"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: delay + 0.2 }}
-        >
+        <div className="flex items-center gap-3 mb-6">
           {icon && (
             <span className="status-indicator status-success"></span>
           )}
           <h2 className="text-2xl font-display text-slate-200">
             {title}
           </h2>
-        </motion.div>
+        </div>
       )}
       {children}
     </motion.section>

@@ -564,15 +564,22 @@ class RequestsScraper:
                          'qled', 'oled', 'smart home', 'smart plug', 'smart bulb'],
         }
 
-        # Check title first — more reliable signal
+        # Check title first — most reliable signal
         for material, keywords in materials.items():
             if any(kw in title_lower for kw in keywords):
                 return material
 
-        # Fall back to full page text
+        # Fall back to full page text — use a safer priority order.
+        # Glass/Ceramic/Stone are last because single words like "glass" appear
+        # in unrelated page content (reviews, cross-sells, etc.). Genuine glass
+        # products always mention "glass" in their title and are caught above.
+        text_scan_order = [
+            'Mixed', 'Metal', 'Fabric', 'Leather', 'Wood', 'Rubber',
+            'Plastic', 'Paper', 'Ceramic', 'Stone', 'Glass',
+        ]
         text_lower = text.lower()
-        for material, keywords in materials.items():
-            if any(kw in text_lower for kw in keywords):
+        for material in text_scan_order:
+            if material in materials and any(kw in text_lower for kw in materials[material]):
                 return material
 
         return 'Unknown'

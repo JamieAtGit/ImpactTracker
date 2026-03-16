@@ -661,14 +661,14 @@ export default function LearnPage() {
             </ModernSection>
 
             {/* SMOTE Class Balance */}
-            <ModernSection title="Class Imbalance &amp; SMOTE Resampling" icon delay={0.45} className="mt-32">
+            <ModernSection title="Class Imbalance & SMOTE Resampling" icon delay={0.45} className="mt-32">
               <ModernCard solid className="p-8">
                 <SmoteSection />
               </ModernCard>
             </ModernSection>
 
             {/* Per-Class XGBoost Metrics + Confusion Matrices */}
-            <ModernSection title="Per-Class Performance &amp; Confusion Matrices" icon delay={0.5} className="mt-32">
+            <ModernSection title="Per-Class Performance & Confusion Matrices" icon delay={0.5} className="mt-32">
               <ModernCard solid className="p-8">
                 <PerClassMetricsTable />
               </ModernCard>
@@ -843,7 +843,7 @@ export default function LearnPage() {
             </ModernSection>
 
             {/* Limitations */}
-            <ModernSection title="Limitations &amp; Scope" icon delay={0.8} className="mt-32">
+            <ModernSection title="Limitations & Scope" icon delay={0.8} className="mt-32">
               <ModernCard solid className="p-8">
                 <LimitationsSection />
               </ModernCard>
