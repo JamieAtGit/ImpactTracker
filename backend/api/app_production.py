@@ -604,7 +604,7 @@ def create_app(config_name='production'):
                         
                 if distance_km < 1500:
                     return "Truck", 0.15
-                elif distance_km < 15000:
+                elif distance_km < 20000:
                     return "Ship", 0.03
                 else:
                     return "Air", 0.5
