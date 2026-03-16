@@ -413,9 +413,14 @@ def create_app(config_name='production'):
                         "attributes": cached_attributes,
                         "environmental_metrics": {
                             "carbon_footprint": round(cached_total, 2),
-                            "recyclability_score": 30,
+                            "recyclability_score": {
+                                'Glass': 90, 'Aluminum': 85, 'Steel': 85, 'Metal': 85,
+                                'Paper': 80, 'Cardboard': 80, 'Wood': 70, 'Bamboo': 70,
+                                'Fabric': 40, 'Cotton': 40, 'Plastic': 20,
+                                'Mixed': 15, 'Electronic': 15,
+                            }.get(cached_product.material, 50),
                             "eco_score": calculate_eco_score(cached_total, "Medium", cached_distance, cached_weight),
-                            "efficiency": "22%"
+                            "efficiency": None
                         },
                         "recommendations": [
                             "Consider products made from recycled materials",
@@ -803,9 +808,9 @@ def create_app(config_name='production'):
                     "attributes": attributes,
                     "environmental_metrics": {
                         "carbon_footprint": round(total_co2, 2),
-                        "recyclability_score": 30,
+                        "recyclability_score": recyclability_pct,
                         "eco_score": eco_score_ml,
-                        "efficiency": "22%"
+                        "efficiency": None
                     },
                     "recommendations": [
                         "Consider products made from recycled materials",
@@ -1162,7 +1167,7 @@ def create_app(config_name='production'):
                 'recent_calculations': [
                     {
                         'id': calc.id,
-                        'co2_estimate': calc.co2_estimate,
+                        'co2_estimate': float(calc.final_emission) if calc.final_emission else None,
                         'created_at': calc.created_at.isoformat() if calc.created_at else None
                     } for calc in recent_calculations
                 ]
@@ -1214,7 +1219,7 @@ def create_app(config_name='production'):
             
             return jsonify([{
                 'id': sub.id,
-                'url': sub.url,
+                'url': sub.amazon_url,
                 'title': sub.title,
                 'material': sub.material,
                 'status': 'pending',
@@ -1340,8 +1345,8 @@ def create_app(config_name='production'):
             'audit_trail': [{
                 'id': pred.id,
                 'timestamp': pred.created_at.isoformat() if pred.created_at else None,
-                'co2_estimate': pred.co2_estimate,
-                'method': pred.method
+                'co2_estimate': float(pred.final_emission) if pred.final_emission else None,
+                'method': pred.calculation_method
             } for pred in recent_predictions]
         })
     
