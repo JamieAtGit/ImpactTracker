@@ -579,7 +579,9 @@ def create_app(config_name='production'):
                 print(f"🇬🇧 UK internal delivery - Origin: {origin_country}")
             
             print(f"🌍 Origin determined: {origin_country}")
-            origin_coords = origin_hubs.get(origin_country, uk_hub)
+            # Fall back to China hub (not UK) for unknown overseas origins to avoid near-zero distance
+            default_hub = uk_hub if origin_country in ("UK", "England", "Scotland", "Wales", "Northern Ireland") else origin_hubs.get("China")
+            origin_coords = origin_hubs.get(origin_country, default_hub)
             
             # Distance calculations
             origin_distance_km = round(haversine(origin_coords["lat"], origin_coords["lon"], user_lat, user_lon), 1)
@@ -602,7 +604,7 @@ def create_app(config_name='production'):
                         
                 if distance_km < 1500:
                     return "Truck", 0.15
-                elif distance_km < 6000:
+                elif distance_km < 15000:
                     return "Ship", 0.03
                 else:
                     return "Air", 0.5

@@ -206,6 +206,7 @@ origin_hubs = {
     "Bangladesh": {"lat": 23.8103, "lon": 90.4125, "city": "Dhaka", "region": "Asia"},
     "Pakistan": {"lat": 24.8607, "lon": 67.0011, "city": "Karachi", "region": "Asia"},
     "Australia": {"lat": -33.8688, "lon": 151.2093, "city": "Sydney", "region": "Oceania"},
+    "New Zealand": {"lat": -36.8485, "lon": 174.7633, "city": "Auckland", "region": "Oceania"},
     
     # 🇪🇺 Europe
     "Germany": {"lat": 50.1109, "lon": 8.6821, "city": "Frankfurt", "region": "Europe"},
