@@ -1222,50 +1222,88 @@ def create_app(config_name='production'):
     
     @app.route('/all-model-metrics', methods=['GET'])
     def all_model_metrics():
-        """Get all model metrics for display"""
-        labels = ['A+', 'A', 'B', 'C', 'D', 'E', 'F']
-        return jsonify({
-            'xgboost': {
-                'accuracy': 0.858,
-                'precision': 0.86,
-                'recall': 0.85,
-                'f1_score': 0.855,
-                'labels': labels,
-                'report': {
-                    'A+': {'f1-score': 0.91},
-                    'A':  {'f1-score': 0.89},
-                    'B':  {'f1-score': 0.87},
-                    'C':  {'f1-score': 0.85},
-                    'D':  {'f1-score': 0.83},
-                    'E':  {'f1-score': 0.80},
-                    'F':  {'f1-score': 0.78},
+        """Get all model metrics from real training artifacts"""
+        try:
+            import json as _json
+            import numpy as np
+
+            rf_path = os.path.join(BASE_DIR, 'ml', 'metrics.json')
+            xgb_path = os.path.join(BASE_DIR, 'ml', 'xgb_metrics.json')
+
+            with open(rf_path) as f:
+                rf_data = _json.load(f)
+            with open(xgb_path) as f:
+                xgb_data = _json.load(f)
+
+            # Compute per-class precision/recall/F1 from the RF confusion matrix
+            cm = np.array(rf_data['confusion_matrix'])
+            rf_labels = rf_data['labels']
+            rf_report = {}
+            for i, label in enumerate(rf_labels):
+                tp = float(cm[i, i])
+                fp = float(cm[:, i].sum()) - tp
+                fn = float(cm[i, :].sum()) - tp
+                prec = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+                rec  = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+                f1   = 2 * prec * rec / (prec + rec) if (prec + rec) > 0 else 0.0
+                rf_report[label] = {
+                    'precision': round(prec, 4),
+                    'recall':    round(rec,  4),
+                    'f1-score':  round(f1,   4),
+                    'support':   int(cm[i, :].sum()),
                 }
-            },
-            'random_forest': {
-                'accuracy': 0.792,
-                'precision': 0.79,
-                'recall': 0.78,
-                'f1_score': 0.785,
-                'labels': labels,
-                'confusion_matrix': [
-                    [120, 8, 2, 1, 0, 0, 0],
-                    [10, 115, 5, 2, 1, 0, 0],
-                    [3, 6, 110, 8, 2, 1, 0],
-                    [1, 2, 7, 105, 6, 2, 1],
-                    [0, 1, 3, 8, 100, 5, 2],
-                    [0, 0, 1, 3, 7, 95, 4],
-                    [0, 0, 0, 1, 3, 6, 90],
-                ]
+
+            rf_macro_prec = round(float(np.mean([v['precision'] for v in rf_report.values()])), 4)
+            rf_macro_rec  = round(float(np.mean([v['recall']    for v in rf_report.values()])), 4)
+
+            # XGBoost per-class report (exclude summary rows)
+            xgb_report = {
+                k: v for k, v in xgb_data['report'].items()
+                if k not in ('accuracy', 'macro avg', 'weighted avg')
             }
-        })
+
+            return jsonify({
+                'random_forest': {
+                    'accuracy':         rf_data['accuracy'],
+                    'precision':        rf_macro_prec,
+                    'recall':           rf_macro_rec,
+                    'f1_score':         rf_data['f1_score'],
+                    'labels':           rf_labels,
+                    'confusion_matrix': rf_data['confusion_matrix'],
+                    'report':           rf_report,
+                },
+                'xgboost': {
+                    'accuracy':         xgb_data['accuracy'],
+                    'precision':        round(xgb_data['report']['macro avg']['precision'], 4),
+                    'recall':           round(xgb_data['report']['macro avg']['recall'],    4),
+                    'f1_score':         xgb_data['f1_score'],
+                    'labels':           xgb_data['labels'],
+                    'confusion_matrix': xgb_data['confusion_matrix'],
+                    'report':           xgb_report,
+                },
+            })
+        except Exception as e:
+            print(f"⚠️ Error loading model metrics: {e}")
+            return jsonify({'error': str(e)}), 500
     
     @app.route('/model-metrics', methods=['GET'])
     def model_metrics():
         """Get current model performance metrics"""
+        accuracy = 0.8661
+        confidence_avg = 0.8701
+        try:
+            import json as _json
+            xgb_path = os.path.join(BASE_DIR, 'ml', 'xgb_metrics.json')
+            with open(xgb_path) as f:
+                xgb_data = _json.load(f)
+            accuracy = xgb_data.get('accuracy', accuracy)
+            confidence_avg = round(xgb_data.get('report', {}).get('macro avg', {}).get('precision', confidence_avg), 4)
+        except Exception:
+            pass
         return jsonify({
-            'accuracy': 0.858,
+            'accuracy': accuracy,
             'total_predictions': EmissionCalculation.query.count(),
-            'confidence_avg': 0.87
+            'confidence_avg': confidence_avg,
         })
     
     @app.route('/api/ml-audit', methods=['GET'])
@@ -1286,14 +1324,31 @@ def create_app(config_name='production'):
     
     @app.route('/api/feature-importance', methods=['GET'])
     def feature_importance():
-        """Get feature importance for ML model visualization"""
+        """Get feature importance from trained Random Forest model (eco_model.pkl)"""
+        # Try to load live from the model for accuracy
+        try:
+            import joblib
+            model = joblib.load(os.path.join(model_dir, 'eco_model.pkl'))
+            feature_names = [
+                'Material Type', 'Transport Mode', 'Recyclability',
+                'Origin Country', 'Weight (log)', 'Weight Category',
+            ]
+            importances = model.feature_importances_
+            result = [
+                {'feature': name, 'importance': round(float(imp) * 100, 2)}
+                for name, imp in sorted(zip(feature_names, importances), key=lambda x: -x[1])
+            ]
+            return jsonify(result)
+        except Exception:
+            pass
+        # Fall back to values computed from eco_model.pkl on 2026-03-16
         return jsonify([
-            {'feature': 'Material Type', 'importance': 25},
-            {'feature': 'Weight', 'importance': 20},
-            {'feature': 'Transport Mode', 'importance': 18},
-            {'feature': 'Origin Country', 'importance': 15},
-            {'feature': 'Recyclability', 'importance': 12},
-            {'feature': 'Packaging', 'importance': 10},
+            {'feature': 'Weight (log)',    'importance': 36.39},
+            {'feature': 'Material Type',   'importance': 21.60},
+            {'feature': 'Transport Mode',  'importance': 17.77},
+            {'feature': 'Origin Country',  'importance': 14.59},
+            {'feature': 'Recyclability',   'importance':  5.07},
+            {'feature': 'Weight Category', 'importance':  4.57},
         ])
     
     @app.route('/api/feedback', methods=['POST'])
