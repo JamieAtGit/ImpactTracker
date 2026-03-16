@@ -207,6 +207,13 @@ origin_hubs = {
     "Pakistan": {"lat": 24.8607, "lon": 67.0011, "city": "Karachi", "region": "Asia"},
     "Australia": {"lat": -33.8688, "lon": 151.2093, "city": "Sydney", "region": "Oceania"},
     "New Zealand": {"lat": -36.8485, "lon": 174.7633, "city": "Auckland", "region": "Oceania"},
+    "Cambodia": {"lat": 11.5625, "lon": 104.9160, "city": "Phnom Penh", "region": "Asia"},
+    "Myanmar": {"lat": 16.8661, "lon": 96.1951, "city": "Yangon", "region": "Asia"},
+    "Sri Lanka": {"lat": 6.9271, "lon": 79.8612, "city": "Colombo", "region": "Asia"},
+    "Nepal": {"lat": 27.7172, "lon": 85.3240, "city": "Kathmandu", "region": "Asia"},
+    "Ethiopia": {"lat": 9.0249, "lon": 38.7468, "city": "Addis Ababa", "region": "Africa"},
+    "Morocco": {"lat": 33.5731, "lon": -7.5898, "city": "Casablanca", "region": "Africa"},
+    "Portugal": {"lat": 38.7223, "lon": -9.1393, "city": "Lisbon", "region": "Europe"},
     
     # 🇪🇺 Europe
     "Germany": {"lat": 50.1109, "lon": 8.6821, "city": "Frankfurt", "region": "Europe"},
@@ -292,6 +299,51 @@ known_brand_origins = {
     "uno": {"country": "USA", "source": "brand_db"},
     "mattel": {"country": "USA", "source": "brand_db"},
     
+    # Toys & baby
+    "steiff": "Germany",
+    "lego": "Denmark",
+    "playmobil": "Germany",
+    "fisher-price": "USA",
+    "fisher price": "USA",
+    "hasbro": "USA",
+    "mattel": "USA",
+    "vtech": "USA",
+    "chicco": "Italy",
+    "tommee tippee": "UK",
+
+    # Clothing & sportswear
+    "nike": "USA",
+    "under armour": "USA",
+    "puma": "Germany",
+    "reebok": "USA",
+    "new balance": "USA",
+    "uniqlo": "Japan",
+    "h&m": "Sweden",
+    "zara": "Spain",
+    "next": "UK",
+    "marks & spencer": "UK",
+
+    # Home & kitchenware
+    "ikea": "Sweden",
+    "joseph joseph": "UK",
+    "oxo": "USA",
+    "kitchenaid": "USA",
+    "kenwood": "UK",
+    "morphy richards": "UK",
+    "russell hobbs": "UK",
+    "tefal": "France",
+    "sistema": "New Zealand",
+
+    # Electronics
+    "bose": "USA",
+    "jbl": "USA",
+    "sony": "Japan",
+    "lg": "South Korea",
+    "huawei": "China",
+    "oppo": "China",
+    "garmin": "USA",
+    "fitbit": "USA",
+
     # Kitchen/Cookware brands
     "zwilling": "Germany",
     "henckels": "Germany", 

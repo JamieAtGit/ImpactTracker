@@ -531,11 +531,14 @@ class RequestsScraper:
         materials = {
             'Glass':   ['glass', 'crystal'],
             'Wood':    ['wood', 'wooden', 'timber', 'bamboo', 'acacia', 'oak', 'pine'],
-            'Metal':   ['metal', 'steel', 'aluminum', 'aluminium', 'stainless', 'iron'],
-            'Paper':   ['paper', 'cardboard', 'book'],
-            'Fabric':  ['fabric', 'cotton', 'polyester', 'clothing', 'textile'],
-            'Plastic': ['plastic', 'polymer', 'polypropylene', 'polyethylene'],
-            'Mixed':   ['electronic', 'device', 'phone', 'laptop']
+            'Metal':   ['metal', 'steel', 'aluminum', 'aluminium', 'stainless', 'iron', 'brass', 'copper', 'zinc'],
+            'Paper':   ['paper', 'cardboard', 'book', 'notebook', 'journal'],
+            'Fabric':  ['fabric', 'cotton', 'polyester', 'clothing', 'textile',
+                        'plush', 'cuddly', 'stuffed', 'fleece', 'velvet',
+                        'wool', 'woollen', 'knit', 'knitted', 'yarn', 'felt',
+                        'teddy', 'plushie', 'denim', 'silk', 'linen', 'nylon', 'woven'],
+            'Plastic': ['plastic', 'polymer', 'polypropylene', 'polyethylene', 'bpa', 'pvc', 'acrylic', 'resin'],
+            'Mixed':   ['electronic', 'device', 'phone', 'laptop', 'tablet', 'headphone', 'speaker']
         }
 
         # Check title first — more reliable signal
@@ -623,22 +626,21 @@ class RequestsScraper:
                 print(f"🔍 DEBUG: Found '{country}' in text: '{context}'")
         
         # Look for country of origin patterns with improved regex (ordered by specificity)
+        # Note: Amazon HTML uses Unicode left-to-right marks (\u200e) as separators in
+        # technical detail tables, e.g. "Country of Origin \u200e : \u200e Cambodia"
         patterns = [
-            # MOST SPECIFIC: Exact "country of origin:" patterns
-            (r"country\s+of\s+origin[:\s]*\b(belgium|germany|uk|gb|united\s+kingdom|usa|united\s+states|china|france|italy|japan|canada|india|spain|netherlands|switzerland|austria|poland|ireland|denmark|sweden|norway)\b", "country_of_origin_exact"),
-            
-            # SPECIFIC: "Country of origin" with broader capture (but limited)
-            (r"country\s+of\s+origin[:\s]*([a-zA-Z][a-zA-Z\s]{1,20}?)(?=\s*(?:\n|country|brand|format|age|additional|manufacturer|$))", "country_of_origin_broad"),
-            
+            # Handles Amazon's actual HTML format with \u200e separators AND plain colons
+            (r"country\s+of\s+origin[\s\u200e\u200f:]*([a-zA-Z][a-zA-Z\s]{1,24}?)(?=\s*[\n\r]|\s{3,}|\s*(?:brand|asin|model|package|item|manufacturer|best|colour|color|size|weight|$))", "country_of_origin_broad"),
+
             # Made in patterns (high confidence)
-            (r"made\s+in[:\s]*\b([a-zA-Z][a-zA-Z\s]{1,20})\b", "made_in"),
-            
+            (r"made\s+in[\s\u200e\u200f:]*([a-zA-Z][a-zA-Z\s]{1,24}?)(?=\s*[\n\r]|\s{2,}|\s*(?:brand|asin|$))", "made_in"),
+
             # Manufactured in patterns (medium confidence)
             (r"manufactured\s+in[:\s]*\b([a-zA-Z][a-zA-Z\s]{1,20})\b", "manufactured_in"),
-            
+
             # Product of patterns (medium confidence)
             (r"product\s+of[:\s]*\b([a-zA-Z][a-zA-Z\s]{1,20})\b", "product_of"),
-            
+
             # Origin patterns (medium confidence)
             (r"origin[:\s]*\b([a-zA-Z][a-zA-Z\s]{1,20})\b", "origin")
         ]
