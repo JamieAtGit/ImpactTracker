@@ -117,9 +117,9 @@ export default function CarbonMetricsCircle({
       color: "#00ffff",
       icon: "🌍"
     },
-    { 
-      label: "Trees Needed", 
-      value: treePct, 
+    {
+      label: "Trees Needed",
+      value: 100 - treePct,
       text: `${treesToOffset ?? 0}`,
       color: "#ffff00",
       icon: "🌳"
@@ -188,7 +188,7 @@ export default function CarbonMetricsCircle({
         <div className="flex items-center justify-center gap-4 text-sm">
           <span className="text-slate-400">Overall Impact Score:</span>
           <span className="text-cyan-400 font-bold">
-            {((carbonPct + recyclePct + ecoPct + treePct) / 4).toFixed(0)}% Efficiency
+            {((( 100 - carbonPct) + recyclePct + ecoPct + (100 - treePct)) / 4).toFixed(0)}% Efficiency
           </span>
         </div>
       </motion.div>
