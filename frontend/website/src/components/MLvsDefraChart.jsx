@@ -63,19 +63,20 @@ export default function MLvsDEFRAChart({ showML, result }) {
 
   // Grade to numeric conversion for chart visualization
   const gradeToNumeric = (grade) => {
-    const gradeMap = { 'A': 90, 'B': 75, 'C': 60, 'D': 45, 'E': 30, 'F': 15 };
-    return gradeMap[grade?.toString().toUpperCase()] || 0;
+    const gradeMap = { 'A+': 100, 'A': 90, 'B': 75, 'C': 60, 'D': 45, 'E': 30, 'F': 15 };
+    return gradeMap[grade?.toString().toUpperCase()] ?? 0;
   };
   
   // Color mapping for grades
   const getGradeColor = (grade) => {
     const colorMap = {
-      'A': '#10b981', // green-500
-      'B': '#22c55e', // green-400  
-      'C': '#eab308', // yellow-500
-      'D': '#f59e0b', // amber-500
-      'E': '#ef4444', // red-500
-      'F': '#dc2626'  // red-600
+      'A+': '#06d6a0', // teal - best
+      'A': '#10b981',  // green-500
+      'B': '#22c55e',  // green-400
+      'C': '#eab308',  // yellow-500
+      'D': '#f59e0b',  // amber-500
+      'E': '#ef4444',  // red-500
+      'F': '#dc2626'   // red-600
     };
     return colorMap[grade?.toString().toUpperCase()] || '#6b7280';
   };
@@ -117,9 +118,9 @@ export default function MLvsDEFRAChart({ showML, result }) {
     if (!showML && mlScore && defrScore) {
       const mlNumeric = gradeToNumeric(mlScore);
       const defrNumeric = gradeToNumeric(defrScore);
-      if (mlNumeric > defrNumeric) {
+      if (mlNumeric > defrNumeric && defrNumeric > 0) {
         const improvement = ((mlNumeric - defrNumeric) / defrNumeric) * 100;
-        setReduction(improvement.toFixed(1));
+        setReduction(Number.isFinite(improvement) ? improvement.toFixed(1) : null);
       } else {
         setReduction(null);
       }
