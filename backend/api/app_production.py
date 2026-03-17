@@ -622,73 +622,154 @@ def create_app(config_name='production'):
             
             print(f"🚚 Transport: {mode_name} (factor: {mode_factor})")
             
-            # Calculate emissions using ML model
-            try:
-                # Prepare features for ML prediction
-                ml_features = {
-                    'material': product.get('material_type', 'Mixed'),
-                    'transport_mode': mode_name,
-                    'weight': weight,
-                    'origin_country': origin_country,
-                    'recyclability': 'Medium',  # Default
-                    'weight_category': 'Medium' if weight < 2 else 'Heavy',
-                    'packaging_type': 'Standard',
-                    'size_category': 'Medium',
-                    'quality_level': 'Standard',
-                    'pack_size': 'Single',
-                    'material_confidence': 0.85
-                }
-                
-                # Use ML prediction if available
-                if hasattr(app, 'xgb_model') and app.xgb_model:
-                    features_df = pd.DataFrame([ml_features])
-                    
-                    # Encode features
-                    for col in ['material', 'transport_mode', 'recyclability', 'origin_country', 
-                               'weight_category', 'packaging_type', 'size_category', 'quality_level', 'pack_size']:
-                        if col in app.encoders:
-                            features_df[col] = app.encoders[col].transform(features_df[col])
-                    
-                    # Make prediction
-                    ml_prediction = app.xgb_model.predict(features_df)[0]
-                    ml_co2 = float(ml_prediction) * weight
-                else:
-                    # Fallback calculation
-                    ml_co2 = weight * (mode_factor * origin_distance_km) / 1000
-
-            except Exception as e:
-                print(f"ML prediction error: {e}")
-                ml_co2 = weight * (mode_factor * origin_distance_km) / 1000
-
-            # Rule-based calculation
+            # === Rule-based CO2 calculation ===
+            import numpy as np
             transport_co2 = weight * mode_factor * origin_distance_km / 1000
-            material_intensity = {"Plastic": 2.5, "Steel": 3.0, "Paper": 1.2, 
-                                "Glass": 1.5, "Wood": 0.8, "Other": 2.0}.get(material, 2.0)
+            material_intensity = {"Plastic": 2.5, "Steel": 3.0, "Paper": 1.2,
+                                   "Glass": 1.5, "Wood": 0.8, "Metal": 3.0,
+                                   "Fabric": 1.8, "Ceramic": 1.5, "Rubber": 2.2,
+                                   "Other": 2.0}.get(material, 2.0)
             material_co2 = weight * material_intensity
             rule_co2 = transport_co2 + material_co2
-            
-            # Calculate eco scores
-            eco_score_ml = "C"  # Default ML score
-            eco_score_rule_based = "A"  # Default rule-based score
-            confidence = 83.3
-            
-            # Simple eco score calculation based on total CO2
-            total_co2 = (ml_co2 + rule_co2) / 2
-            if total_co2 < 1:
+            total_co2 = rule_co2
+
+            # Rule-based eco grade from CO2
+            if rule_co2 < 0.5:
                 eco_score_rule_based = "A+"
-                eco_score_ml = "B"
-            elif total_co2 < 2:
+            elif rule_co2 < 1.0:
                 eco_score_rule_based = "A"
-                eco_score_ml = "B"
-            elif total_co2 < 5:
+            elif rule_co2 < 2.5:
                 eco_score_rule_based = "B"
-                eco_score_ml = "C"
-            elif total_co2 < 10:
+            elif rule_co2 < 5.0:
                 eco_score_rule_based = "C"
-                eco_score_ml = "D"
-            else:
+            elif rule_co2 < 10.0:
                 eco_score_rule_based = "D"
-                eco_score_ml = "E"
+            elif rule_co2 < 20.0:
+                eco_score_rule_based = "E"
+            else:
+                eco_score_rule_based = "F"
+
+            # === ML prediction using XGBoost (lazy-load on first request) ===
+            import joblib
+
+            if not (hasattr(app, 'xgb_model') and app.xgb_model):
+                try:
+                    app.xgb_model = joblib.load(os.path.join(model_dir, "eco_model.pkl"))
+                    print("✅ Lazy-loaded eco_model.pkl")
+                except Exception:
+                    try:
+                        import xgboost as xgb_mod
+                        _m = xgb_mod.XGBClassifier()
+                        _m.load_model(os.path.join(model_dir, "xgb_model.json"))
+                        app.xgb_model = _m
+                        print("✅ Lazy-loaded xgb_model.json")
+                    except Exception:
+                        app.xgb_model = None
+
+            if not (hasattr(app, 'label_encoder') and app.label_encoder):
+                try:
+                    app.label_encoder = joblib.load(os.path.join(encoders_dir, 'label_encoder.pkl'))
+                except Exception:
+                    class _FallbackLE:
+                        classes_ = ["A+", "A", "B", "C", "D", "E", "F"]
+                        def inverse_transform(self, idx):
+                            return [self.classes_[min(int(i), len(self.classes_) - 1)] for i in idx]
+                    app.label_encoder = _FallbackLE()
+
+            if not app.encoders:
+                for _enc_name, _filename in [
+                    ('material_encoder', 'material_encoder.pkl'),
+                    ('transport_encoder', 'transport_encoder.pkl'),
+                    ('recycle_encoder', 'recycle_encoder.pkl'),
+                    ('origin_encoder', 'origin_encoder.pkl'),
+                ]:
+                    try:
+                        app.encoders[_enc_name] = joblib.load(os.path.join(encoders_dir, _filename))
+                    except Exception:
+                        pass
+
+            def _safe_enc(val, enc, default):
+                if enc is None:
+                    return 0
+                try:
+                    return enc.transform([val])[0]
+                except Exception:
+                    try:
+                        return enc.transform([default])[0]
+                    except Exception:
+                        return 0
+
+            recyclability = product.get('recyclability', 'Medium') or 'Medium'
+            material_encoded = _safe_enc(material, app.encoders.get('material_encoder'), 'Other')
+            transport_encoded = _safe_enc(mode_name, app.encoders.get('transport_encoder'), 'Land')
+            recycle_encoded = _safe_enc(recyclability, app.encoders.get('recycle_encoder'), 'Medium')
+            origin_encoded = _safe_enc(origin_country, app.encoders.get('origin_encoder'), 'Other')
+            weight_log = np.log1p(weight)
+            weight_bin = 0 if weight < 0.5 else 1 if weight < 2 else 2 if weight < 10 else 3
+            X = np.array([[
+                material_encoded, transport_encoded, recycle_encoded, origin_encoded,
+                weight_log, weight_bin,
+                float(material_encoded) * float(transport_encoded),
+                float(origin_encoded) * float(recycle_encoded)
+            ]])
+
+            eco_score_ml = eco_score_rule_based  # fallback if model unavailable
+            confidence = 0.0
+            shap_explanation = None
+
+            if app.xgb_model:
+                try:
+                    pred = app.xgb_model.predict(X)[0]
+                    eco_score_ml = app.label_encoder.inverse_transform([pred])[0]
+
+                    if hasattr(app.xgb_model, 'predict_proba'):
+                        proba = app.xgb_model.predict_proba(X)
+                        confidence = round(float(np.max(proba[0])) * 100, 1)
+
+                    print(f"✅ ML prediction: {eco_score_ml} ({confidence}%)")
+
+                    # SHAP per-prediction explanation
+                    try:
+                        import shap as shap_lib
+                        explainer = shap_lib.TreeExplainer(app.xgb_model)
+                        shap_vals = explainer.shap_values(X)
+                        pred_idx = int(np.argmax(app.xgb_model.predict_proba(X)[0]))
+                        sv = np.array(shap_vals)
+                        if sv.ndim == 3:
+                            class_shap = sv[0, :, pred_idx]
+                        elif isinstance(shap_vals, list):
+                            class_shap = np.array(shap_vals[pred_idx])[0]
+                        else:
+                            class_shap = sv[0]
+                        ev = explainer.expected_value
+                        base_val = float(ev[pred_idx]) if hasattr(ev, '__len__') else float(ev)
+                        feat_names = ['Material Type', 'Transport Mode', 'Recyclability',
+                                      'Origin Country', 'Weight', 'Weight Category',
+                                      'Material × Transport', 'Origin × Recyclability']
+                        weight_bins_labels = ['<0.5 kg', '0.5–2 kg', '2–10 kg', '>10 kg']
+                        raw_vals = [material, mode_name, recyclability, origin_country,
+                                    f"{round(weight, 2)} kg",
+                                    weight_bins_labels[int(weight_bin)], '', '']
+                        shap_features = [
+                            {"name": feat_names[i], "shap_value": round(float(class_shap[i]), 4),
+                             "raw_value": raw_vals[i]}
+                            for i in range(min(8, len(class_shap)))
+                        ]
+                        shap_features.sort(key=lambda x: abs(x["shap_value"]), reverse=True)
+                        shap_explanation = {
+                            "predicted_class": eco_score_ml,
+                            "base_value": round(base_val, 4),
+                            "features": shap_features
+                        }
+                        print(f"✅ SHAP explanation computed")
+                    except Exception as shap_err:
+                        print(f"⚠️ SHAP failed: {shap_err}")
+                except Exception as ml_err:
+                    print(f"⚠️ ML prediction failed: {ml_err}")
+                    eco_score_ml = eco_score_rule_based
+                    confidence = 0.0
+            else:
+                print("⚠️ No ML model available — using rule-based grade")
             
             # Real-world recyclability rates by material (based on global recycling data)
             _recyclability_rates = {
@@ -780,6 +861,9 @@ def create_app(config_name='production'):
 
                 # Trees calculation
                 "trees_to_offset": int(total_co2 / 20),
+
+                # SHAP per-prediction explanation
+                "shap_explanation": shap_explanation,
 
                 # Additional product info
                 "brand": product.get("brand"),
