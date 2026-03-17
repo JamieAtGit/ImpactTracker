@@ -1000,6 +1000,66 @@ def predict_eco_score():
             print(f"⚠️ Feature importance calculation failed: {impact_error}")
             local_impact = {"error": "Could not calculate feature impact"}
 
+        # === SHAP Explanation (per-prediction feature attribution)
+        shap_explanation = None
+        try:
+            import shap as shap_lib
+            explainer = shap_lib.TreeExplainer(model)
+            X_arr = np.array(X)
+            shap_vals = explainer.shap_values(X_arr)
+
+            n_features = len(X[0])
+            all_feature_names = [
+                'Material Type', 'Transport Mode', 'Recyclability', 'Origin Country',
+                'Weight', 'Weight Category', 'Packaging Type', 'Size Category',
+                'Quality Level', 'Category', 'Pack Size', 'Material Confidence',
+                'Origin Confidence', 'Weight Confidence', 'Est. Lifespan', 'Repairability'
+            ]
+            feature_names = all_feature_names[:n_features]
+
+            weight_bins = ['<0.5 kg', '0.5–2 kg', '2–10 kg', '>10 kg']
+            raw_vals = [
+                material, transport, recyclability, origin,
+                f"{round(weight, 2)} kg",
+                weight_bins[int(weight_bin_encoded)] if 0 <= int(weight_bin_encoded) < 4 else str(weight_bin_encoded)
+            ] + [''] * max(0, n_features - 6)
+
+            # Predicted class index from proba
+            pred_idx = int(np.argmax(model.predict_proba(X_arr)[0]))
+
+            # Handle different SHAP output shapes across library versions
+            sv = np.array(shap_vals)
+            if sv.ndim == 3:
+                # (n_samples, n_features, n_classes)
+                class_shap = sv[0, :, pred_idx]
+            elif isinstance(shap_vals, list):
+                # list of (n_samples, n_features) per class
+                class_shap = np.array(shap_vals[pred_idx])[0]
+            else:
+                class_shap = sv[0]
+
+            ev = explainer.expected_value
+            base_val = float(ev[pred_idx]) if hasattr(ev, '__len__') else float(ev)
+
+            features = [
+                {
+                    "name": feature_names[i],
+                    "shap_value": round(float(class_shap[i]), 4),
+                    "raw_value": raw_vals[i] if i < len(raw_vals) else ""
+                }
+                for i in range(min(n_features, len(class_shap)))
+            ]
+            features.sort(key=lambda x: abs(x["shap_value"]), reverse=True)
+
+            shap_explanation = {
+                "predicted_class": decoded_score,
+                "base_value": round(base_val, 4),
+                "features": features
+            }
+        except Exception as shap_err:
+            print(f"⚠️ SHAP computation failed: {shap_err}")
+            shap_explanation = None
+
         # === Log the prediction
         log_submission({
             "title": data.get("title", "Manual Submission"),
@@ -1033,7 +1093,8 @@ def predict_eco_score():
                 "origin": to_python_type(origin_encoded),
                 "weight_bin": to_python_type(weight_bin_encoded)
             },
-            "feature_impact": local_impact
+            "feature_impact": local_impact,
+            "shap_explanation": shap_explanation
         })
 
     except Exception as e:
@@ -2317,6 +2378,7 @@ def estimate_emissions():
         
         # === ENHANCED ML Prediction (New Method)
         ml_features_used = None
+        shap_explanation = None
         try:
             material = product.get("material_type", "Other")
             recyclability = product.get("recyclability", "Medium")
@@ -2512,10 +2574,68 @@ def estimate_emissions():
             print(f"✅ ML Score: {eco_score_ml} ({confidence}%)")
             print(f"🔧 Rule-based Score: {eco_score_rule_based}")
 
+            # === SHAP per-prediction explanation
+            shap_explanation = None
+            try:
+                import shap as shap_lib
+                explainer = shap_lib.TreeExplainer(model)
+                X_arr = np.array(X)
+                shap_vals = explainer.shap_values(X_arr)
+
+                n_features = len(X[0])
+                all_feat_names = [
+                    'Material Type', 'Transport Mode', 'Recyclability', 'Origin Country',
+                    'Weight', 'Weight Category', 'Packaging Type', 'Size Category',
+                    'Quality Level', 'Category', 'Pack Size', 'Material Confidence',
+                    'Origin Confidence', 'Weight Confidence', 'Est. Lifespan', 'Repairability'
+                ]
+                feat_names = all_feat_names[:n_features]
+
+                weight_bins = ['<0.5 kg', '0.5–2 kg', '2–10 kg', '>10 kg']
+                raw_vals = [
+                    material, transport, recyclability, origin,
+                    f"{round(weight, 2)} kg",
+                    weight_bins[int(weight_bin_encoded)] if 0 <= int(weight_bin_encoded) < 4 else str(weight_bin_encoded)
+                ] + [''] * max(0, n_features - 6)
+
+                pred_idx = int(np.argmax(model.predict_proba(X_arr)[0]))
+
+                sv = np.array(shap_vals)
+                if sv.ndim == 3:
+                    class_shap = sv[0, :, pred_idx]
+                elif isinstance(shap_vals, list):
+                    class_shap = np.array(shap_vals[pred_idx])[0]
+                else:
+                    class_shap = sv[0]
+
+                ev = explainer.expected_value
+                base_val = float(ev[pred_idx]) if hasattr(ev, '__len__') else float(ev)
+
+                shap_features = [
+                    {
+                        "name": feat_names[i],
+                        "shap_value": round(float(class_shap[i]), 4),
+                        "raw_value": raw_vals[i] if i < len(raw_vals) else ""
+                    }
+                    for i in range(min(n_features, len(class_shap)))
+                ]
+                shap_features.sort(key=lambda x: abs(x["shap_value"]), reverse=True)
+
+                shap_explanation = {
+                    "predicted_class": eco_score_ml,
+                    "base_value": round(base_val, 4),
+                    "features": shap_features
+                }
+                print(f"✅ SHAP explanation computed ({n_features} features)")
+            except Exception as shap_err:
+                print(f"⚠️ SHAP computation failed: {shap_err}")
+                shap_explanation = None
+
         except Exception as e:
             print(f"⚠️ ML prediction failed: {e}")
             eco_score_ml = "N/A"
             confidence = None
+            shap_explanation = None
 
 
         # Assemble response
@@ -2584,7 +2704,10 @@ def estimate_emissions():
             },
 
             # Misc
-            "trees_to_offset": round(carbon_kg / 20, 1)
+            "trees_to_offset": round(carbon_kg / 20, 1),
+
+            # SHAP per-prediction explanation
+            "shap_explanation": shap_explanation
         }
 
         attributes = standardize_attributes(attributes, [

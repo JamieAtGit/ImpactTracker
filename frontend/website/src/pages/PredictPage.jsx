@@ -5,6 +5,7 @@ import Header from "../components/Header";
 import ChallengeForm from "../components/ChallengeForm";
 import Footer from "../components/Footer";
 import toast from "react-hot-toast";
+import ShapExplanation from "../components/ShapExplanation";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function PredictPage() {

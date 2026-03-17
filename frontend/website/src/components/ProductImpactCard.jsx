@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ModernCard, ModernButton, ModernBadge } from "./ModernLayout";
 import MLvsDEFRAChart from "./MLvsDefraChart";
 import CarbonMetricsCircle from "./CarbonMetricsCircle";
+import ShapExplanation from "./ShapExplanation";
 
 export default function ProductImpactCard({ result, showML, toggleShowML }) {
   const attr = result.attributes || {};
@@ -446,6 +447,11 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
             result={result}
           />
         </div>
+
+        {/* SHAP per-prediction explanation */}
+        {attr.shap_explanation && (
+          <ShapExplanation data={attr.shap_explanation} />
+        )}
       </motion.div>
     </ModernCard>
   );
