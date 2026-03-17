@@ -1268,28 +1268,29 @@ def create_app(config_name='production'):
     
     @app.route('/api/eco-data', methods=['GET'])
     def eco_data():
-        """Eco data for tables and analytics - reads from CSV to match localhost"""
+        """Eco data for tables and analytics - queries PostgreSQL Product table"""
         try:
-            import pandas as pd
-            dataset_path = os.path.join(BASE_DIR, 'common', 'data', 'csv', 'expanded_eco_dataset.csv')
-            if not os.path.exists(dataset_path):
-                print(f"⚠️ Dataset not found: {dataset_path}")
-                return jsonify([]), 200
-
-            df = pd.read_csv(dataset_path)
-            df = df.dropna(subset=['material', 'true_eco_score'])
-            df = df.where(pd.notnull(df), None)
-
             limit = request.args.get('limit', type=int, default=1000)
-            limit = min(limit, 50000)
-            df_limited = df.head(limit)
+            offset = request.args.get('offset', type=int, default=0)
+            limit = min(limit, 10000)
+
+            total = Product.query.count()
+            products = (
+                Product.query
+                .filter(Product.material.isnot(None), Product.true_eco_score.isnot(None))
+                .order_by(Product.id)
+                .offset(offset)
+                .limit(limit)
+                .all()
+            )
 
             return jsonify({
-                'products': df_limited.to_dict(orient='records'),
+                'products': [p.to_dict() for p in products],
                 'metadata': {
-                    'total_products_in_dataset': len(df),
-                    'products_returned': len(df_limited),
-                    'limit_applied': limit
+                    'total_products_in_dataset': total,
+                    'products_returned': len(products),
+                    'limit_applied': limit,
+                    'offset': offset
                 }
             })
         except Exception as e:

@@ -11,32 +11,25 @@ export default function EcoLogTable() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
+  const [totalInDataset, setTotalInDataset] = useState(null);
+
   useEffect(() => {
-    console.log("🔄 Fetching eco data from:", `${BASE_URL}/api/eco-data?limit=50000`);
-    console.log("🚀 Component mounted - loading Product Impact Database");
-    fetch(`${BASE_URL}/api/eco-data?limit=50000`)
+    fetch(`${BASE_URL}/api/eco-data?limit=1000`)
       .then((res) => {
-        console.log("📡 Response status:", res.status);
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-        }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
       .then((response) => {
-        console.log("📦 Raw response:", response);
-        // Handle new response format with products and metadata
         const products = response.products || response;
-        console.log("✅ Products extracted:", Array.isArray(products) ? products.length : "Not an array");
         if (Array.isArray(products)) {
           setData(products);
-          console.log("🎉 Data successfully set:", products.length, "items");
-        } else {
-          console.error("❌ Products is not an array:", typeof products, products);
-          setData([]);
+        }
+        if (response.metadata?.total_products_in_dataset) {
+          setTotalInDataset(response.metadata.total_products_in_dataset);
         }
       })
       .catch((err) => {
-        console.error("❌ Error loading eco data:", err);
+        console.error("Error loading eco data:", err);
         setData([]);
       });
   }, []);
@@ -100,7 +93,7 @@ export default function EcoLogTable() {
         <div className="flex items-center gap-3">
           <div className="status-indicator status-success"></div>
           <h2 className="text-xl font-display text-slate-200">
-            Product Impact Database ({data.length} products)
+            Product Impact Database ({totalInDataset !== null ? totalInDataset.toLocaleString() : data.length} products)
           </h2>
         </div>
         <ModernButton
@@ -186,7 +179,7 @@ export default function EcoLogTable() {
             {filteredData.length} found
           </ModernBadge>
           <span className="text-sm text-slate-400">
-            of {data.length} total products
+            of {totalInDataset !== null ? totalInDataset.toLocaleString() : data.length} total products (showing first 1,000)
           </span>
         </div>
       </motion.div>
