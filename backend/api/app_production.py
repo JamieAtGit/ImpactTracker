@@ -770,6 +770,9 @@ def create_app(config_name='production'):
                     confidence = 0.0
             else:
                 print("⚠️ No ML model available — using rule-based grade")
+
+            # ml_co2 used in DB save — set to rule_co2 as best approximation
+            ml_co2 = rule_co2
             
             # Real-world recyclability rates by material (based on global recycling data)
             _recyclability_rates = {
