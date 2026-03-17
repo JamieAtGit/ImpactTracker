@@ -264,6 +264,19 @@ def get_category_fallback_weight(title: str, brand: str = "") -> float:
         print(f"🍶 Bottle: {weight}kg")
         return weight
     
+    # Paper products (toilet rolls, kitchen rolls, tissues)
+    elif any(keyword in title_lower for keyword in ['toilet roll', 'toilet tissue', 'toilet paper', 'kitchen roll', 'kitchen towel', 'tissue roll']):
+        import re
+        pack_match = re.search(r'(\d+)\s*(?:rolls?|count|pack|sheets?)', title_lower)
+        if pack_match:
+            count = int(pack_match.group(1))
+            weight = round(count * 0.13, 1)  # ~130g per standard roll
+            print(f"🧻 Paper products ({count} rolls estimated): {weight}kg")
+        else:
+            weight = 1.5
+            print(f"🧻 Paper products (default): {weight}kg")
+        return weight
+
     # Tools and hardware
     elif any(keyword in title_lower for keyword in ['drill', 'screwdriver', 'hammer']):
         weight = 1.5  # Tool weight

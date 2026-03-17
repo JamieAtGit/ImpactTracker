@@ -453,6 +453,26 @@ known_brand_origins = {
     "salomon": "France",
     "babolat": "France",
 
+    # Household & personal care (UK brands)
+    "andrex": "UK",
+    "domestos": "UK",
+    "dettol": "UK",
+    "fairy": "UK",
+    "flash": "UK",
+    "persil": "UK",
+    "ariel": "UK",
+    "bold": "UK",
+    "surcare": "UK",
+    "vanish": "UK",
+    "comfort": "UK",
+    "lenor": "UK",
+    "radox": "UK",
+    "imperial leather": "UK",
+    "carex": "UK",
+    "sanex": "UK",
+    "utopia bedding": "China",
+    "utopia": "China",
+
     # Beauty & health
     "l'oreal": "France",
     "loreal": "France",
@@ -557,7 +577,7 @@ def estimate_origin_country(title):
         return "Japan"
     elif "dyson" in title:
         return "UK"
-    return "China"
+    return "Unknown"
 
 def extract_origin_from_structured_data(driver):
     """
