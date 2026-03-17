@@ -657,7 +657,7 @@ class RequestsScraper:
         text_lower = text.lower()
         
         # Debug: Check for key countries in the text
-        debug_countries = ['belgium', 'germany', 'england', 'uk', 'usa', 'china']
+        debug_countries = ['belgium', 'germany', 'england', 'uk', 'usa', 'china', 'pakistan', 'india', 'bangladesh', 'turkey', 'vietnam', 'indonesia']
         for country in debug_countries:
             if country in text_lower:
                 country_pos = text_lower.find(country)
@@ -671,7 +671,8 @@ class RequestsScraper:
         # technical detail tables, e.g. "Country of Origin \u200e : \u200e Cambodia"
         patterns = [
             # Handles Amazon's actual HTML format with \u200e separators AND plain colons
-            (r"country\s+of\s+origin[\s\u200e\u200f:]*([a-zA-Z][a-zA-Z\s]{1,24}?)(?=\s*[\n\r]|\s{3,}|\s*(?:brand|asin|model|package|item|manufacturer|best|colour|color|size|weight|$))", "country_of_origin_broad"),
+            # Also handles "Country/Region of Origin" (Amazon UK format)
+            (r"country(?:\s*/\s*region)?\s+of\s+origin[\s\u200e\u200f:]*([a-zA-Z][a-zA-Z\s]{1,24}?)(?=\s*[\n\r]|\s{3,}|\s*(?:brand|asin|model|package|item|manufacturer|best|colour|color|size|weight|$))", "country_of_origin_broad"),
 
             # Made in patterns (high confidence)
             (r"made\s+in[\s\u200e\u200f:]*([a-zA-Z][a-zA-Z\s]{1,24}?)(?=\s*[\n\r]|\s{2,}|\s*(?:brand|asin|$))", "made_in"),
