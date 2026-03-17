@@ -466,18 +466,23 @@ class RequestsScraper:
     def extract_weight(self, text: str) -> float:
         """Extract weight from text with improved precision"""
         text_lower = text.lower()
-        
+
         # Priority patterns - look for specific weight fields first
+        # Amazon UK uses \u200e (left-to-right mark) as separators in tech tables,
+        # e.g. "Item Weight \u200e : \u200e 5.94 kg" — patterns must include these.
         priority_patterns = [
-            # Weight field patterns
+            # Amazon-style "Item Weight" / "Package Weight" with unicode separators
+            (r'(?:item|package|net|gross)?\s*weight[\s\u200e\u200f]*:[\s\u200e\u200f]*(\d+(?:\.\d+)?)\s*(kg|kilograms?)', 'kg'),
+            (r'(?:item|package|net|gross)?\s*weight[\s\u200e\u200f]*:[\s\u200e\u200f]*(\d+(?:\.\d+)?)\s*(g|grams?)', 'g'),
+            # Plain weight field (no unicode)
             (r'weight[:\s]+(\d+(?:\.\d+)?)\s*(kg|kilograms?)', 'kg'),
             (r'weight[:\s]+(\d+(?:\.\d+)?)\s*(g|grams?)', 'g'),
-            # Product dimensions patterns (e.g., "11 x 7 x 27 cm; 600 g")
+            # Product dimensions trailing weight (e.g., "11 x 7 x 27 cm; 600 g")
             (r';\s*(\d+(?:\.\d+)?)\s*(kg)\b', 'kg'),
             (r';\s*(\d+(?:\.\d+)?)\s*(g)\b', 'g'),
             # Units field patterns (e.g., "Units: 600.0 gram")
             (r'units[:\s]+(\d+(?:\.\d+)?)\s*(g|gram)', 'g'),
-            # Title patterns (e.g., "2kg" or "600g" in product title)
+            # Standalone kg/g in title (lower priority — broad match)
             (r'\b(\d+(?:\.\d+)?)\s*kg\b', 'kg'),
             (r'\b(\d+(?:\.\d+)?)\s*g\b(?!ram)', 'g'),  # Avoid "program"
         ]
