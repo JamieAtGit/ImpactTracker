@@ -1376,76 +1376,134 @@ def create_app(config_name='production'):
 
     @app.route('/api/alternatives', methods=['GET'])
     def get_alternatives():
-        """Return greener product alternatives from the DB for a given grade and category.
+        """Return greener product alternatives of the same type from the DB.
 
-        Uses the dataset to surface products with better eco grades, prioritising
-        the same product category. Falls back to top-rated products across all
-        categories when the same-category pool is insufficient.
+        Strategy (in priority order per grade level):
+          1. Title keyword match  — finds the same kind of product
+          2. Category match       — same broad product family
+          3. Any product          — last resort to fill the slot
+
+        Returns one result per grade level (A+, A, B…) for diversity, so the
+        CO₂ comparison is meaningful rather than showing three identical A+ values.
         """
+        import re
         try:
-            category     = request.args.get('category', '').strip()
+            title_param   = request.args.get('title', '').strip()
+            category      = request.args.get('category', '').strip()
             current_grade = request.args.get('grade', 'F').strip()
 
-            grade_order  = ['A+', 'A', 'B', 'C', 'D', 'E', 'F']
-            current_idx  = grade_order.index(current_grade) if current_grade in grade_order else len(grade_order) - 1
+            grade_order   = ['A+', 'A', 'B', 'C', 'D', 'E', 'F']
+            current_idx   = grade_order.index(current_grade) if current_grade in grade_order else len(grade_order) - 1
             better_grades = grade_order[:current_idx]
 
             if not better_grades:
                 return jsonify({'alternatives': [], 'message': 'Already at best possible grade'})
 
-            # --- Same-category search ---
-            alternatives = []
-            if category:
-                alternatives = (
-                    Product.query
-                    .filter(
-                        Product.true_eco_score.in_(better_grades),
-                        Product.category.ilike(f'%{category}%'),
-                        Product.title.isnot(None),
-                        Product.co2_emissions.isnot(None),
-                    )
-                    .order_by(Product.co2_emissions.asc())
-                    .limit(5)
-                    .all()
-                )
+            # --- Keyword extraction from product title ---
+            # Strips stop-words, numbers, brands and generic descriptors so that
+            # "by Amazon Women's 5 Blade Razor + 3 Refills" → ['blade', 'razor', 'refill']
+            STOP = {
+                'a','an','the','and','or','but','in','on','at','to','for','of',
+                'with','by','from','as','is','was','are','be','been','have','had',
+                'do','does','did','its','our','your',
+                'pack','set','kit','bundle','count','piece','pieces','box','case','bag',
+                'new','best','top','premium','quality','super','ultra','extra','plus',
+                'pro','max','mini','large','small','medium','big','great','good',
+                'free','easy','quick','fast','soft','hard','hot','cold','light',
+                'heavy','original','classic','standard','basic','regular','gentle',
+                'clean','fresh','pure','natural','advanced','improved','enhanced',
+                'black','white','blue','red','green','grey','gray','silver','gold',
+                'clear','transparent','brown','pink','purple','orange','yellow',
+                'mens','womens','women','men','girls','boys','kids','adult','adults',
+                'amazon','brand','basics','style','design','color','colour','edition',
+                'version','series','model','type','size',
+            }
 
-            # --- Fallback: best-rated products across all categories ---
-            if len(alternatives) < 3:
-                top_grades   = better_grades[:min(2, len(better_grades))]
-                existing_ids = [p.id for p in alternatives]
-                extra_filter = [
-                    Product.true_eco_score.in_(top_grades),
+            def extract_keywords(raw, n=4):
+                words = re.sub(r"[^\w\s]", " ", raw.lower()).split()
+                kws = [
+                    w for w in words
+                    if w not in STOP
+                    and len(w) > 2
+                    and not re.match(r'^\d+[a-z]{0,3}$', w)
+                ]
+                seen, unique = set(), []
+                for w in kws:
+                    if w not in seen:
+                        seen.add(w)
+                        unique.append(w)
+                return unique[:n]
+
+            keywords = extract_keywords(title_param) if title_param else []
+
+            from sqlalchemy import or_ as sql_or
+
+            def _query_for_grade(grade, kw_filters, cat):
+                """Find one product for this grade: keywords → category → any."""
+                base = [
+                    Product.true_eco_score == grade,
                     Product.title.isnot(None),
                     Product.co2_emissions.isnot(None),
                 ]
-                if existing_ids:
-                    extra_filter.append(~Product.id.in_(existing_ids))
-                extra = (
+                if kw_filters:
+                    p = (
+                        Product.query
+                        .filter(*base, sql_or(*kw_filters))
+                        .order_by(Product.co2_emissions.asc())
+                        .first()
+                    )
+                    if p:
+                        return p, 'keyword'
+                if cat:
+                    p = (
+                        Product.query
+                        .filter(*base, Product.category.ilike(f'%{cat}%'))
+                        .order_by(Product.co2_emissions.asc())
+                        .first()
+                    )
+                    if p:
+                        return p, 'category'
+                p = (
                     Product.query
-                    .filter(*extra_filter)
+                    .filter(*base)
                     .order_by(Product.co2_emissions.asc())
-                    .limit(5 - len(alternatives))
-                    .all()
+                    .first()
                 )
-                alternatives.extend(extra)
+                return (p, 'fallback') if p else (None, None)
 
-            print(f"✅ Alternatives found: {len(alternatives)} for grade={current_grade} category={category!r}")
+            kw_filters = [Product.title.ilike(f'%{kw}%') for kw in keywords]
 
-            return jsonify({
-                'alternatives': [
-                    {
-                        'title':        p.title,
-                        'material':     p.material,
-                        'grade':        p.true_eco_score,
-                        'co2_emissions': float(p.co2_emissions) if p.co2_emissions else None,
-                        'origin':       p.origin,
-                        'transport':    p.transport,
-                        'recyclability': p.recyclability,
-                        'category':     p.category,
-                    }
-                    for p in alternatives
-                ]
-            })
+            results       = []
+            seen_ids      = set()
+            seen_prefixes = set()
+
+            for grade in better_grades[:4]:
+                product, matched_by = _query_for_grade(grade, kw_filters, category)
+                if not product or product.id in seen_ids:
+                    continue
+                prefix = (product.title or '')[:40].lower()
+                if prefix in seen_prefixes:
+                    continue
+                seen_ids.add(product.id)
+                seen_prefixes.add(prefix)
+                results.append({
+                    'title':         product.title,
+                    'material':      product.material,
+                    'grade':         product.true_eco_score,
+                    'co2_emissions': float(product.co2_emissions) if product.co2_emissions else None,
+                    'origin':        product.origin,
+                    'transport':     product.transport,
+                    'recyclability': product.recyclability,
+                    'category':      product.category,
+                    'matched_by':    matched_by,
+                    'keywords_used': keywords,
+                })
+                if len(results) >= 3:
+                    break
+
+            print(f"✅ Alternatives: {len(results)} results | keywords={keywords} grade={current_grade}")
+            return jsonify({'alternatives': results})
+
         except Exception as e:
             print(f"Error in alternatives endpoint: {e}")
             return jsonify({'error': str(e)}), 500

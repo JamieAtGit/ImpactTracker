@@ -465,6 +465,7 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
           grade={mlScore}
           category={attr.category}
           currentCo2={attr.carbon_kg}
+          productTitle={result.title}
         />
       </motion.div>
     </ModernCard>
