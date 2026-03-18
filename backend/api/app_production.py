@@ -1436,49 +1436,91 @@ def create_app(config_name='production'):
 
             keywords = extract_keywords(title_param) if title_param else []
 
-            from sqlalchemy import or_ as sql_or
+            # Generic tech/property modifiers that should never anchor a search alone
+            # — "electric guitar" is a valid match for "electric", but "razor" is not.
+            GENERIC_MODIFIERS = {
+                'electric', 'digital', 'wireless', 'smart', 'portable', 'rechargeable',
+                'battery', 'automatic', 'manual', 'professional', 'cordless', 'power',
+                'powered', 'electronic', 'mechanical', 'solar', 'compact', 'travel',
+                'home', 'office', 'indoor', 'outdoor', 'personal', 'handheld',
+            }
 
-            def _query_for_grade(grade, kw_filters, cat):
-                """Find one product for this grade: keywords → category → any."""
+            # Split into specific product-nouns vs generic modifiers
+            specific_kws  = [k for k in keywords if k not in GENERIC_MODIFIERS]
+            modifier_kws  = [k for k in keywords if k in GENERIC_MODIFIERS]
+
+            from sqlalchemy import or_ as sql_or, and_ as sql_and
+
+            def _title_and(*words):
+                """AND filter: title must contain every word."""
+                return [Product.title.ilike(f'%{w}%') for w in words]
+
+            def _query_for_grade(grade, specific, modifiers, cat):
+                """Find one relevant product for this grade using progressively relaxed matching.
+
+                Priority:
+                  1. ALL specific keywords AND (if any modifiers exist, at least one modifier)
+                     e.g. title contains 'razor' AND 'shaving' AND 'electric'
+                  2. Top-2 specific keywords AND'd together  (razor AND shaving)
+                  3. First specific keyword alone            (razor)
+                  4. First modifier + first specific        (electric AND razor)  — only if no specific hit
+                  5. Category match
+                  6. Any product of that grade              (last resort)
+                """
                 base = [
                     Product.true_eco_score == grade,
                     Product.title.isnot(None),
                     Product.co2_emissions.isnot(None),
                 ]
-                if kw_filters:
-                    p = (
-                        Product.query
-                        .filter(*base, sql_or(*kw_filters))
-                        .order_by(Product.co2_emissions.asc())
-                        .first()
-                    )
-                    if p:
-                        return p, 'keyword'
-                if cat:
-                    p = (
-                        Product.query
-                        .filter(*base, Product.category.ilike(f'%{cat}%'))
-                        .order_by(Product.co2_emissions.asc())
-                        .first()
-                    )
-                    if p:
-                        return p, 'category'
-                p = (
-                    Product.query
-                    .filter(*base)
-                    .order_by(Product.co2_emissions.asc())
-                    .first()
-                )
-                return (p, 'fallback') if p else (None, None)
 
-            kw_filters = [Product.title.ilike(f'%{kw}%') for kw in keywords]
+                def _run(*filters):
+                    return (
+                        Product.query
+                        .filter(*base, *filters)
+                        .order_by(Product.co2_emissions.asc())
+                        .first()
+                    )
+
+                if specific:
+                    # 1. All specific + at least one modifier
+                    if modifiers:
+                        p = _run(*_title_and(*specific), sql_or(*[Product.title.ilike(f'%{m}%') for m in modifiers]))
+                        if p: return p, 'keyword'
+
+                    # 2. All specific keywords (AND)
+                    if len(specific) >= 2:
+                        p = _run(*_title_and(*specific))
+                        if p: return p, 'keyword'
+
+                    # 3. Top-2 specific (AND)
+                    if len(specific) >= 2:
+                        p = _run(*_title_and(*specific[:2]))
+                        if p: return p, 'keyword'
+
+                    # 4. First specific keyword alone
+                    p = _run(Product.title.ilike(f'%{specific[0]}%'))
+                    if p: return p, 'keyword'
+
+                elif modifiers:
+                    # No specific nouns — try modifier alone (less reliable but better than nothing)
+                    p = _run(Product.title.ilike(f'%{modifiers[0]}%'))
+                    if p: return p, 'keyword'
+
+                # 5. Category
+                if cat:
+                    p = _run(Product.category.ilike(f'%{cat}%'))
+                    if p: return p, 'category'
+
+                # 6. Any product of this grade
+                p = _run()
+                return (p, 'fallback') if p else (None, None)
 
             results       = []
             seen_ids      = set()
             seen_prefixes = set()
 
             for grade in better_grades[:4]:
-                product, matched_by = _query_for_grade(grade, kw_filters, category)
+                product, matched_by = _query_for_grade(grade, specific_kws, modifier_kws, category)
                 if not product or product.id in seen_ids:
                     continue
                 prefix = (product.title or '')[:40].lower()
@@ -1496,7 +1538,7 @@ def create_app(config_name='production'):
                     'recyclability': product.recyclability,
                     'category':      product.category,
                     'matched_by':    matched_by,
-                    'keywords_used': keywords,
+                    'keywords_used': specific_kws or keywords,
                 })
                 if len(results) >= 3:
                     break
