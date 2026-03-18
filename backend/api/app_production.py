@@ -773,7 +773,81 @@ def create_app(config_name='production'):
 
             # ml_co2 used in DB save — set to rule_co2 as best approximation
             ml_co2 = rule_co2
-            
+
+            # === Counterfactual Explanations ===
+            # For each scenario, re-encode modified features and re-predict to show
+            # what single change would most improve the eco grade.
+            # Method: Wachter et al. (2017) "Counterfactual Explanations without Opening the Black Box"
+            counterfactuals = []
+            if app.xgb_model:
+                try:
+                    grade_order = ['A+', 'A', 'B', 'C', 'D', 'E', 'F']
+                    current_grade_idx = grade_order.index(eco_score_ml) if eco_score_ml in grade_order else 6
+                    _mat_intensities = {
+                        "Plastic": 2.5, "Steel": 3.0, "Metal": 3.0, "Paper": 1.2,
+                        "Glass": 1.5, "Wood": 0.8, "Fabric": 1.8, "Ceramic": 1.5, "Rubber": 2.2
+                    }
+                    cf_scenarios = [
+                        ('origin',    'United Kingdom', 'Source locally (UK manufacture)'),
+                        ('material',  'Paper',          'Switch to Paper/Cardboard'),
+                        ('material',  'Wood',           'Switch to Wood/Bamboo'),
+                        ('transport', 'Truck',          'Use road transport only'),
+                    ]
+                    seen_cf_grades = set()
+                    for cf_feature, cf_new_val, cf_desc in cf_scenarios:
+                        try:
+                            cf_mat  = cf_new_val if cf_feature == 'material'  else material
+                            cf_trns = cf_new_val if cf_feature == 'transport' else mode_name
+                            cf_orig = cf_new_val if cf_feature == 'origin'    else origin_country
+                            cf_mat_enc  = _safe_enc(cf_mat,  app.encoders.get('material_encoder'),  'Other')
+                            cf_trns_enc = _safe_enc(cf_trns, app.encoders.get('transport_encoder'), 'Land')
+                            cf_orig_enc = _safe_enc(cf_orig, app.encoders.get('origin_encoder'),    'Other')
+                            cf_X = np.array([[
+                                cf_mat_enc, cf_trns_enc, recycle_encoded, cf_orig_enc,
+                                weight_log, weight_bin,
+                                float(cf_mat_enc) * float(cf_trns_enc),
+                                float(cf_orig_enc) * float(recycle_encoded)
+                            ]])
+                            cf_pred  = app.xgb_model.predict(cf_X)[0]
+                            cf_grade = app.label_encoder.inverse_transform([cf_pred])[0]
+                            cf_grade_idx   = grade_order.index(cf_grade) if cf_grade in grade_order else 6
+                            grades_improved = current_grade_idx - cf_grade_idx
+                            if grades_improved > 0 and cf_grade not in seen_cf_grades:
+                                seen_cf_grades.add(cf_grade)
+                                # Estimate CO2 under the counterfactual scenario
+                                if cf_feature == 'origin':
+                                    cf_coords   = origin_hubs.get(cf_orig, origin_hubs.get('United Kingdom'))
+                                    cf_dist_km  = round(haversine(cf_coords['lat'], cf_coords['lon'], user_lat, user_lon), 1)
+                                    cf_co2_val  = weight * mode_factor * cf_dist_km / 1000 + material_co2
+                                elif cf_feature == 'material':
+                                    cf_intensity = _mat_intensities.get(cf_mat, 2.0)
+                                    cf_co2_val   = transport_co2 + (weight * cf_intensity)
+                                else:
+                                    cf_mode_factor = {"Truck": 0.15, "Ship": 0.03, "Air": 0.5}.get(cf_trns, mode_factor)
+                                    cf_co2_val     = weight * cf_mode_factor * origin_distance_km / 1000 + material_co2
+                                cf_co2_val   = max(cf_co2_val, 0.01)
+                                co2_reduction = round(rule_co2 - cf_co2_val, 3)
+                                co2_reduction_pct = round((co2_reduction / rule_co2) * 100, 1) if rule_co2 > 0 else 0
+                                counterfactuals.append({
+                                    'change':            cf_desc,
+                                    'changed_feature':   cf_feature,
+                                    'changed_value':     cf_new_val,
+                                    'current_grade':     eco_score_ml,
+                                    'new_grade':         cf_grade,
+                                    'grades_improved':   grades_improved,
+                                    'estimated_co2':     round(cf_co2_val, 3),
+                                    'co2_reduction_kg':  round(max(co2_reduction, 0), 3),
+                                    'co2_reduction_pct': co2_reduction_pct,
+                                })
+                        except Exception:
+                            pass
+                    counterfactuals.sort(key=lambda x: x['grades_improved'], reverse=True)
+                    counterfactuals = counterfactuals[:3]
+                    if counterfactuals:
+                        print(f"✅ Counterfactuals computed: {len(counterfactuals)}")
+                except Exception as cf_err:
+                    print(f"⚠️ Counterfactual generation error: {cf_err}")
+
             # Real-world recyclability rates by material (based on global recycling data)
             _recyclability_rates = {
                 'Glass':      90,   # Closed-loop, widely recycled
@@ -867,6 +941,9 @@ def create_app(config_name='production'):
 
                 # SHAP per-prediction explanation
                 "shap_explanation": shap_explanation,
+
+                # Counterfactual explanations
+                "counterfactuals": counterfactuals,
 
                 # Additional product info
                 "brand": product.get("brand"),
@@ -1296,7 +1373,83 @@ def create_app(config_name='production'):
         except Exception as e:
             print(f"Error in eco-data endpoint: {e}")
             return jsonify([]), 200
-    
+
+    @app.route('/api/alternatives', methods=['GET'])
+    def get_alternatives():
+        """Return greener product alternatives from the DB for a given grade and category.
+
+        Uses the dataset to surface products with better eco grades, prioritising
+        the same product category. Falls back to top-rated products across all
+        categories when the same-category pool is insufficient.
+        """
+        try:
+            category     = request.args.get('category', '').strip()
+            current_grade = request.args.get('grade', 'F').strip()
+
+            grade_order  = ['A+', 'A', 'B', 'C', 'D', 'E', 'F']
+            current_idx  = grade_order.index(current_grade) if current_grade in grade_order else len(grade_order) - 1
+            better_grades = grade_order[:current_idx]
+
+            if not better_grades:
+                return jsonify({'alternatives': [], 'message': 'Already at best possible grade'})
+
+            # --- Same-category search ---
+            alternatives = []
+            if category:
+                alternatives = (
+                    Product.query
+                    .filter(
+                        Product.true_eco_score.in_(better_grades),
+                        Product.category.ilike(f'%{category}%'),
+                        Product.title.isnot(None),
+                        Product.co2_emissions.isnot(None),
+                    )
+                    .order_by(Product.co2_emissions.asc())
+                    .limit(5)
+                    .all()
+                )
+
+            # --- Fallback: best-rated products across all categories ---
+            if len(alternatives) < 3:
+                top_grades   = better_grades[:min(2, len(better_grades))]
+                existing_ids = [p.id for p in alternatives]
+                extra_filter = [
+                    Product.true_eco_score.in_(top_grades),
+                    Product.title.isnot(None),
+                    Product.co2_emissions.isnot(None),
+                ]
+                if existing_ids:
+                    extra_filter.append(~Product.id.in_(existing_ids))
+                extra = (
+                    Product.query
+                    .filter(*extra_filter)
+                    .order_by(Product.co2_emissions.asc())
+                    .limit(5 - len(alternatives))
+                    .all()
+                )
+                alternatives.extend(extra)
+
+            print(f"✅ Alternatives found: {len(alternatives)} for grade={current_grade} category={category!r}")
+
+            return jsonify({
+                'alternatives': [
+                    {
+                        'title':        p.title,
+                        'material':     p.material,
+                        'grade':        p.true_eco_score,
+                        'co2_emissions': float(p.co2_emissions) if p.co2_emissions else None,
+                        'origin':       p.origin,
+                        'transport':    p.transport,
+                        'recyclability': p.recyclability,
+                        'category':     p.category,
+                    }
+                    for p in alternatives
+                ]
+            })
+        except Exception as e:
+            print(f"Error in alternatives endpoint: {e}")
+            return jsonify({'error': str(e)}), 500
+
     @app.route('/admin/submissions', methods=['GET'])
     def admin_submissions():
         """Get admin submissions - REQUIRES ADMIN AUTH"""

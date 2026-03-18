@@ -5,6 +5,8 @@ import { ModernCard, ModernButton, ModernBadge } from "./ModernLayout";
 import MLvsDEFRAChart from "./MLvsDefraChart";
 import CarbonMetricsCircle from "./CarbonMetricsCircle";
 import ShapExplanation from "./ShapExplanation";
+import CounterfactualExplanation from "./CounterfactualExplanation";
+import AlternativeRecommendations from "./AlternativeRecommendations";
 
 export default function ProductImpactCard({ result, showML, toggleShowML }) {
   const attr = result.attributes || {};
@@ -452,6 +454,18 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
         {attr.shap_explanation && (
           <ShapExplanation data={attr.shap_explanation} />
         )}
+
+        {/* Counterfactual explanations — what single change would improve the grade */}
+        {attr.counterfactuals && attr.counterfactuals.length > 0 && (
+          <CounterfactualExplanation data={attr.counterfactuals} />
+        )}
+
+        {/* Greener alternatives from the dataset (only shown for D / E / F grades) */}
+        <AlternativeRecommendations
+          grade={mlScore}
+          category={attr.category}
+          currentCo2={attr.carbon_kg}
+        />
       </motion.div>
     </ModernCard>
   );
