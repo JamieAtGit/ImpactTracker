@@ -1463,6 +1463,126 @@ def create_app(config_name='production'):
             specific_kws  = [k for k in keywords if k not in GENERIC_MODIFIERS]
             modifier_kws  = [k for k in keywords if k in GENERIC_MODIFIERS]
 
+            # ---------------------------------------------------------------
+            # Product-type inference
+            # ---------------------------------------------------------------
+            # Many product titles contain NO product-type noun:
+            #   • Books: "Never Lie: From the Sunday Times Bestselling Author…"
+            #   • Electronics: model numbers only ("iPhone 15 Pro Max")
+            # We infer the product type from (1) Amazon category breadcrumb,
+            # then (2) distinctive title phrases, and prepend the result to
+            # specific_kws so the DB search is anchored on the right term.
+            # ---------------------------------------------------------------
+            CATEGORY_TYPE_MAP = [
+                # Books / reading material
+                (['book', 'novel', 'fiction', 'non-fiction', 'nonfiction', 'thriller',
+                  'mystery', 'biography', 'autobiography', 'memoir', 'history',
+                  'kindle', 'literature', 'poetry', 'graphic novel', 'comic',
+                  'children', 'young adult', 'self-help', 'religion', 'education',
+                  'reference', 'textbook', 'cookbook', 'recipe'],
+                 ['book', 'novel']),
+                # Computing
+                (['laptop', 'notebook computer', 'chromebook'], ['laptop', 'notebook']),
+                (['desktop', 'pc', 'computer tower'],            ['computer', 'desktop']),
+                # Headphones MUST come before phones — 'headphone' contains 'phone'
+                (['headphone', 'earphone', 'earbuds', 'headset'],['headphone', 'earbuds']),
+                (['smartphone', 'mobile phone', 'sim free'],     ['phone', 'smartphone']),
+                (['tablet', 'ipad'],                             ['tablet']),
+                (['keyboard'],                                   ['keyboard']),
+                (['mouse'],                                      ['mouse']),
+                (['monitor', 'television', 'tv'],                ['monitor', 'television']),
+                (['camera'],                                     ['camera']),
+                (['printer'],                                    ['printer']),
+                # Home / furniture
+                (['chair', 'stool', 'seat'],                     ['chair', 'seat']),
+                (['table', 'desk'],                              ['desk', 'table']),
+                (['sofa', 'couch'],                              ['sofa', 'couch']),
+                (['bed', 'mattress', 'bedding', 'pillow', 'duvet'],['pillow', 'bedding']),
+                (['lamp', 'light', 'lighting'],                  ['lamp', 'light']),
+                # Kitchen
+                (['coffee', 'espresso', 'coffee maker', 'cafetiere'], ['coffee']),
+                (['toaster', 'kettle', 'blender', 'air fryer',
+                  'microwave', 'oven'],                          ['appliance', 'kitchen']),
+                (['water bottle', 'flask', 'tumbler'],           ['bottle', 'flask']),
+                (['pan', 'pot', 'cookware', 'frying'],           ['pan', 'cookware']),
+                # Personal care / health
+                (['razor', 'shaver', 'shaving'],                 ['razor', 'shaver']),
+                (['toothbrush'],                                 ['toothbrush']),
+                (['skincare', 'moisturiser', 'moisturizer',
+                  'serum', 'sunscreen'],                         ['skincare', 'cream']),
+                (['hair dryer', 'hair straightener', 'curler'],  ['hair', 'dryer']),
+                # Clothing / footwear
+                (['clothing', 'shirt', 't-shirt', 'dress',
+                  'jeans', 'trousers', 'shorts'],                ['clothing', 'shirt']),
+                (['jacket', 'coat', 'hoodie', 'jumper',
+                  'sweater'],                                    ['jacket', 'hoodie']),
+                (['shoe', 'sneaker', 'trainer', 'boot',
+                  'sandal'],                                     ['shoe', 'trainer']),
+                # Sports / outdoors
+                (['yoga', 'fitness', 'gym', 'exercise'],         ['fitness', 'gym']),
+                (['bicycle', 'cycling'],                         ['bicycle', 'cycling']),
+                # Toys / games
+                (['toy', 'game', 'puzzle', 'lego', 'doll',
+                  'action figure'],                              ['toy', 'game']),
+                (['gaming', 'controller', 'console', 'playstation',
+                  'xbox', 'nintendo'],                           ['controller', 'gaming']),
+                # Office
+                (['pen', 'pencil', 'stationery'],                ['pen', 'stationery']),
+                (['notebook', 'journal', 'planner'],             ['notebook', 'journal']),
+            ]
+
+            # Title phrases that betray the product type even without a category
+            TITLE_TYPE_PATTERNS = [
+                # Books — subtitles containing author/review signals
+                (['from the author', 'bestselling author', 'sunday times bestsell',
+                  'new york times bestsell', 'times bestsell', 'richard & judy',
+                  'book of the month', 'waterstones', 'gripping thriller',
+                  'murder mystery', 'crime novel', 'sunday times number one',
+                  'times number one'],
+                 ['book', 'novel']),
+                # Electronics model names
+                (['iphone', 'samsung galaxy', 'pixel'],          ['phone', 'smartphone']),
+                (['airpods', 'earbuds'],                         ['earbuds', 'headphone']),
+                (['macbook', 'surface pro'],                     ['laptop', 'notebook']),
+            ]
+
+            def infer_product_type(title_raw, category_raw):
+                """Return inferred DB search terms for the product type, or [].
+
+                Uses word-boundary matching to prevent substring false positives
+                (e.g. 'phone' must not match inside 'headphones').
+                Strips trailing 's' to handle plurals ('shoes' → 'shoe').
+                """
+                import re as _re
+                t = (title_raw or '').lower()
+                c = (category_raw or '').lower()
+
+                def _matches(text, patterns):
+                    for p in patterns:
+                        # Word-boundary match with optional plural suffix.
+                        # Handles: shoe→shoes, trainer→trainers, toothbrush→toothbrushes
+                        escaped = _re.escape(p)
+                        if _re.search(rf'\b{escaped}(es|s)?\b', text):
+                            return True
+                    return False
+
+                # 1. Category-based (most reliable — Amazon always sets this)
+                for patterns, terms in CATEGORY_TYPE_MAP:
+                    if _matches(c, patterns):
+                        return terms
+                # 2. Title-phrase-based (catches books with no 'book' in title)
+                for patterns, terms in TITLE_TYPE_PATTERNS:
+                    if _matches(t, patterns):
+                        return terms
+                return []
+
+            inferred = infer_product_type(title_param, category)
+            if inferred:
+                # Prepend inferred product-type terms so they anchor the search,
+                # then add any non-overlapping title-derived specific keywords.
+                specific_kws = inferred + [k for k in specific_kws if k not in inferred]
+                print(f"🔍 Product type inferred: {inferred} (category={category!r})")
+
             from sqlalchemy import or_ as sql_or, and_ as sql_and
 
             def _title_and(*words):
@@ -1556,7 +1676,7 @@ def create_app(config_name='production'):
                     'recyclability': product.recyclability,
                     'category':      product.category,
                     'matched_by':    matched_by,
-                    'keywords_used': specific_kws or keywords,
+                    'keywords_used': inferred if inferred else (specific_kws or keywords),
                 })
                 if len(results) >= 3:
                     break
