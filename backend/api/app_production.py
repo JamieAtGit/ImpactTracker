@@ -1400,8 +1400,8 @@ def create_app(config_name='production'):
                 return jsonify({'alternatives': [], 'message': 'Already at best possible grade'})
 
             # --- Keyword extraction from product title ---
-            # Strips stop-words, numbers, brands and generic descriptors so that
-            # "by Amazon Women's 5 Blade Razor + 3 Refills" → ['blade', 'razor', 'refill']
+            # Strips stop-words, model numbers, and generic descriptors so that
+            # "SIHOO B100 Ergonomic Office Chair" → specific=['chair'], modifiers=['ergonomic','office']
             STOP = {
                 'a','an','the','and','or','but','in','on','at','to','for','of',
                 'with','by','from','as','is','was','are','be','been','have','had',
@@ -1417,15 +1417,22 @@ def create_app(config_name='production'):
                 'mens','womens','women','men','girls','boys','kids','adult','adults',
                 'amazon','brand','basics','style','design','color','colour','edition',
                 'version','series','model','type','size',
+                # Product spec noise
+                'comfy','cozy','comfortable','adaptive','dynamic','wide','narrow',
+                'flip','tilt','lock','swivel','rotate','height','depth','weight',
             }
 
-            def extract_keywords(raw, n=4):
+            def extract_keywords(raw, n=6):
                 words = re.sub(r"[^\w\s]", " ", raw.lower()).split()
                 kws = [
                     w for w in words
                     if w not in STOP
                     and len(w) > 2
+                    # Pure numbers / units: "5g", "100ml", "3x"
                     and not re.match(r'^\d+[a-z]{0,3}$', w)
+                    # Alphanumeric model numbers: "b100", "gt500", "x200", "dxr"
+                    and not re.match(r'^[a-z]{1,3}\d+[a-z]{0,3}$', w)
+                    and not re.match(r'^\d+[a-z]{1,3}\d*$', w)
                 ]
                 seen, unique = set(), []
                 for w in kws:
@@ -1436,16 +1443,23 @@ def create_app(config_name='production'):
 
             keywords = extract_keywords(title_param) if title_param else []
 
-            # Generic tech/property modifiers that should never anchor a search alone
-            # — "electric guitar" is a valid match for "electric", but "razor" is not.
+            # Generic modifiers — describe how/where a product is used but are NOT the product type.
+            # "electric razor" → specific=['razor'], modifiers=['electric']
+            # "ergonomic office chair" → specific=['chair'], modifiers=['ergonomic','office']
             GENERIC_MODIFIERS = {
+                # Tech/connectivity
                 'electric', 'digital', 'wireless', 'smart', 'portable', 'rechargeable',
                 'battery', 'automatic', 'manual', 'professional', 'cordless', 'power',
-                'powered', 'electronic', 'mechanical', 'solar', 'compact', 'travel',
-                'home', 'office', 'indoor', 'outdoor', 'personal', 'handheld',
+                'powered', 'electronic', 'mechanical', 'solar', 'handheld',
+                # Product context / workspace
+                'office', 'desk', 'gaming', 'home', 'kitchen', 'bathroom', 'bedroom',
+                'indoor', 'outdoor', 'travel', 'compact', 'personal',
+                # Physical descriptors
+                'ergonomic', 'adjustable', 'foldable', 'breathable', 'waterproof',
+                'washable', 'reusable', 'disposable', 'standing', 'rotating',
             }
 
-            # Split into specific product-nouns vs generic modifiers
+            # Split into core product nouns vs context modifiers
             specific_kws  = [k for k in keywords if k not in GENERIC_MODIFIERS]
             modifier_kws  = [k for k in keywords if k in GENERIC_MODIFIERS]
 
@@ -1497,14 +1511,18 @@ def create_app(config_name='production'):
                         p = _run(*_title_and(*specific[:2]))
                         if p: return p, 'keyword'
 
-                    # 4. First specific keyword alone
-                    p = _run(Product.title.ilike(f'%{specific[0]}%'))
-                    if p: return p, 'keyword'
+                    # 4. Each specific keyword individually in REVERSE order.
+                    #    Product-type nouns (chair, razor, bottle) appear after brand
+                    #    names in titles, so reversing means we try them first.
+                    for kw in reversed(specific):
+                        p = _run(Product.title.ilike(f'%{kw}%'))
+                        if p: return p, 'keyword'
 
                 elif modifiers:
-                    # No specific nouns — try modifier alone (less reliable but better than nothing)
-                    p = _run(Product.title.ilike(f'%{modifiers[0]}%'))
-                    if p: return p, 'keyword'
+                    # No specific nouns — try each modifier in reverse order
+                    for kw in reversed(modifiers):
+                        p = _run(Product.title.ilike(f'%{kw}%'))
+                        if p: return p, 'keyword'
 
                 # 5. Category
                 if cat:
