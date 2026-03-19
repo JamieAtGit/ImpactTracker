@@ -7,6 +7,7 @@ import CarbonMetricsCircle from "./CarbonMetricsCircle";
 import ShapExplanation from "./ShapExplanation";
 import CounterfactualExplanation from "./CounterfactualExplanation";
 import AlternativeRecommendations from "./AlternativeRecommendations";
+import ConfidenceDistributionChart from "./ConfidenceDistributionChart";
 
 export default function ProductImpactCard({ result, showML, toggleShowML }) {
   const attr = result.attributes || {};
@@ -455,10 +456,36 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
           <ShapExplanation data={attr.shap_explanation} />
         )}
 
+        {/* Grade probability distribution */}
+        {attr.proba_distribution && attr.proba_distribution.length > 0 && (
+          <ConfidenceDistributionChart
+            data={attr.proba_distribution}
+            predictedGrade={mlScore}
+          />
+        )}
+
         {/* Counterfactual explanations — what single change would improve the grade */}
         {attr.counterfactuals && attr.counterfactuals.length > 0 && (
           <CounterfactualExplanation data={attr.counterfactuals} />
         )}
+
+        {/* Add to Carbon Basket */}
+        <motion.div
+          className="mt-6 flex justify-center"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.6 }}
+        >
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent("basket:add", {
+              detail: { title: result.title, grade: mlScore, co2: attr.carbon_kg }
+            }))}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600/20 border border-emerald-500/40 hover:bg-emerald-600/30 hover:border-emerald-500/70 text-emerald-400 text-sm font-medium transition-colors"
+          >
+            <span>🧺</span>
+            Add to Carbon Basket
+          </button>
+        </motion.div>
 
         {/* Greener alternatives from the dataset (only shown for D / E / F grades) */}
         <AlternativeRecommendations

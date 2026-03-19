@@ -7,6 +7,7 @@ import ModelInfoModal from "../components/ModelInfoModal";
 import ModelMetricsChart from "../components/ModelMetricsChart";
 import PerClassMetricsTable from "../components/PerClassMetricsTable";
 import SystemArchitectureDiagram from "../components/SystemArchitectureDiagram";
+import GlobalShapChart from "../components/GlobalShapChart";
 import Footer from "../components/Footer";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -657,6 +658,13 @@ export default function LearnPage() {
                     <ImportantChart />
                   </div>
                 </div>
+              </ModernCard>
+            </ModernSection>
+
+            {/* Global SHAP Feature Importance */}
+            <ModernSection title="Global SHAP Feature Importance" icon delay={0.42} className="mt-32">
+              <ModernCard solid className="p-8">
+                <GlobalShapChart />
               </ModernCard>
             </ModernSection>
 

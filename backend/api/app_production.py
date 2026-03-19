@@ -716,6 +716,7 @@ def create_app(config_name='production'):
             eco_score_ml = eco_score_rule_based  # fallback if model unavailable
             confidence = 0.0
             shap_explanation = None
+            proba_distribution = []
 
             if app.xgb_model:
                 try:
@@ -725,6 +726,13 @@ def create_app(config_name='production'):
                     if hasattr(app.xgb_model, 'predict_proba'):
                         proba = app.xgb_model.predict_proba(X)
                         confidence = round(float(np.max(proba[0])) * 100, 1)
+                        try:
+                            proba_distribution = [
+                                {"grade": str(g), "probability": round(float(p) * 100, 1)}
+                                for g, p in zip(app.label_encoder.classes_, proba[0])
+                            ]
+                        except Exception:
+                            pass
 
                     print(f"✅ ML prediction: {eco_score_ml} ({confidence}%)")
 
@@ -941,6 +949,9 @@ def create_app(config_name='production'):
 
                 # SHAP per-prediction explanation
                 "shap_explanation": shap_explanation,
+
+                # Full 7-class probability distribution for confidence chart
+                "proba_distribution": proba_distribution,
 
                 # Counterfactual explanations
                 "counterfactuals": counterfactuals,
@@ -1862,6 +1873,107 @@ def create_app(config_name='production'):
             {'feature': 'Weight Category', 'importance':  4.57},
         ])
     
+    @app.route('/api/global-shap', methods=['GET'])
+    def global_shap():
+        """Global SHAP feature importance averaged over a dataset sample.
+
+        Computes mean(|SHAP value|) per feature across 500 randomly-sampled
+        products, aggregated over all 7 grade classes. This gives the global
+        importance of each input feature to the model as a whole, complementing
+        the per-prediction local SHAP explanations on the results card.
+
+        Method: Lundberg & Lee (2017) — SHapley Additive exPlanations.
+        """
+        try:
+            import shap as shap_lib
+
+            if not (hasattr(app, 'xgb_model') and app.xgb_model):
+                return jsonify({'error': 'Model not loaded yet — make one prediction first'}), 503
+
+            # Sample 500 products from the DB (deterministic: ordered by id)
+            sample = (
+                Product.query
+                .filter(
+                    Product.material.isnot(None),
+                    Product.transport.isnot(None),
+                    Product.origin.isnot(None),
+                    Product.weight.isnot(None),
+                )
+                .limit(500)
+                .all()
+            )
+            if len(sample) < 20:
+                return jsonify({'error': 'Insufficient data in database'}), 400
+
+            enc = app.encoders
+
+            def _enc(val, key, default):
+                e = enc.get(key)
+                if e is None:
+                    return 0
+                try:
+                    return int(e.transform([val])[0])
+                except Exception:
+                    try:
+                        return int(e.transform([default])[0])
+                    except Exception:
+                        return 0
+
+            rows = []
+            for p in sample:
+                try:
+                    mat  = p.material or 'Other'
+                    trn  = p.transport or 'Ship'
+                    rec  = p.recyclability or 'Medium'
+                    orig = p.origin or 'Unknown'
+                    w    = float(p.weight or 1.0)
+                    me   = _enc(mat,  'material_encoder',  'Other')
+                    te   = _enc(trn,  'transport_encoder', 'Ship')
+                    re_  = _enc(rec,  'recycle_encoder',   'Medium')
+                    oe   = _enc(orig, 'origin_encoder',    'Unknown')
+                    wl   = float(np.log1p(w))
+                    wb   = float(0 if w < 0.5 else 1 if w < 2 else 2 if w < 10 else 3)
+                    rows.append([me, te, re_, oe, wl, wb, float(me)*float(te), float(oe)*float(re_)])
+                except Exception:
+                    pass
+
+            if len(rows) < 10:
+                return jsonify({'error': 'Could not encode enough samples'}), 500
+
+            X_s = np.array(rows)
+            explainer = shap_lib.TreeExplainer(app.xgb_model)
+            sv = explainer.shap_values(X_s)
+
+            arr = np.array(sv)
+            if arr.ndim == 3:                               # (n_samples, n_features, n_classes)
+                global_imp = np.mean(np.abs(arr), axis=(0, 2))
+            elif isinstance(sv, list):                      # list of n_classes arrays
+                global_imp = np.mean(np.abs(np.stack(sv, axis=-1)), axis=(0, 2))
+            else:
+                global_imp = np.mean(np.abs(arr), axis=0)
+
+            feat_names = [
+                'Material Type', 'Transport Mode', 'Recyclability',
+                'Origin Country', 'Weight', 'Weight Category',
+                'Material × Transport', 'Origin × Recyclability',
+            ]
+            features = sorted([
+                {'feature': feat_names[i], 'importance': round(float(global_imp[i]), 5)}
+                for i in range(min(8, len(global_imp)))
+            ], key=lambda x: -x['importance'])
+
+            print(f"✅ Global SHAP computed over {len(rows)} samples")
+            return jsonify({
+                'features':    features,
+                'sample_size': len(rows),
+                'method':      'TreeExplainer — mean(|SHAP|) across all samples and classes',
+                'citation':    'Lundberg & Lee (2017). NeurIPS.',
+            })
+
+        except Exception as e:
+            print(f"Global SHAP error: {e}")
+            return jsonify({'error': str(e)}), 500
+
     @app.route('/api/feedback', methods=['POST'])
     def feedback():
         """Handle user feedback"""

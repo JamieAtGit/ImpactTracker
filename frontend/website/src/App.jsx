@@ -11,6 +11,7 @@ import ExtensionPage from "./pages/ExtensionPage";
 import ContactPage from "./pages/ContactPage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
+import CarbonBasket from "./components/CarbonBasket";
 
 
 export default function App() {
@@ -28,6 +29,7 @@ export default function App() {
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
       </Routes>
+      <CarbonBasket />
     </Router>
   );
 }
