@@ -51,11 +51,6 @@ export default function Footer() {
                   Browser Extension
                 </Link>
               </li>
-              <li>
-                <Link to="/admin" className="text-slate-400 hover:text-cyan-400 transition-colors">
-                  Admin Dashboard
-                </Link>
-              </li>
             </ul>
           </div>
 

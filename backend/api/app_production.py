@@ -1988,67 +1988,65 @@ def create_app(config_name='production'):
     # Authentication endpoints
     @app.route('/signup', methods=['POST'])
     def signup():
-        """User registration endpoint - SIMPLIFIED FOR DEMO"""
+        """User registration — saves to DB with hashed password."""
         try:
-            data = request.get_json()
-            username = data.get('username')
-            password = data.get('password')
-            
+            data = request.get_json() or {}
+            username = (data.get('username') or '').strip()
+            password = data.get('password') or ''
+            email    = (data.get('email') or '').strip() or None
+
             if not username or not password:
                 return jsonify({'error': 'Username and password required'}), 400
-            
-            # ADMIN ACCOUNT HARDCODED CHECK
-            if username.upper() == 'ADMIN':
-                if password == 'ADMINTEST':
-                    return jsonify({'message': '✅ Admin login successful', 'role': 'admin'}), 200
-                else:
-                    return jsonify({'error': 'Admin password must be: ADMINTEST'}), 400
-            
-            # FOR REGULAR USERS - Just return success (demo mode)
-            # In a real system, you'd save to database here
-            return jsonify({'message': f'✅ User {username} registered successfully', 'role': 'user'}), 200
-            
+            if len(username) < 3:
+                return jsonify({'error': 'Username must be at least 3 characters'}), 400
+            if len(password) < 8:
+                return jsonify({'error': 'Password must be at least 8 characters'}), 400
+            if username.lower() == 'admin':
+                return jsonify({'error': 'Username not available'}), 400
+
+            if User.query.filter_by(username=username).first():
+                return jsonify({'error': 'Username already taken'}), 409
+            if email and User.query.filter_by(email=email).first():
+                return jsonify({'error': 'Email already registered'}), 409
+
+            user = User(username=username, email=email, role='user')
+            user.set_password(password)
+            db.session.add(user)
+            db.session.commit()
+
+            return jsonify({'message': f'Account created for {username}', 'role': 'user'}), 201
+
         except Exception as e:
+            db.session.rollback()
             print(f"Signup error: {e}")
-            return jsonify({'error': f'Registration failed: {str(e)}'}), 500
-    
+            return jsonify({'error': 'Registration failed'}), 500
+
     @app.route('/login', methods=['POST'])
     def login():
-        """User login endpoint - USING RAW SQL"""
+        """Login — checks admin via env var, regular users via DB hash."""
         try:
-            data = request.get_json()
-            username = data.get('username')
-            password = data.get('password')
-            
+            data = request.get_json() or {}
+            username = (data.get('username') or '').strip()
+            password = data.get('password') or ''
+
             if not username or not password:
                 return jsonify({'error': 'Username and password required'}), 400
-            
-            # HARDCODED ADMIN LOGIN
-            if username.upper() == 'ADMIN' and password == 'ADMINTEST':
-                session['user'] = {
-                    'id': 1,
-                    'username': 'ADMIN',
-                    'role': 'admin'
-                }
-                return jsonify({
-                    'message': '✅ Admin logged in successfully',
-                    'user': session['user']
-                }), 200
-            
-            # FOR REGULAR USERS - Accept any valid username/password combo
-            if len(username) >= 3 and len(password) >= 3:
-                session['user'] = {
-                    'id': 999,
-                    'username': username,
-                    'role': 'user'
-                }
-                return jsonify({
-                    'message': f'✅ User {username} logged in successfully',
-                    'user': session['user']
-                }), 200
-            else:
-                return jsonify({'error': 'Username and password must be at least 3 characters'}), 401
-            
+
+            # Admin check via env vars (never hardcoded in source)
+            admin_user = os.getenv('ADMIN_USERNAME', 'admin')
+            admin_pass = os.getenv('ADMIN_PASSWORD', '')
+            if admin_pass and username.lower() == admin_user.lower() and password == admin_pass:
+                session['user'] = {'id': 0, 'username': username, 'role': 'admin'}
+                return jsonify({'message': 'Logged in', 'user': session['user']}), 200
+
+            # Regular users — DB lookup with hashed password
+            user = User.query.filter_by(username=username).first()
+            if not user or not user.check_password(password):
+                return jsonify({'error': 'Invalid username or password'}), 401
+
+            session['user'] = {'id': user.id, 'username': user.username, 'role': user.role or 'user'}
+            return jsonify({'message': 'Logged in', 'user': session['user']}), 200
+
         except Exception as e:
             print(f"Login error: {e}")
             return jsonify({'error': 'Login failed'}), 500

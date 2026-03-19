@@ -33,7 +33,7 @@ export default function GlobalShapChart() {
     fetch(`${BASE_URL}/api/global-shap`)
       .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then(json => {
-        setData(json.feature_importances || []);
+        setData(json.features || json.feature_importances || []);
         setMeta({ sample_size: json.sample_size, citation: json.citation });
       })
       .catch(err => {

@@ -556,8 +556,16 @@ function LiveStatsBar() {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+const LEARN_TABS = [
+  { id: 'overview',       label: 'Overview',       icon: '🏠' },
+  { id: 'explainability', label: 'Explainability',  icon: '🔍' },
+  { id: 'performance',    label: 'Performance',     icon: '📈' },
+  { id: 'methodology',    label: 'Methodology',     icon: '⚗️' },
+];
+
 export default function LearnPage() {
-  const [showModal, setShowModal] = useState(false);
+  const [showModal,  setShowModal]  = useState(false);
+  const [activeTab,  setActiveTab]  = useState('overview');
 
   return (
     <ModernLayout>
@@ -608,7 +616,28 @@ export default function LearnPage() {
               </motion.div>
             </ModernSection>
 
+            {/* Tab Navigation */}
+            <div className="sticky top-0 z-40 -mx-8 px-8 py-3 bg-slate-950/90 backdrop-blur-md border-b border-slate-700/50">
+              <div className="flex gap-1.5">
+                {LEARN_TABS.map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      activeTab === tab.id
+                        ? 'bg-cyan-600/25 text-cyan-300 border border-cyan-500/40'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent'
+                    }`}
+                  >
+                    <span>{tab.icon}</span>
+                    <span className="hidden sm:inline">{tab.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Live Database Stats */}
+            {activeTab === 'overview' && (
             <ModernSection title="Live System Statistics" icon delay={0.1}>
               <ModernCard solid className="p-6">
                 <p className="text-slate-400 text-sm mb-4">
@@ -617,8 +646,10 @@ export default function LearnPage() {
                 <LiveStatsBar />
               </ModernCard>
             </ModernSection>
+            )}
 
             {/* About Model Button */}
+            {activeTab === 'overview' && (
             <ModernSection>
               <div className="flex justify-center">
                 <ModernButton variant="secondary" onClick={() => setShowModal(true)} icon="🔬">
@@ -626,9 +657,11 @@ export default function LearnPage() {
                 </ModernButton>
               </div>
             </ModernSection>
+            )}
 
             {/* System Architecture */}
-            <ModernSection title="System Architecture" icon delay={0.2} className="mt-32">
+            {activeTab === 'overview' && (
+            <ModernSection title="System Architecture" icon delay={0.2}>
               <ModernCard solid className="p-8">
                 <div className="space-y-4 mb-6">
                   <p className="text-slate-400 text-sm">
@@ -639,16 +672,20 @@ export default function LearnPage() {
                 <SystemArchitectureDiagram />
               </ModernCard>
             </ModernSection>
+            )}
 
             {/* CO₂ Methodology */}
-            <ModernSection title="CO₂ Calculation Methodology" icon delay={0.3} className="mt-32">
+            {activeTab === 'methodology' && (
+            <ModernSection title="CO₂ Calculation Methodology" icon delay={0.3}>
               <ModernCard solid className="p-8">
                 <CarbonMethodologySection />
               </ModernCard>
             </ModernSection>
+            )}
 
             {/* Feature Importance */}
-            <ModernSection title="Feature Importance Analysis" icon delay={0.4} className="mt-32">
+            {activeTab === 'explainability' && (
+            <ModernSection title="Feature Importance Analysis" icon delay={0.4}>
               <ModernCard solid className="p-8">
                 <div className="space-y-4">
                   <p className="text-slate-400 text-sm text-center">
@@ -660,30 +697,38 @@ export default function LearnPage() {
                 </div>
               </ModernCard>
             </ModernSection>
+            )}
 
             {/* Global SHAP Feature Importance */}
-            <ModernSection title="Global SHAP Feature Importance" icon delay={0.42} className="mt-32">
+            {activeTab === 'explainability' && (
+            <ModernSection title="Global SHAP Feature Importance" icon delay={0.42}>
               <ModernCard solid className="p-8">
                 <GlobalShapChart />
               </ModernCard>
             </ModernSection>
+            )}
 
             {/* SMOTE Class Balance */}
-            <ModernSection title="Class Imbalance & SMOTE Resampling" icon delay={0.45} className="mt-32">
+            {activeTab === 'explainability' && (
+            <ModernSection title="Class Imbalance & SMOTE Resampling" icon delay={0.45}>
               <ModernCard solid className="p-8">
                 <SmoteSection />
               </ModernCard>
             </ModernSection>
+            )}
 
             {/* Per-Class XGBoost Metrics + Confusion Matrices */}
-            <ModernSection title="Per-Class Performance & Confusion Matrices" icon delay={0.5} className="mt-32">
+            {activeTab === 'performance' && (
+            <ModernSection title="Per-Class Performance & Confusion Matrices" icon delay={0.5}>
               <ModernCard solid className="p-8">
                 <PerClassMetricsTable />
               </ModernCard>
             </ModernSection>
+            )}
 
             {/* Model Metrics Overview */}
-            <ModernSection title="Model Performance Metrics" icon delay={0.6} className="mt-32">
+            {activeTab === 'performance' && (
+            <ModernSection title="Model Performance Metrics" icon delay={0.6}>
               <ModernCard solid className="p-8">
                 <div className="space-y-4">
                   <p className="text-slate-400 text-sm text-center">
@@ -695,16 +740,20 @@ export default function LearnPage() {
                 </div>
               </ModernCard>
             </ModernSection>
+            )}
 
             {/* Carbon Equivalences */}
-            <ModernSection title="Carbon Equivalences" icon delay={0.65} className="mt-32">
+            {activeTab === 'performance' && (
+            <ModernSection title="Carbon Equivalences" icon delay={0.65}>
               <ModernCard solid className="p-8">
                 <CarbonEquivalences />
               </ModernCard>
             </ModernSection>
+            )}
 
             {/* Training Pipeline */}
-            <ModernSection title="Training Pipeline Architecture" icon delay={0.7} className="mt-32">
+            {activeTab === 'methodology' && (
+            <ModernSection title="Training Pipeline Architecture" icon delay={0.7}>
               <div className="space-y-20">
                 {/* Random Forest */}
                 <ModernCard solid className="p-8">
@@ -839,9 +888,11 @@ export default function LearnPage() {
                 </ModernCard>
               </div>
             </ModernSection>
+            )}
 
             {/* Technology Stack */}
-            <ModernSection title="Technology Stack" icon delay={0.75} className="mt-32">
+            {activeTab === 'methodology' && (
+            <ModernSection title="Technology Stack" icon delay={0.75}>
               <ModernCard solid className="p-8">
                 <p className="text-slate-400 text-sm mb-6">
                   Full-stack implementation spanning frontend, backend, ML pipeline, and cloud infrastructure.
@@ -849,16 +900,20 @@ export default function LearnPage() {
                 <TechStackSection />
               </ModernCard>
             </ModernSection>
+            )}
 
             {/* Limitations */}
-            <ModernSection title="Limitations & Scope" icon delay={0.8} className="mt-32">
+            {activeTab === 'methodology' && (
+            <ModernSection title="Limitations & Scope" icon delay={0.8}>
               <ModernCard solid className="p-8">
                 <LimitationsSection />
               </ModernCard>
             </ModernSection>
+            )}
 
             {/* How It Works */}
-            <ModernSection title="How Predictions Are Made" icon delay={0.85} className="mt-32 mb-24">
+            {activeTab === 'overview' && (
+            <ModernSection title="How Predictions Are Made" icon delay={0.85} className="mb-24">
               <ModernCard solid>
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -902,6 +957,7 @@ export default function LearnPage() {
                 </div>
               </ModernCard>
             </ModernSection>
+            )}
 
             <Footer />
             <ModelInfoModal isOpen={showModal} onClose={() => setShowModal(false)} />
