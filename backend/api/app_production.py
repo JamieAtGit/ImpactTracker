@@ -1092,6 +1092,34 @@ def create_app(config_name='production'):
                 db.session.add(new_product)
                 db.session.commit()
                 print(f"✅ Product added to DB: {new_product.title} (total now {Product.query.count()})")
+
+                # ── Data flywheel: append to live_scraped.csv for future retraining ──
+                # The retrain.py script will merge this with the 50k base dataset.
+                # Grade is re-derived from the DEFRA CO₂ value (same formula as training).
+                try:
+                    import csv as _csv
+                    _live_csv = os.path.join(BASE_DIR, 'ml', 'live_scraped.csv')
+                    _co2_val  = (ml_co2 + rule_co2) / 2 if (ml_co2 and rule_co2) else total_co2
+                    _recyclability = _material_recyclability.get(material, 'Medium')
+                    _row = {
+                        'title':          product.get('title', ''),
+                        'material':       material,
+                        'weight':         round(float(weight), 4),
+                        'transport':      mode_name,
+                        'recyclability':  _recyclability,
+                        'true_eco_score': eco_score_rule_based or 'C',
+                        'co2_emissions':  round(float(_co2_val), 4),
+                        'origin':         (origin_country or 'Unknown').title(),
+                    }
+                    _write_header = not os.path.exists(_live_csv)
+                    with open(_live_csv, 'a', newline='', encoding='utf-8') as _f:
+                        _w = _csv.DictWriter(_f, fieldnames=list(_row.keys()))
+                        if _write_header:
+                            _w.writeheader()
+                        _w.writerow(_row)
+                except Exception as _e:
+                    print(f"Live CSV append skipped: {_e}")
+
             except Exception as e:
                 print(f"Database save error: {e}")
             

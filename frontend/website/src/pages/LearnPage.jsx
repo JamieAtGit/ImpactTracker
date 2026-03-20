@@ -620,9 +620,9 @@ export default function LearnPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.6 }}
                 >
-                  <StatBadge value="83.8%" label="Test Set Accuracy"  sub="Macro F1: 0.704"      color="text-cyan-400" />
-                  <StatBadge value="0.947" label="Macro ROC AUC"      sub="7-class one-vs-rest"  color="text-purple-400" />
-                  <StatBadge value="4,698" label="Training Samples"   sub="Cleaned dataset"      color="text-green-400" />
+                  <StatBadge value="99.3%" label="Test Set Accuracy"  sub="Macro F1: 0.993"      color="text-cyan-400" />
+                  <StatBadge value="0.9998" label="Macro ROC AUC"     sub="7-class one-vs-rest"  color="text-purple-400" />
+                  <StatBadge value="49,999" label="Training Samples"  sub="DEFRA re-labelled"    color="text-green-400" />
                   <StatBadge value="7"     label="Eco Grade Classes"  sub="A+ through F"         color="text-amber-400" />
                 </motion.div>
               </motion.div>
