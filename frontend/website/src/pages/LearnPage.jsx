@@ -8,6 +8,10 @@ import ModelMetricsChart from "../components/ModelMetricsChart";
 import PerClassMetricsTable from "../components/PerClassMetricsTable";
 import SystemArchitectureDiagram from "../components/SystemArchitectureDiagram";
 import GlobalShapChart from "../components/GlobalShapChart";
+import ROCCurveChart from "../components/ROCCurveChart";
+import CalibrationChart from "../components/CalibrationChart";
+import StatisticalTestsPanel from "../components/StatisticalTestsPanel";
+import DatasetDistributionCharts from "../components/DatasetDistributionCharts";
 import Footer from "../components/Footer";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -564,8 +568,16 @@ const LEARN_TABS = [
 ];
 
 export default function LearnPage() {
-  const [showModal,  setShowModal]  = useState(false);
-  const [activeTab,  setActiveTab]  = useState('overview');
+  const [showModal,     setShowModal]     = useState(false);
+  const [activeTab,     setActiveTab]     = useState('overview');
+  const [evalData,      setEvalData]      = useState(null);
+
+  useEffect(() => {
+    fetch(`${BASE_URL}/api/evaluation`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setEvalData(d); })
+      .catch(() => {});
+  }, []);
 
   return (
     <ModernLayout>
@@ -608,10 +620,10 @@ export default function LearnPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.6 }}
                 >
-                  <StatBadge value="86.6%" label="XGBoost Accuracy"  sub="Macro F1: 86.7%"     color="text-cyan-400" />
-                  <StatBadge value="11"    label="Feature Vector"    sub="Enhanced model"       color="text-purple-400" />
-                  <StatBadge value="11.9K" label="Training Samples"  sub="Post-SMOTE balanced" color="text-green-400" />
-                  <StatBadge value="7"     label="Eco Grade Classes" sub="A+ through F"         color="text-amber-400" />
+                  <StatBadge value="83.8%" label="Test Set Accuracy"  sub="Macro F1: 0.704"      color="text-cyan-400" />
+                  <StatBadge value="0.947" label="Macro ROC AUC"      sub="7-class one-vs-rest"  color="text-purple-400" />
+                  <StatBadge value="4,698" label="Training Samples"   sub="Cleaned dataset"      color="text-green-400" />
+                  <StatBadge value="7"     label="Eco Grade Classes"  sub="A+ through F"         color="text-amber-400" />
                 </motion.div>
               </motion.div>
             </ModernSection>
@@ -644,6 +656,19 @@ export default function LearnPage() {
                   Real-time figures from the production PostgreSQL database on Railway
                 </p>
                 <LiveStatsBar />
+              </ModernCard>
+            </ModernSection>
+            )}
+
+            {/* Dataset Statistics */}
+            {activeTab === 'overview' && (
+            <ModernSection title="Dataset Statistics" icon delay={0.12}>
+              <ModernCard solid className="p-8">
+                <p className="text-slate-400 text-sm mb-6">
+                  The training dataset was compiled from Amazon product listings, labelled using DEFRA-based
+                  rule-based CO₂ thresholds, and balanced with SMOTE before model training.
+                </p>
+                <DatasetDistributionCharts datasetStats={evalData?.dataset_statistics} />
               </ModernCard>
             </ModernSection>
             )}
@@ -713,6 +738,36 @@ export default function LearnPage() {
             <ModernSection title="Class Imbalance & SMOTE Resampling" icon delay={0.45}>
               <ModernCard solid className="p-8">
                 <SmoteSection />
+              </ModernCard>
+            </ModernSection>
+            )}
+
+            {/* Statistical Tests & Cross-Validation */}
+            {activeTab === 'performance' && (
+            <ModernSection title="Statistical Evaluation & Cross-Validation" icon delay={0.45}>
+              <ModernCard solid className="p-8">
+                <StatisticalTestsPanel evaluationData={evalData} />
+              </ModernCard>
+            </ModernSection>
+            )}
+
+            {/* ROC Curves */}
+            {activeTab === 'performance' && (
+            <ModernSection title="Multi-Class ROC Curves (One-vs-Rest)" icon delay={0.48}>
+              <ModernCard solid className="p-8">
+                <ROCCurveChart
+                  rocData={evalData?.roc_curves}
+                  classes={evalData?.classes}
+                />
+              </ModernCard>
+            </ModernSection>
+            )}
+
+            {/* Calibration */}
+            {activeTab === 'performance' && (
+            <ModernSection title="Reliability Diagram (Calibration)" icon delay={0.49}>
+              <ModernCard solid className="p-8">
+                <CalibrationChart calibrationData={evalData?.calibration} />
               </ModernCard>
             </ModernSection>
             )}
