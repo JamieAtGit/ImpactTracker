@@ -370,41 +370,80 @@ def create_app(config_name='production'):
                     cached_origin_confidence = "medium"
                 else:
                     cached_origin_confidence = "low"
+                # Reconstruct all fields from the cached emission calculation
+                cached_total    = float(cached_calc.final_emission or 0.0)
+                cached_ml_co2   = float(cached_calc.ml_prediction or cached_total)
+                cached_rule_co2 = float(cached_calc.rule_based_prediction or cached_total)
+                cached_distance = float(cached_calc.transport_distance or 0.0)
+                cached_weight   = float(cached_product.weight or 0.5)
+                cached_raw_wt   = round(cached_weight / 1.05, 3)
+                cached_transport = cached_calc.transport_mode or 'Ship'
+                cached_material  = cached_product.material or 'Mixed'
+
+                _recyclability_rates = {
+                    'Glass': 90, 'Aluminum': 85, 'Steel': 85, 'Metal': 85,
+                    'Paper': 80, 'Cardboard': 80, 'Wood': 70, 'Bamboo': 70,
+                    'Fabric': 40, 'Cotton': 40, 'Plastic': 20,
+                    'Mixed': 15, 'Electronic': 15,
+                }
+                rec_pct   = _recyclability_rates.get(cached_material, 50)
+                rec_label = 'High' if rec_pct >= 70 else ('Medium' if rec_pct >= 40 else 'Low')
+
+                cached_grade_ml   = calculate_eco_score(cached_ml_co2,   rec_label, cached_distance, cached_weight)
+                cached_grade_rule = calculate_eco_score(cached_rule_co2, rec_label, cached_distance, cached_weight)
+                cached_ml_conf    = round(cached_confidence_numeric * 100, 1)
+
                 cached_attributes = {
-                    "material_type": cached_product.material or "Mixed",
-                    "weight_kg": round(float(cached_product.weight or 0.5), 2),
-                    "origin": cached_product.origin_country or "Unknown",
+                    # Core CO₂ and weight
+                    "carbon_kg":             round(cached_total, 2),
+                    "weight_kg":             round(cached_weight, 2),
+                    "raw_product_weight_kg": cached_raw_wt,
+                    # Origin
+                    "origin":            cached_product.origin_country or "Unknown",
                     "country_of_origin": cached_product.origin_country or "Unknown",
-                    "facility_origin": cached_product.origin_country or "Unknown",
-                    "origin_source": "database_cache",
+                    "facility_origin":   cached_product.origin_country or "Unknown",
+                    "origin_source":     "database_cache",
                     "origin_confidence": cached_origin_confidence,
-                    "dimensions_cm": "Not found",
-                    "brand": cached_product.brand,
-                    "price": cached_product.price,
-                    "asin": cached_product.asin,
-                    "image_url": "Not found",
+                    # Distance & transport
+                    "distance_from_origin_km":  cached_distance,
+                    "distance_from_uk_hub_km":  3.2,
+                    "intl_distance_km":         cached_distance,
+                    "uk_distance_km":           3.2,
+                    "transport_mode":           cached_transport,
+                    "default_transport_mode":   cached_transport,
+                    "selected_transport_mode":  None,
+                    # Material & recyclability
+                    "material_type":                cached_material,
+                    "recyclability":                rec_label,
+                    "recyclability_percentage":     rec_pct,
+                    "recyclability_description":    f"{rec_pct}% of {cached_material} is recycled globally",
+                    # Eco scores — both methods
+                    "eco_score_ml":                     cached_grade_ml,
+                    "eco_score_ml_confidence":          cached_ml_conf,
+                    "eco_score_rule_based":             cached_grade_rule,
+                    "eco_score_rule_based_local_only":  cached_grade_rule,
+                    "method_agreement": "Yes" if cached_grade_ml == cached_grade_rule else "No",
+                    # Carbon offset
+                    "trees_to_offset": max(1, int(cached_total / 20)),
+                    # Advanced explanations not available from cache
+                    "shap_explanation":  None,
+                    "proba_distribution": [],
+                    "counterfactuals":    [],
+                    # Product metadata
+                    "brand":        cached_product.brand,
+                    "price":        float(cached_product.price) if cached_product.price else None,
+                    "asin":         cached_product.asin,
+                    "image_url":    "Not found",
                     "manufacturer": "Not found",
-                    "category": "Not found",
+                    "category":     "Not found",
+                    "dimensions_cm": "Not found",
                 }
                 cached_attributes = standardize_attributes(cached_attributes, [
-                    "origin",
-                    "country_of_origin",
-                    "facility_origin",
-                    "origin_source",
-                    "origin_confidence",
-                    "dimensions_cm",
-                    "material_type",
-                    "brand",
-                    "price",
-                    "asin",
-                    "image_url",
-                    "manufacturer",
-                    "category",
+                    "origin", "country_of_origin", "facility_origin",
+                    "origin_source", "origin_confidence", "dimensions_cm",
+                    "material_type", "brand", "price", "asin",
+                    "image_url", "manufacturer", "category",
                 ])
-
-                cached_total = float(cached_calc.final_emission or 0.0)
-                cached_distance = float(cached_calc.transport_distance or 0.0)
-                cached_weight = float(cached_product.weight or 0.5)
                 cached_response = {
                     "title": cached_product.title or "Unknown Product",
                     "cache_hit": True,
@@ -413,21 +452,16 @@ def create_app(config_name='production'):
                         "attributes": cached_attributes,
                         "environmental_metrics": {
                             "carbon_footprint": round(cached_total, 2),
-                            "recyclability_score": {
-                                'Glass': 90, 'Aluminum': 85, 'Steel': 85, 'Metal': 85,
-                                'Paper': 80, 'Cardboard': 80, 'Wood': 70, 'Bamboo': 70,
-                                'Fabric': 40, 'Cotton': 40, 'Plastic': 20,
-                                'Mixed': 15, 'Electronic': 15,
-                            }.get(cached_product.material, 50),
-                            "eco_score": calculate_eco_score(cached_total, "Medium", cached_distance, cached_weight),
-                            "efficiency": None
+                            "recyclability_score": rec_pct,
+                            "eco_score": cached_grade_ml,
+                            "efficiency": None,
                         },
                         "recommendations": [
                             "Consider products made from recycled materials",
                             "Look for items manufactured closer to your location",
-                            "Choose products with minimal packaging"
-                        ]
-                    }
+                            "Choose products with minimal packaging",
+                        ],
+                    },
                 }
                 return jsonify(cached_response)
             
@@ -1887,10 +1921,12 @@ def create_app(config_name='production'):
         try:
             import shap as shap_lib
 
-            if not (hasattr(app, 'xgb_model') and app.xgb_model):
+            # Use `is None` — truthiness on sklearn/xgb objects can be ambiguous
+            model = getattr(app, 'xgb_model', None)
+            if model is None:
                 return jsonify({'error': 'Model not loaded yet — make one prediction first'}), 503
 
-            # Sample 500 products from the DB (deterministic: ordered by id)
+            # Sample up to 500 products from the DB
             sample = (
                 Product.query
                 .filter(
@@ -1905,49 +1941,79 @@ def create_app(config_name='production'):
             if len(sample) < 20:
                 return jsonify({'error': 'Insufficient data in database'}), 400
 
-            enc = app.encoders
+            enc = app.encoders  # populated after first prediction (lazy load)
 
-            def _enc(val, key, default):
-                e = enc.get(key)
-                if e is None:
-                    return 0
-                try:
-                    return int(e.transform([val])[0])
-                except Exception:
-                    try:
-                        return int(e.transform([default])[0])
-                    except Exception:
-                        return 0
+            def _safe_enc_shap(val, *keys_to_try, default_int=0):
+                """Try multiple encoder key names — handles startup vs lazy-load key naming."""
+                for key in keys_to_try:
+                    e = enc.get(key)
+                    if e is not None:
+                        try:
+                            return int(e.transform([str(val)])[0])
+                        except Exception:
+                            try:
+                                return int(e.transform(['Other'])[0])
+                            except Exception:
+                                continue
+                return default_int
 
             rows = []
+            row_errors = 0
             for p in sample:
                 try:
-                    mat  = p.material or 'Other'
-                    trn  = p.transport or 'Ship'
-                    rec  = p.recyclability or 'Medium'
-                    orig = p.origin or 'Unknown'
-                    w    = float(p.weight or 1.0)
-                    me   = _enc(mat,  'material_encoder',  'Other')
-                    te   = _enc(trn,  'transport_encoder', 'Ship')
-                    re_  = _enc(rec,  'recycle_encoder',   'Medium')
-                    oe   = _enc(orig, 'origin_encoder',    'Unknown')
-                    wl   = float(np.log1p(w))
-                    wb   = float(0 if w < 0.5 else 1 if w < 2 else 2 if w < 10 else 3)
-                    rows.append([me, te, re_, oe, wl, wb, float(me)*float(te), float(oe)*float(re_)])
-                except Exception:
-                    pass
+                    mat  = str(p.material  or 'Other')
+                    trn  = str(p.transport or 'Ship')
+                    rec  = str(p.recyclability or 'Medium')
+                    orig = str(p.origin    or 'Unknown').title()  # normalise case
+                    w    = float(p.weight  or 1.0)
+                    # Try both historic key names for each encoder
+                    me = _safe_enc_shap(mat,  'material_encoder')
+                    te = _safe_enc_shap(trn,  'transport_encoder')
+                    re_= _safe_enc_shap(rec,  'recycle_encoder', 'recyclability_encoder')
+                    oe = _safe_enc_shap(orig, 'origin_encoder')
+                    wl = float(np.log1p(max(w, 0.0)))
+                    wb = float(0 if w < 0.5 else 1 if w < 2 else 2 if w < 10 else 3)
+                    rows.append([me, te, re_, oe, wl, wb,
+                                 float(me) * float(te),
+                                 float(oe) * float(re_)])
+                except Exception as row_err:
+                    row_errors += 1
+                    if row_errors <= 3:
+                        print(f"⚠️ SHAP row encode error: {row_err}")
 
+            print(f"ℹ️ Global SHAP: {len(rows)}/{len(sample)} rows encoded ({row_errors} errors)")
+
+            # Fallback: if encoding produced nothing, use feature_importances_ from the model
             if len(rows) < 10:
-                return jsonify({'error': 'Could not encode enough samples'}), 500
+                print("⚠️ SHAP row encoding failed — falling back to feature_importances_")
+                try:
+                    fi = model.feature_importances_
+                except Exception:
+                    return jsonify({'error': 'Could not compute feature importance'}), 500
+                feat_names_fb = [
+                    'Material Type', 'Transport Mode', 'Recyclability',
+                    'Origin Country', 'Weight (log)', 'Weight Category',
+                    'Material × Transport', 'Origin × Recyclability',
+                ]
+                features = sorted([
+                    {'feature': feat_names_fb[i], 'importance': round(float(fi[i]), 5)}
+                    for i in range(min(len(feat_names_fb), len(fi)))
+                ], key=lambda x: -x['importance'])
+                return jsonify({
+                    'features':    features,
+                    'sample_size': 0,
+                    'method':      'XGBoost feature_importances_ (SHAP encoding failed)',
+                    'citation':    'Lundberg & Lee (2017). NeurIPS.',
+                })
 
             X_s = np.array(rows)
-            explainer = shap_lib.TreeExplainer(app.xgb_model)
+            explainer = shap_lib.TreeExplainer(model)
             sv = explainer.shap_values(X_s)
 
             arr = np.array(sv)
-            if arr.ndim == 3:                               # (n_samples, n_features, n_classes)
+            if arr.ndim == 3:
                 global_imp = np.mean(np.abs(arr), axis=(0, 2))
-            elif isinstance(sv, list):                      # list of n_classes arrays
+            elif isinstance(sv, list):
                 global_imp = np.mean(np.abs(np.stack(sv, axis=-1)), axis=(0, 2))
             else:
                 global_imp = np.mean(np.abs(arr), axis=0)
