@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const GRADE_ORDER = ["A+", "A", "B", "C", "D", "E", "F"];
 
 const GRADE_COLORS = {
   "A+": { bg: "bg-teal-500/20", text: "text-teal-300", border: "border-teal-500/30" },
@@ -29,7 +29,7 @@ function PercentBar({ value, color = "bg-cyan-500" }) {
   );
 }
 
-function ConfusionMatrix({ matrix, labels, title, highlight }) {
+function ConfusionMatrix({ matrix, labels, title }) {
   if (!matrix || !labels) return null;
 
   const maxVal = Math.max(...matrix.flat());
@@ -90,42 +90,51 @@ function ConfusionMatrix({ matrix, labels, title, highlight }) {
   );
 }
 
-export default function PerClassMetricsTable() {
-  const [metrics, setMetrics] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+function computeFromConfusionMatrix(matrix, labels) {
+  const cm = matrix;
+  const result = {};
+  for (let i = 0; i < labels.length; i++) {
+    const tp = cm[i][i];
+    const fp = cm.reduce((s, row) => s + row[i], 0) - tp;
+    const fn = cm[i].reduce((s, v) => s + v, 0) - tp;
+    const support = cm[i].reduce((s, v) => s + v, 0);
+    const precision = (tp + fp) > 0 ? tp / (tp + fp) : 0;
+    const recall    = (tp + fn) > 0 ? tp / (tp + fn) : 0;
+    const f1        = (precision + recall) > 0 ? 2 * precision * recall / (precision + recall) : 0;
+    result[labels[i]] = { precision, recall, f1, support };
+  }
+  const keys = Object.keys(result);
+  result["macro"] = {
+    precision: keys.reduce((s, k) => s + result[k].precision, 0) / keys.length,
+    recall:    keys.reduce((s, k) => s + result[k].recall,    0) / keys.length,
+    f1:        keys.reduce((s, k) => s + result[k].f1,        0) / keys.length,
+  };
+  return result;
+}
 
-  useEffect(() => {
-    fetch(`${BASE_URL}/all-model-metrics`)
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.error || !d.xgboost) { setError(true); }
-        else { setMetrics(d); }
-        setLoading(false);
-      })
-      .catch(() => { setError(true); setLoading(false); });
-  }, []);
+export default function PerClassMetricsTable({ evaluationData }) {
+  if (!evaluationData) {
+    return <p className="text-slate-400 text-sm text-center py-8">Loading metrics...</p>;
+  }
 
-  if (loading) return <p className="text-slate-400 text-sm text-center py-8">Loading metrics...</p>;
-  if (error)   return <p className="text-red-400 text-sm text-center py-8">Failed to load metrics.</p>;
+  // Use pre-computed per_class_metrics if available, otherwise compute from confusion matrix
+  const pcm = evaluationData.per_class_metrics
+    ?? computeFromConfusionMatrix(
+        evaluationData.confusion_matrix?.matrix,
+        evaluationData.confusion_matrix?.labels
+      );
 
-  const xgb = metrics.xgboost;
-  const rf  = metrics.random_forest;
+  const cm    = evaluationData.confusion_matrix;
+  const accPct = cm?.test_accuracy != null
+    ? `${(cm.test_accuracy * 100).toFixed(1)}%`
+    : "—";
 
-  const classEntries = Object.entries(xgb.report).filter(
-    ([k]) => !["accuracy", "macro avg", "weighted avg"].includes(k)
-  );
+  // Sort grades in logical order, excluding "macro"
+  const classEntries = GRADE_ORDER
+    .filter((g) => pcm[g] != null)
+    .map((g) => [g, pcm[g]]);
 
-  // Sort grades in logical order
-  const gradeOrder = ["A+", "A", "B", "C", "D", "E", "F"];
-  classEntries.sort(([a], [b]) => gradeOrder.indexOf(a) - gradeOrder.indexOf(b));
-
-  // Backend filters out 'macro avg' from the report — compute it from class entries
-  const macroAvg = xgb.report["macro avg"] ?? (() => {
-    const vals = classEntries.map(([, m]) => m);
-    const avg = (key) => vals.reduce((s, m) => s + (m[key] || 0), 0) / (vals.length || 1);
-    return { precision: avg("precision"), recall: avg("recall"), "f1-score": avg("f1-score"), support: vals.reduce((s, m) => s + (m.support || 0), 0) };
-  })();
+  const macroAvg = pcm["macro"] ?? null;
 
   return (
     <div className="space-y-10">
@@ -172,28 +181,32 @@ export default function PerClassMetricsTable() {
                     </td>
                     <td className="py-4 px-4 w-36">
                       <PercentBar
-                        value={m["f1-score"]}
-                        color={m["f1-score"] >= 0.9 ? "bg-green-500" : m["f1-score"] >= 0.8 ? "bg-cyan-500" : "bg-yellow-500"}
+                        value={m.f1}
+                        color={m.f1 >= 0.9 ? "bg-green-500" : m.f1 >= 0.8 ? "bg-cyan-500" : "bg-yellow-500"}
                       />
                     </td>
-                    <td className="py-4 px-4 text-right text-slate-400">{m.support}</td>
+                    <td className="py-4 px-4 text-right text-slate-400">{m.support ?? "—"}</td>
                   </motion.tr>
                 );
               })}
               {/* Macro averages row */}
-              <tr className="border-t-2 border-slate-600 bg-slate-800/20">
-                <td className="py-3 px-4 text-slate-300 font-medium text-xs uppercase tracking-wide">Macro Avg</td>
-                <td className="py-3 px-4 w-36">
-                  <PercentBar value={macroAvg.precision} color="bg-slate-400" />
-                </td>
-                <td className="py-3 px-4 w-36">
-                  <PercentBar value={macroAvg.recall} color="bg-slate-400" />
-                </td>
-                <td className="py-3 px-4 w-36">
-                  <PercentBar value={macroAvg["f1-score"]} color="bg-slate-400" />
-                </td>
-                <td className="py-3 px-4 text-right text-slate-400">{macroAvg.support}</td>
-              </tr>
+              {macroAvg && (
+                <tr className="border-t-2 border-slate-600 bg-slate-800/20">
+                  <td className="py-3 px-4 text-slate-300 font-medium text-xs uppercase tracking-wide">Macro Avg</td>
+                  <td className="py-3 px-4 w-36">
+                    <PercentBar value={macroAvg.precision} color="bg-slate-400" />
+                  </td>
+                  <td className="py-3 px-4 w-36">
+                    <PercentBar value={macroAvg.recall} color="bg-slate-400" />
+                  </td>
+                  <td className="py-3 px-4 w-36">
+                    <PercentBar value={macroAvg.f1} color="bg-slate-400" />
+                  </td>
+                  <td className="py-3 px-4 text-right text-slate-400">
+                    {classEntries.reduce((s, [, m]) => s + (m.support ?? 0), 0)}
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -203,46 +216,39 @@ export default function PerClassMetricsTable() {
           <div className="bg-teal-500/10 border border-teal-500/30 rounded-lg p-3">
             <p className="text-teal-300 text-xs font-medium mb-1">Best Predicted Class</p>
             <p className="text-slate-300 text-xs">
-              <strong>A+</strong> achieves 99.9% F1 — the model reliably identifies the most eco-friendly products from weight and origin features alone.
+              <strong>A+</strong> achieves 100% F1 — the model reliably identifies the most eco-friendly products from weight and origin features alone.
             </p>
           </div>
           <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
             <p className="text-yellow-300 text-xs font-medium mb-1">Hardest to Distinguish</p>
             <p className="text-slate-300 text-xs">
-              <strong>A</strong> and <strong>B</strong> grade products share similar feature profiles — both are lightweight, low-distance items with overlapping material types.
+              <strong>D</strong> and <strong>E</strong> grade products share similar feature profiles — both are mid-weight items with overlapping transport modes.
             </p>
           </div>
           <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
             <p className="text-blue-300 text-xs font-medium mb-1">Class Balance</p>
             <p className="text-slate-300 text-xs">
-              SMOTE synthetic oversampling balanced ~339 samples per class in the test set, preventing the model from biasing towards majority grades.
+              SMOTE synthetic oversampling balanced classes during training, preventing the model from biasing towards majority grades.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Side-by-Side Confusion Matrices */}
+      {/* Confusion Matrix */}
       <div>
         <div className="flex items-center gap-3 mb-5">
           <div className="w-2 h-8 bg-gradient-to-b from-blue-400 to-purple-400 rounded-full" />
-          <h4 className="text-lg font-display text-slate-200">Confusion Matrix Comparison</h4>
+          <h4 className="text-lg font-display text-slate-200">Confusion Matrix</h4>
         </div>
         <p className="text-sm text-slate-400 mb-5">
           Each cell shows how many test samples with a given true grade were predicted as each grade.
           Darker diagonal = better performance.
         </p>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <ConfusionMatrix
-            matrix={rf?.confusion_matrix}
-            labels={rf?.labels}
-            title="Random Forest (84.9% accuracy)"
-          />
-          <ConfusionMatrix
-            matrix={xgb?.confusion_matrix}
-            labels={xgb?.labels}
-            title="XGBoost (86.6% accuracy)"
-          />
-        </div>
+        <ConfusionMatrix
+          matrix={cm?.matrix}
+          labels={cm?.labels}
+          title={`XGBoost (${accPct} accuracy)`}
+        />
       </div>
 
     </div>

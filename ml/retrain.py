@@ -356,6 +356,28 @@ dataset_stats = {
     "live_scraped_rows":      len(dfs[1][1]) if len(dfs) > 1 else 0,
 }
 
+# ── Compute per-class precision / recall / F1 from confusion matrix ────────────
+cm_np = np.array(cm)
+per_class_metrics = {}
+for i, label in enumerate(classes):
+    tp = int(cm_np[i, i])
+    fp = int(cm_np[:, i].sum()) - tp
+    fn = int(cm_np[i, :].sum()) - tp
+    support = int(cm_np[i, :].sum())
+    prec = float(tp / (tp + fp)) if (tp + fp) > 0 else 0.0
+    rec  = float(tp / (tp + fn)) if (tp + fn) > 0 else 0.0
+    f1s  = float(2 * prec * rec / (prec + rec)) if (prec + rec) > 0 else 0.0
+    per_class_metrics[label] = {
+        "precision": round(prec, 4),
+        "recall":    round(rec,  4),
+        "f1":        round(f1s,  4),
+        "support":   support,
+    }
+macro_p = round(sum(v["precision"] for v in per_class_metrics.values()) / len(per_class_metrics), 4)
+macro_r = round(sum(v["recall"]    for v in per_class_metrics.values()) / len(per_class_metrics), 4)
+macro_f = round(sum(v["f1"]        for v in per_class_metrics.values()) / len(per_class_metrics), 4)
+per_class_metrics["macro"] = {"precision": macro_p, "recall": macro_r, "f1": macro_f}
+
 # ── Assemble and save evaluation_results.json ──────────────────────────────────
 results = {
     "generated_at": pd.Timestamp.now().isoformat(),
@@ -373,6 +395,7 @@ results = {
         "test_accuracy": round(test_acc, 4),
         "test_f1_macro": round(test_f1,  4),
     },
+    "per_class_metrics":  per_class_metrics,
     "dataset_statistics": dataset_stats,
 }
 

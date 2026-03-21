@@ -1,0 +1,99 @@
+{
+  "baseline_accuracy": 0.9933,
+  "features": [
+    {
+      "name": "Weight (log)",
+      "index": 4,
+      "accuracy_drop": 0.9748,
+      "ablated_accuracy": 0.0185,
+      "importance_rank": 1
+    },
+    {
+      "name": "Material Type",
+      "index": 0,
+      "accuracy_drop": 0.1224,
+      "ablated_accuracy": 0.8709,
+      "importance_rank": 2
+    },
+    {
+      "name": "Recyclability",
+      "index": 2,
+      "accuracy_drop": 0.113,
+      "ablated_accuracy": 0.8803,
+      "importance_rank": 3
+    },
+    {
+      "name": "Material \u00d7 Transport",
+      "index": 6,
+      "accuracy_drop": 0.0853,
+      "ablated_accuracy": 0.908,
+      "importance_rank": 4
+    },
+    {
+      "name": "Transport Mode",
+      "index": 1,
+      "accuracy_drop": 0.0787,
+      "ablated_accuracy": 0.9146,
+      "importance_rank": 5
+    },
+    {
+      "name": "Origin Country",
+      "index": 3,
+      "accuracy_drop": 0.0405,
+      "ablated_accuracy": 0.9528,
+      "importance_rank": 6
+    },
+    {
+      "name": "Weight (bin)",
+      "index": 5,
+      "accuracy_drop": 0.0148,
+      "ablated_accuracy": 0.9785,
+      "importance_rank": 7
+    },
+    {
+      "name": "Origin \u00d7 Recyclability",
+      "index": 7,
+      "accuracy_drop": 0.0058,
+      "ablated_accuracy": 0.9875,
+      "importance_rank": 8
+    }
+  ],
+  "groups": [
+    {
+      "name": "Material features",
+      "indices": [
+        0,
+        6
+      ],
+      "accuracy_drop": 0.3077,
+      "ablated_accuracy": 0.6856
+    },
+    {
+      "name": "Transport features",
+      "indices": [
+        1,
+        6
+      ],
+      "accuracy_drop": 0.4397,
+      "ablated_accuracy": 0.5536
+    },
+    {
+      "name": "Weight features",
+      "indices": [
+        4,
+        5
+      ],
+      "accuracy_drop": 0.9748,
+      "ablated_accuracy": 0.0185
+    },
+    {
+      "name": "Origin features",
+      "indices": [
+        3,
+        7
+      ],
+      "accuracy_drop": 0.0537,
+      "ablated_accuracy": 0.9396
+    }
+  ]
+}

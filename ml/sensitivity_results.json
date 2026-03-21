@@ -1,0 +1,485 @@
+{
+  "n_samples": 10000,
+  "perturbations": [
+    {
+      "name": "Material: Plastic \u2192 Steel",
+      "feature": "material",
+      "from": "Plastic",
+      "to": "Steel",
+      "grade_change_pct": 55.76,
+      "n_affected": 1384,
+      "n_tested": 2482
+    },
+    {
+      "name": "Material: Plastic \u2192 Paper",
+      "feature": "material",
+      "from": "Plastic",
+      "to": "Paper",
+      "grade_change_pct": 55.4,
+      "n_affected": 1375,
+      "n_tested": 2482
+    },
+    {
+      "name": "Material: Plastic \u2192 Other",
+      "feature": "material",
+      "from": "Plastic",
+      "to": "Other",
+      "grade_change_pct": 57.66,
+      "n_affected": 1431,
+      "n_tested": 2482
+    },
+    {
+      "name": "Material: Steel \u2192 Plastic",
+      "feature": "material",
+      "from": "Steel",
+      "to": "Plastic",
+      "grade_change_pct": 28.46,
+      "n_affected": 370,
+      "n_tested": 1300
+    },
+    {
+      "name": "Material: Steel \u2192 Paper",
+      "feature": "material",
+      "from": "Steel",
+      "to": "Paper",
+      "grade_change_pct": 43.69,
+      "n_affected": 568,
+      "n_tested": 1300
+    },
+    {
+      "name": "Material: Steel \u2192 Other",
+      "feature": "material",
+      "from": "Steel",
+      "to": "Other",
+      "grade_change_pct": 43.31,
+      "n_affected": 563,
+      "n_tested": 1300
+    },
+    {
+      "name": "Material: Paper \u2192 Plastic",
+      "feature": "material",
+      "from": "Paper",
+      "to": "Plastic",
+      "grade_change_pct": 23.64,
+      "n_affected": 257,
+      "n_tested": 1087
+    },
+    {
+      "name": "Material: Paper \u2192 Steel",
+      "feature": "material",
+      "from": "Paper",
+      "to": "Steel",
+      "grade_change_pct": 75.99,
+      "n_affected": 826,
+      "n_tested": 1087
+    },
+    {
+      "name": "Material: Paper \u2192 Other",
+      "feature": "material",
+      "from": "Paper",
+      "to": "Other",
+      "grade_change_pct": 45.72,
+      "n_affected": 497,
+      "n_tested": 1087
+    },
+    {
+      "name": "Material: Other \u2192 Plastic",
+      "feature": "material",
+      "from": "Other",
+      "to": "Plastic",
+      "grade_change_pct": 49.95,
+      "n_affected": 496,
+      "n_tested": 993
+    },
+    {
+      "name": "Material: Other \u2192 Steel",
+      "feature": "material",
+      "from": "Other",
+      "to": "Steel",
+      "grade_change_pct": 18.53,
+      "n_affected": 184,
+      "n_tested": 993
+    },
+    {
+      "name": "Material: Other \u2192 Paper",
+      "feature": "material",
+      "from": "Other",
+      "to": "Paper",
+      "grade_change_pct": 34.44,
+      "n_affected": 342,
+      "n_tested": 993
+    },
+    {
+      "name": "Material: Glass \u2192 Plastic",
+      "feature": "material",
+      "from": "Glass",
+      "to": "Plastic",
+      "grade_change_pct": 52.21,
+      "n_affected": 519,
+      "n_tested": 994
+    },
+    {
+      "name": "Material: Glass \u2192 Steel",
+      "feature": "material",
+      "from": "Glass",
+      "to": "Steel",
+      "grade_change_pct": 88.53,
+      "n_affected": 880,
+      "n_tested": 994
+    },
+    {
+      "name": "Material: Glass \u2192 Paper",
+      "feature": "material",
+      "from": "Glass",
+      "to": "Paper",
+      "grade_change_pct": 23.04,
+      "n_affected": 229,
+      "n_tested": 994
+    },
+    {
+      "name": "Material: Wood \u2192 Plastic",
+      "feature": "material",
+      "from": "Wood",
+      "to": "Plastic",
+      "grade_change_pct": 94.58,
+      "n_affected": 837,
+      "n_tested": 885
+    },
+    {
+      "name": "Material: Wood \u2192 Steel",
+      "feature": "material",
+      "from": "Wood",
+      "to": "Steel",
+      "grade_change_pct": 79.44,
+      "n_affected": 703,
+      "n_tested": 885
+    },
+    {
+      "name": "Material: Wood \u2192 Paper",
+      "feature": "material",
+      "from": "Wood",
+      "to": "Paper",
+      "grade_change_pct": 12.43,
+      "n_affected": 110,
+      "n_tested": 885
+    },
+    {
+      "name": "Material: Aluminum \u2192 Plastic",
+      "feature": "material",
+      "from": "Aluminum",
+      "to": "Plastic",
+      "grade_change_pct": 14.45,
+      "n_affected": 89,
+      "n_tested": 616
+    },
+    {
+      "name": "Material: Aluminum \u2192 Steel",
+      "feature": "material",
+      "from": "Aluminum",
+      "to": "Steel",
+      "grade_change_pct": 25.49,
+      "n_affected": 157,
+      "n_tested": 616
+    },
+    {
+      "name": "Material: Aluminum \u2192 Paper",
+      "feature": "material",
+      "from": "Aluminum",
+      "to": "Paper",
+      "grade_change_pct": 24.51,
+      "n_affected": 151,
+      "n_tested": 616
+    },
+    {
+      "name": "Material: Polyester \u2192 Plastic",
+      "feature": "material",
+      "from": "Polyester",
+      "to": "Plastic",
+      "grade_change_pct": 25.75,
+      "n_affected": 128,
+      "n_tested": 497
+    },
+    {
+      "name": "Material: Polyester \u2192 Steel",
+      "feature": "material",
+      "from": "Polyester",
+      "to": "Steel",
+      "grade_change_pct": 97.99,
+      "n_affected": 487,
+      "n_tested": 497
+    },
+    {
+      "name": "Material: Polyester \u2192 Paper",
+      "feature": "material",
+      "from": "Polyester",
+      "to": "Paper",
+      "grade_change_pct": 92.56,
+      "n_affected": 460,
+      "n_tested": 497
+    },
+    {
+      "name": "Transport: Air \u2192 Ship",
+      "feature": "transport",
+      "from": "Air",
+      "to": "Ship",
+      "grade_change_pct": 44.23,
+      "n_affected": 793,
+      "n_tested": 1793
+    },
+    {
+      "name": "Transport: Air \u2192 Land",
+      "feature": "transport",
+      "from": "Air",
+      "to": "Land",
+      "grade_change_pct": 50.03,
+      "n_affected": 897,
+      "n_tested": 1793
+    },
+    {
+      "name": "Transport: Ship \u2192 Air",
+      "feature": "transport",
+      "from": "Ship",
+      "to": "Air",
+      "grade_change_pct": 52.7,
+      "n_affected": 4170,
+      "n_tested": 7912
+    },
+    {
+      "name": "Transport: Ship \u2192 Land",
+      "feature": "transport",
+      "from": "Ship",
+      "to": "Land",
+      "grade_change_pct": 41.86,
+      "n_affected": 3312,
+      "n_tested": 7912
+    },
+    {
+      "name": "Transport: Land \u2192 Air",
+      "feature": "transport",
+      "from": "Land",
+      "to": "Air",
+      "grade_change_pct": 93.99,
+      "n_affected": 266,
+      "n_tested": 283
+    },
+    {
+      "name": "Transport: Land \u2192 Ship",
+      "feature": "transport",
+      "from": "Land",
+      "to": "Ship",
+      "grade_change_pct": 30.74,
+      "n_affected": 87,
+      "n_tested": 283
+    },
+    {
+      "name": "Origin: China \u2192 Germany",
+      "feature": "origin",
+      "from": "China",
+      "to": "Germany",
+      "grade_change_pct": 4.78,
+      "n_affected": 149,
+      "n_tested": 3118
+    },
+    {
+      "name": "Origin: China \u2192 Usa",
+      "feature": "origin",
+      "from": "China",
+      "to": "Usa",
+      "grade_change_pct": 4.78,
+      "n_affected": 149,
+      "n_tested": 3118
+    },
+    {
+      "name": "Origin: China \u2192 Uk",
+      "feature": "origin",
+      "from": "China",
+      "to": "Uk",
+      "grade_change_pct": 8.15,
+      "n_affected": 254,
+      "n_tested": 3118
+    },
+    {
+      "name": "Origin: Germany \u2192 China",
+      "feature": "origin",
+      "from": "Germany",
+      "to": "China",
+      "grade_change_pct": 1.13,
+      "n_affected": 18,
+      "n_tested": 1587
+    },
+    {
+      "name": "Origin: Germany \u2192 Usa",
+      "feature": "origin",
+      "from": "Germany",
+      "to": "Usa",
+      "grade_change_pct": 0.57,
+      "n_affected": 9,
+      "n_tested": 1587
+    },
+    {
+      "name": "Origin: Germany \u2192 Uk",
+      "feature": "origin",
+      "from": "Germany",
+      "to": "Uk",
+      "grade_change_pct": 0.82,
+      "n_affected": 13,
+      "n_tested": 1587
+    },
+    {
+      "name": "Origin: Usa \u2192 China",
+      "feature": "origin",
+      "from": "Usa",
+      "to": "China",
+      "grade_change_pct": 1.0,
+      "n_affected": 11,
+      "n_tested": 1104
+    },
+    {
+      "name": "Origin: Usa \u2192 Germany",
+      "feature": "origin",
+      "from": "Usa",
+      "to": "Germany",
+      "grade_change_pct": 0.36,
+      "n_affected": 4,
+      "n_tested": 1104
+    },
+    {
+      "name": "Origin: Usa \u2192 Uk",
+      "feature": "origin",
+      "from": "Usa",
+      "to": "Uk",
+      "grade_change_pct": 1.72,
+      "n_affected": 19,
+      "n_tested": 1104
+    },
+    {
+      "name": "Origin: Uk \u2192 China",
+      "feature": "origin",
+      "from": "Uk",
+      "to": "China",
+      "grade_change_pct": 0.91,
+      "n_affected": 10,
+      "n_tested": 1094
+    },
+    {
+      "name": "Origin: Uk \u2192 Germany",
+      "feature": "origin",
+      "from": "Uk",
+      "to": "Germany",
+      "grade_change_pct": 0.73,
+      "n_affected": 8,
+      "n_tested": 1094
+    },
+    {
+      "name": "Origin: Uk \u2192 Usa",
+      "feature": "origin",
+      "from": "Uk",
+      "to": "Usa",
+      "grade_change_pct": 0.73,
+      "n_affected": 8,
+      "n_tested": 1094
+    },
+    {
+      "name": "Origin: Japan \u2192 China",
+      "feature": "origin",
+      "from": "Japan",
+      "to": "China",
+      "grade_change_pct": 2.54,
+      "n_affected": 14,
+      "n_tested": 551
+    },
+    {
+      "name": "Origin: Japan \u2192 Germany",
+      "feature": "origin",
+      "from": "Japan",
+      "to": "Germany",
+      "grade_change_pct": 25.05,
+      "n_affected": 138,
+      "n_tested": 551
+    },
+    {
+      "name": "Origin: Japan \u2192 Usa",
+      "feature": "origin",
+      "from": "Japan",
+      "to": "Usa",
+      "grade_change_pct": 26.5,
+      "n_affected": 146,
+      "n_tested": 551
+    },
+    {
+      "name": "Origin: France \u2192 China",
+      "feature": "origin",
+      "from": "France",
+      "to": "China",
+      "grade_change_pct": 1.36,
+      "n_affected": 8,
+      "n_tested": 588
+    },
+    {
+      "name": "Origin: France \u2192 Germany",
+      "feature": "origin",
+      "from": "France",
+      "to": "Germany",
+      "grade_change_pct": 0.51,
+      "n_affected": 3,
+      "n_tested": 588
+    },
+    {
+      "name": "Origin: France \u2192 Usa",
+      "feature": "origin",
+      "from": "France",
+      "to": "Usa",
+      "grade_change_pct": 1.19,
+      "n_affected": 7,
+      "n_tested": 588
+    },
+    {
+      "name": "Weight -20%",
+      "feature": "weight",
+      "from": "original",
+      "to": "\u00d70.8",
+      "grade_change_pct": 18.56,
+      "n_affected": 1856,
+      "n_tested": 10000
+    },
+    {
+      "name": "Weight +20%",
+      "feature": "weight",
+      "from": "original",
+      "to": "\u00d71.2",
+      "grade_change_pct": 13.14,
+      "n_affected": 1314,
+      "n_tested": 10000
+    },
+    {
+      "name": "Weight -50%",
+      "feature": "weight",
+      "from": "original",
+      "to": "\u00d70.5",
+      "grade_change_pct": 59.43,
+      "n_affected": 5943,
+      "n_tested": 10000
+    },
+    {
+      "name": "Weight +50%",
+      "feature": "weight",
+      "from": "original",
+      "to": "\u00d71.5",
+      "grade_change_pct": 29.18,
+      "n_affected": 2918,
+      "n_tested": 10000
+    }
+  ],
+  "summary": {
+    "most_sensitive_feature": "transport",
+    "avg_grade_change_by_feature": {
+      "material": 48.48,
+      "transport": 52.26,
+      "origin": 4.6,
+      "weight": 30.08
+    },
+    "transport_air_to_ship_pct": 44.23,
+    "weight_20pct_change_pct": 13.14,
+    "weight_50pct_change_pct": 29.18
+  }
+}

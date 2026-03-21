@@ -6,6 +6,8 @@ import ImportantChart from "../components/ImportantChart";
 import ModelInfoModal from "../components/ModelInfoModal";
 import ModelMetricsChart from "../components/ModelMetricsChart";
 import PerClassMetricsTable from "../components/PerClassMetricsTable";
+import AblationStudyChart from "../components/AblationStudyChart";
+import SensitivityAnalysisChart from "../components/SensitivityAnalysisChart";
 import SystemArchitectureDiagram from "../components/SystemArchitectureDiagram";
 import GlobalShapChart from "../components/GlobalShapChart";
 import ROCCurveChart from "../components/ROCCurveChart";
@@ -786,14 +788,32 @@ export default function LearnPage() {
             {activeTab === 'performance' && (
             <ModernSection title="Per-Class Performance & Confusion Matrices" icon delay={0.5}>
               <ModernCard solid className="p-8">
-                <PerClassMetricsTable />
+                <PerClassMetricsTable evaluationData={evalData} />
+              </ModernCard>
+            </ModernSection>
+            )}
+
+            {/* Feature Ablation Study */}
+            {activeTab === 'performance' && (
+            <ModernSection title="Feature Ablation Study" icon delay={0.55}>
+              <ModernCard solid className="p-8">
+                <AblationStudyChart />
+              </ModernCard>
+            </ModernSection>
+            )}
+
+            {/* Sensitivity Analysis */}
+            {activeTab === 'performance' && (
+            <ModernSection title="Sensitivity Analysis — Grade Stability Under Input Perturbation" icon delay={0.6}>
+              <ModernCard solid className="p-8">
+                <SensitivityAnalysisChart />
               </ModernCard>
             </ModernSection>
             )}
 
             {/* Model Metrics Overview */}
             {activeTab === 'performance' && (
-            <ModernSection title="Model Performance Metrics" icon delay={0.6}>
+            <ModernSection title="Model Performance Metrics" icon delay={0.65}>
               <ModernCard solid className="p-8">
                 <div className="space-y-4">
                   <p className="text-slate-400 text-sm text-center">
