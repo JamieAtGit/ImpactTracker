@@ -69,13 +69,13 @@ export default function StatisticalTestsPanel({ evaluationData }) {
             sub="Unweighted avg" color="text-purple-400" delay={0.05}
           />
           <MetricCard
-            label="ML vs Rule-based" value={`+${((mcn?.ml_accuracy - mcn?.rule_accuracy) * 100).toFixed(1)}%`}
-            sub="Accuracy advantage" color="text-green-400" delay={0.1}
+            label="XGBoost vs RF" value={`+${((cv?.xgboost?.accuracy_mean - cv?.random_forest?.accuracy_mean) * 100).toFixed(2)}%`}
+            sub="CV accuracy advantage" color="text-green-400" delay={0.1}
           />
           <MetricCard
-            label="McNemar p-value" value={mcn?.p_value < 0.001 ? "< 0.001" : mcn?.p_value?.toFixed(4)}
-            sub={mcn?.significant_at_0_05 ? "Significant (p<0.05)" : "Not significant"}
-            color={mcn?.p_value < 0.05 ? "text-green-400" : "text-yellow-400"} delay={0.15}
+            label="Paired t-test" value={cv?.paired_t_test?.p_value < 0.001 ? "p < 0.001" : `p = ${cv?.paired_t_test?.p_value?.toFixed(4)}`}
+            sub={cv?.paired_t_test?.significant_at_0_05 ? "XGBoost significantly better" : "No significant difference"}
+            color={cv?.paired_t_test?.significant_at_0_05 ? "text-green-400" : "text-yellow-400"} delay={0.15}
           />
         </div>
       </div>
@@ -129,42 +129,34 @@ export default function StatisticalTestsPanel({ evaluationData }) {
         </div>
       </div>
 
-      {/* McNemar's test detail */}
+      {/* Label consistency audit */}
       <div className="bg-slate-800/30 border border-slate-700/40 rounded-xl p-5">
-        <h5 className="text-sm font-semibold text-slate-300 mb-3">McNemar's Test — ML vs Rule-Based (n={mcn?.n_test} test samples)</h5>
+        <h5 className="text-sm font-semibold text-slate-300 mb-1">Label Consistency Audit</h5>
+        <p className="text-xs text-slate-500 mb-4">
+          Verifies that training labels match the DEFRA CO₂ thresholds used in production.
+        </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div className="text-center">
             <div className="text-lg font-bold text-cyan-400">{(mcn?.ml_accuracy * 100).toFixed(1)}%</div>
-            <div className="text-xs text-slate-400">ML (XGBoost) accuracy</div>
+            <div className="text-xs text-slate-400">ML accuracy (test set)</div>
           </div>
           <div className="text-center">
-            <div className="text-lg font-bold text-slate-400">{(mcn?.rule_accuracy * 100).toFixed(1)}%</div>
+            <div className="text-lg font-bold text-emerald-400">{(mcn?.rule_accuracy * 100).toFixed(1)}%</div>
             <div className="text-xs text-slate-400">Rule-based accuracy</div>
           </div>
           <div className="text-center">
-            <div className="text-lg font-bold text-green-400">
-              {mcn?.p_value < 0.001 ? "p < 0.001" : `p = ${mcn?.p_value?.toFixed(4)}`}
-            </div>
-            <div className="text-xs text-slate-400">McNemar p-value (χ²={mcn?.mcnemar_statistic?.toFixed(2)})</div>
+            <div className="text-lg font-bold text-indigo-400 font-mono">{mcn?.n10_ml_right_rule_wrong + mcn?.n01_ml_wrong_rule_right}</div>
+            <div className="text-xs text-slate-400">Discordant predictions</div>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3 text-center">
-            <div className="text-xl font-bold text-green-400">{mcn?.n10_ml_right_rule_wrong}</div>
-            <div className="text-xs text-slate-400">ML correct, rule wrong</div>
-          </div>
-          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-center">
-            <div className="text-xl font-bold text-red-400">{mcn?.n01_ml_wrong_rule_right}</div>
-            <div className="text-xs text-slate-400">ML wrong, rule correct</div>
-          </div>
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 text-xs text-amber-300/80 leading-relaxed">
+          <strong className="text-amber-300">Note on rule-based accuracy:</strong> After re-deriving training
+          labels directly from the DEFRA CO₂ formula, the rule-based method approaches 100% by construction —
+          the labels <em>are</em> the rule-based grades. This confirms label pipeline integrity rather than
+          serving as an independent comparison. The meaningful comparison is XGBoost vs Random Forest (paired
+          t-test above), which uses the same labels but tests whether the ML model generalises better than a
+          simpler classifier.
         </div>
-        <p className="text-xs text-slate-400 leading-relaxed">
-          <strong className="text-slate-300">Interpretation:</strong>{" "}
-          {mcn?.interpretation} The ML model correctly identified {mcn?.n10_ml_right_rule_wrong} cases
-          that the rule-based method missed, while the rule-based method was only correct where ML failed
-          in {mcn?.n01_ml_wrong_rule_right} cases. This strongly supports the use of ML over rule-based
-          classification for eco-grade prediction.
-        </p>
       </div>
     </div>
   );

@@ -1,0 +1,33 @@
+{
+  "description": "Split-conformal calibration for ImpactTracker XGBoost. q_hat values are the nonconformity thresholds computed on a held-out calibration set (20% of dataset). Coverage is guaranteed marginally: P(y_true in C(x)) >= 1 - alpha.",
+  "n_calibration": 10000,
+  "class_order": [
+    "A",
+    "A+",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F"
+  ],
+  "q_hat": {
+    "0.9": 0.028875,
+    "0.95": 0.071757,
+    "0.99": 0.367365
+  },
+  "empirical_coverage": {
+    "0.9": 0.9009,
+    "0.95": 0.9524,
+    "0.99": 0.99
+  },
+  "avg_set_size": {
+    "0.9": 0.9,
+    "0.95": 0.95,
+    "0.99": 0.99
+  },
+  "alpha_levels": [
+    0.1,
+    0.05,
+    0.01
+  ]
+}

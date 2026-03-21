@@ -8,6 +8,7 @@ import ShapExplanation from "./ShapExplanation";
 import CounterfactualExplanation from "./CounterfactualExplanation";
 import AlternativeRecommendations from "./AlternativeRecommendations";
 import ConfidenceDistributionChart from "./ConfidenceDistributionChart";
+import ConformalPredictionBadge from "./ConformalPredictionBadge";
 
 export default function ProductImpactCard({ result, showML, toggleShowML }) {
   const attr = result.attributes || {};
@@ -460,6 +461,14 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
         {attr.proba_distribution && attr.proba_distribution.length > 0 && (
           <ConfidenceDistributionChart
             data={attr.proba_distribution}
+            predictedGrade={mlScore}
+          />
+        )}
+
+        {/* Conformal prediction sets */}
+        {attr.conformal_sets && (
+          <ConformalPredictionBadge
+            conformalSets={attr.conformal_sets}
             predictedGrade={mlScore}
           />
         )}
