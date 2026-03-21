@@ -1,0 +1,35 @@
+product_name,category,weight_kg,country_of_manufacture,material_scraper_would_find,apple_co2_total_kg,apple_manufacturing_pct,apple_transport_pct,apple_use_pct,report_year,source_url
+iPhone SE (3rd gen),iPhone,0.144,China,Aluminum,45,81,2,16,2022,https://www.apple.com/environment/pdf/products/iphone/iPhone_SE_3rd_gen_PER_March2022.pdf
+iPhone 13,iPhone,0.171,China,Aluminum,64,81,2,16,2021,https://www.apple.com/environment/pdf/products/iphone/iPhone_13_PER_September2021.pdf
+iPhone 13 mini,iPhone,0.141,China,Aluminum,53,81,2,16,2021,https://www.apple.com/environment/pdf/products/iphone/iPhone_13_mini_PER_September2021.pdf
+iPhone 14,iPhone,0.172,China,Aluminum,61,79,2,18,2022,https://www.apple.com/environment/pdf/products/iphone/iPhone_14_PER_September2022.pdf
+iPhone 14 Plus,iPhone,0.203,China,Aluminum,67,79,2,18,2022,https://www.apple.com/environment/pdf/products/iphone/iPhone_14_Plus_PER_October2022.pdf
+iPhone 14 Pro,iPhone,0.206,China,Aluminum,67,79,2,18,2022,https://www.apple.com/environment/pdf/products/iphone/iPhone_14_Pro_PER_September2022.pdf
+iPhone 14 Pro Max,iPhone,0.240,China,Aluminum,73,79,2,18,2022,https://www.apple.com/environment/pdf/products/iphone/iPhone_14_Pro_Max_PER_September2022.pdf
+iPhone 15,iPhone,0.171,China,Aluminum,57,81,2,16,2023,https://www.apple.com/environment/pdf/products/iphone/iPhone_15_PER_September2023.pdf
+iPhone 15 Plus,iPhone,0.201,China,Aluminum,63,81,2,16,2023,https://www.apple.com/environment/pdf/products/iphone/iPhone_15_Plus_PER_September2023.pdf
+iPhone 15 Pro,iPhone,0.187,China,Aluminum,61,81,2,16,2023,https://www.apple.com/environment/pdf/products/iphone/iPhone_15_Pro_PER_September2023.pdf
+iPhone 15 Pro Max,iPhone,0.221,China,Aluminum,65,81,2,16,2023,https://www.apple.com/environment/pdf/products/iphone/iPhone_15_Pro_Max_PER_September2023.pdf
+iPhone 16,iPhone,0.170,China,Aluminum,61,79,2,18,2024,https://www.apple.com/environment/pdf/products/iphone/iPhone_16_PER_September2024.pdf
+MacBook Air 13-inch M2,MacBook,1.240,China,Aluminum,147,71,4,24,2022,https://www.apple.com/environment/pdf/products/notebooks/MacBook_Air_PER_June2022.pdf
+MacBook Air 15-inch M2,MacBook,1.510,China,Aluminum,171,71,4,24,2023,https://www.apple.com/environment/pdf/products/notebooks/15_MacBook_Air_PER_June2023.pdf
+MacBook Air 13-inch M3,MacBook,1.240,China,Aluminum,133,71,4,24,2024,https://www.apple.com/environment/pdf/products/notebooks/MacBook_Air_13_M3_PER_March2024.pdf
+MacBook Pro 14-inch M3,MacBook,1.550,China,Aluminum,229,76,3,20,2023,https://www.apple.com/environment/pdf/products/notebooks/14_MacBook_Pro_PER_November2023.pdf
+MacBook Pro 16-inch M3,MacBook,2.140,China,Aluminum,284,76,3,20,2023,https://www.apple.com/environment/pdf/products/notebooks/16_MacBook_Pro_PER_November2023.pdf
+iPad (10th gen),iPad,0.477,China,Aluminum,78,80,3,16,2022,https://www.apple.com/environment/pdf/products/ipad/iPad_PER_October2022.pdf
+iPad mini (6th gen),iPad,0.293,China,Aluminum,55,80,3,16,2021,https://www.apple.com/environment/pdf/products/ipad/iPad_mini_PER_September2021.pdf
+iPad Air 11-inch M2,iPad,0.462,China,Aluminum,72,80,3,16,2024,https://www.apple.com/environment/pdf/products/ipad/iPad_Air_11_M2_PER_May2024.pdf
+iPad Pro 11-inch M4,iPad,0.444,China,Aluminum,73,80,3,16,2024,https://www.apple.com/environment/pdf/products/ipad/iPad_Pro_11_M4_PER_May2024.pdf
+iPad Pro 13-inch M4,iPad,0.579,China,Aluminum,95,80,3,16,2024,https://www.apple.com/environment/pdf/products/ipad/iPad_Pro_13_M4_PER_May2024.pdf
+Apple Watch SE 2nd gen 40mm,Apple Watch,0.027,China,Aluminum,28,79,2,18,2022,https://www.apple.com/environment/pdf/products/watch/Apple_Watch_SE_2nd_gen_PER_September2022.pdf
+Apple Watch Series 9 41mm,Apple Watch,0.032,China,Aluminum,36,79,2,18,2023,https://www.apple.com/environment/pdf/products/watch/Apple_Watch_Series_9_41mm_PER_September2023.pdf
+Apple Watch Series 9 45mm,Apple Watch,0.039,China,Aluminum,40,79,2,18,2023,https://www.apple.com/environment/pdf/products/watch/Apple_Watch_Series_9_45mm_PER_September2023.pdf
+Apple Watch Ultra 2,Apple Watch,0.061,China,Aluminum,50,79,2,18,2023,https://www.apple.com/environment/pdf/products/watch/Apple_Watch_Ultra_2_PER_September2023.pdf
+AirPods (3rd gen),AirPods,0.037,Vietnam,Plastic,30,78,2,19,2021,https://www.apple.com/environment/pdf/products/airpods/AirPods_3rd_gen_PER_October2021.pdf
+AirPods Pro (2nd gen),AirPods,0.061,Vietnam,Plastic,35,78,2,19,2022,https://www.apple.com/environment/pdf/products/airpods/AirPods_Pro_2nd_gen_PER_September2022.pdf
+AirPods Max,AirPods,0.385,China,Aluminum,60,78,2,19,2020,https://www.apple.com/environment/pdf/products/airpods/AirPods_Max_PER_December2020.pdf
+Mac mini M2,Mac,1.240,China,Aluminum,134,80,3,16,2023,https://www.apple.com/environment/pdf/products/desktop/Mac_mini_PER_January2023.pdf
+Mac Studio M2 Max,Mac,2.700,China,Aluminum,230,80,3,16,2023,https://www.apple.com/environment/pdf/products/desktop/Mac_Studio_PER_January2023.pdf
+iMac 24-inch M3,Mac,9.350,China,Aluminum,305,80,3,16,2023,https://www.apple.com/environment/pdf/products/desktop/iMac_PER_October2023.pdf
+HomePod mini,HomePod,0.345,China,Plastic,24,80,3,16,2020,https://www.apple.com/environment/pdf/products/homepod/HomePod_mini_PER_November2020.pdf
+HomePod (2nd gen),HomePod,2.300,China,Plastic,62,80,3,16,2023,https://www.apple.com/environment/pdf/products/homepod/HomePod_PER_February2023.pdf

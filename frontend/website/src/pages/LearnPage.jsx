@@ -9,6 +9,7 @@ import PerClassMetricsTable from "../components/PerClassMetricsTable";
 import SystemArchitectureDiagram from "../components/SystemArchitectureDiagram";
 import GlobalShapChart from "../components/GlobalShapChart";
 import ROCCurveChart from "../components/ROCCurveChart";
+import AppleValidationChart from "../components/AppleValidationChart";
 import CalibrationChart from "../components/CalibrationChart";
 import StatisticalTestsPanel from "../components/StatisticalTestsPanel";
 import DatasetDistributionCharts from "../components/DatasetDistributionCharts";
@@ -738,6 +739,15 @@ export default function LearnPage() {
             <ModernSection title="Class Imbalance & SMOTE Resampling" icon delay={0.45}>
               <ModernCard solid className="p-8">
                 <SmoteSection />
+              </ModernCard>
+            </ModernSection>
+            )}
+
+            {/* Apple External Validation */}
+            {activeTab === 'performance' && (
+            <ModernSection title="External Validation — Apple Product Environmental Reports" icon delay={0.44}>
+              <ModernCard solid className="p-8">
+                <AppleValidationChart />
               </ModernCard>
             </ModernSection>
             )}
