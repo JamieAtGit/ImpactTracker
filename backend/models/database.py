@@ -17,6 +17,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.Enum('user', 'admin', name='user_roles'), default='user')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_login = db.Column(db.DateTime, nullable=True)
     
     # Relationships
     scraped_products = db.relationship('ScrapedProduct', backref='user', lazy=True)
@@ -36,7 +37,8 @@ class User(db.Model):
             'username': self.username,
             'email': self.email,
             'role': self.role,
-            'created_at': self.created_at.isoformat()
+            'created_at': self.created_at.isoformat(),
+            'last_login': self.last_login.isoformat() if self.last_login else None,
         }
 
 class Product(db.Model):

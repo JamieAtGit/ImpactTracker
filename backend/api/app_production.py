@@ -9,8 +9,12 @@ Purpose:
 from flask import Flask, request, jsonify, session
 from flask_cors import CORS
 from flask_migrate import Migrate
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import os
 import sys
+import hmac
+from datetime import timedelta
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -27,6 +31,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 import json
 import re
+from datetime import datetime
 
 
 _ESTIMATION_DEPS = None
@@ -184,8 +189,17 @@ def create_app(config_name='production'):
                 print("✅ SQLite fallback DB configured")
         
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-        app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'railway-production-key')
+        _secret = os.getenv('FLASK_SECRET_KEY')
+        if not _secret:
+            import secrets
+            _secret = secrets.token_hex(32)
+            print("⚠️  FLASK_SECRET_KEY not set — generated ephemeral key (sessions will not survive restart)")
+        app.config['SECRET_KEY'] = _secret
         app.config['DEBUG'] = False
+        app.config['SESSION_COOKIE_HTTPONLY'] = True
+        app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+        app.config['SESSION_COOKIE_SECURE'] = True
+        app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=12)
     else:
         # Development configuration
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///dev.db'
@@ -195,6 +209,7 @@ def create_app(config_name='production'):
     
     # Initialize extensions
     db.init_app(app)
+    limiter = Limiter(get_remote_address, app=app, default_limits=[], storage_uri="memory://")
     enable_migrations = os.getenv('ENABLE_DB_MIGRATIONS', '').strip().lower() in {'1', 'true', 'yes'}
     if config_name != 'production' or enable_migrations:
         migrate = Migrate(app, db)
@@ -2202,8 +2217,9 @@ def create_app(config_name='production'):
             return jsonify({'error': 'Registration failed'}), 500
 
     @app.route('/login', methods=['POST'])
+    @limiter.limit("10 per minute")
     def login():
-        """Login — checks admin via env var, regular users via DB hash."""
+        """Login — all users authenticated via DB with hashed passwords."""
         try:
             data = request.get_json() or {}
             username = (data.get('username') or '').strip()
@@ -2212,18 +2228,16 @@ def create_app(config_name='production'):
             if not username or not password:
                 return jsonify({'error': 'Username and password required'}), 400
 
-            # Admin check via env vars (never hardcoded in source)
-            admin_user = os.getenv('ADMIN_USERNAME', 'admin')
-            admin_pass = os.getenv('ADMIN_PASSWORD', '')
-            if admin_pass and username.lower() == admin_user.lower() and password == admin_pass:
-                session['user'] = {'id': 0, 'username': username, 'role': 'admin'}
-                return jsonify({'message': 'Logged in', 'user': session['user']}), 200
-
-            # Regular users — DB lookup with hashed password
+            # Single auth path: DB lookup for all users (including admin)
             user = User.query.filter_by(username=username).first()
             if not user or not user.check_password(password):
                 return jsonify({'error': 'Invalid username or password'}), 401
 
+            # Update last_login timestamp
+            user.last_login = datetime.utcnow()
+            db.session.commit()
+
+            session.permanent = True
             session['user'] = {'id': user.id, 'username': user.username, 'role': user.role or 'user'}
             return jsonify({'message': 'Logged in', 'user': session['user']}), 200
 
@@ -2236,7 +2250,7 @@ def create_app(config_name='production'):
         """User logout endpoint"""
         session.pop('user', None)
         return jsonify({'message': 'Logged out successfully'})
-    
+
     @app.route('/me', methods=['GET'])
     def me():
         """Get current user info"""
@@ -2244,9 +2258,58 @@ def create_app(config_name='production'):
         if not user:
             return jsonify({'error': 'Not logged in'}), 401
         return jsonify(user)
-    
-    # Database is already set up at app initialization
-    
+
+    # ── Admin user management (DB-backed) ────────────────────────────────────
+
+    def _require_admin():
+        u = session.get('user')
+        if not u or u.get('role') != 'admin':
+            return jsonify({'error': 'Admin access required'}), 403
+        return None
+
+    @app.route('/admin/users', methods=['GET'])
+    def admin_get_users():
+        err = _require_admin()
+        if err: return err
+        users = User.query.order_by(User.created_at.desc()).all()
+        return jsonify([u.to_dict() for u in users]), 200
+
+    @app.route('/admin/users/<int:user_id>', methods=['DELETE'])
+    def admin_delete_user(user_id):
+        err = _require_admin()
+        if err: return err
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        if user.role == 'admin':
+            return jsonify({'error': 'Cannot delete admin user'}), 400
+        db.session.delete(user)
+        db.session.commit()
+        return jsonify({'message': f'User {user.username} deleted'}), 200
+
+    @app.route('/admin/users/<int:user_id>/role', methods=['PUT'])
+    def admin_update_role(user_id):
+        err = _require_admin()
+        if err: return err
+        data = request.get_json() or {}
+        new_role = data.get('role')
+        if new_role not in ('user', 'admin'):
+            return jsonify({'error': 'Invalid role'}), 400
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        user.role = new_role
+        db.session.commit()
+        return jsonify({'message': f'{user.username} role set to {new_role}'}), 200
+
+    # ── Enterprise dashboard blueprint ───────────────────────────────────────
+    try:
+        from backend.routes.enterprise_dashboard import enterprise_bp
+        app.register_blueprint(enterprise_bp)
+        print("✅ Enterprise dashboard blueprint registered")
+    except Exception as _e:
+        print(f"⚠️  Enterprise blueprint not loaded: {_e}")
+
     print("✅ app_production routes initialized")
     return app
 

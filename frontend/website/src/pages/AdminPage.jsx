@@ -207,7 +207,7 @@ const UserManagement = ({ users, handleDeleteUser, handleRoleChange }) => (
                     <div className="flex gap-2">
                       <select
                         value={user.role}
-                        onChange={(e) => handleRoleChange(user.username, e.target.value)}
+                        onChange={(e) => handleRoleChange(user, e.target.value)}
                         className="px-2 py-1 bg-slate-700 text-slate-200 rounded text-xs border border-slate-600 focus:border-blue-500 focus:outline-none"
                         disabled={user.username === 'admin'}
                       >
@@ -218,7 +218,7 @@ const UserManagement = ({ users, handleDeleteUser, handleRoleChange }) => (
                         <ModernButton
                           variant="error"
                           size="sm"
-                          onClick={() => handleDeleteUser(user.username)}
+                          onClick={() => handleDeleteUser(user)}
                         >
                           Delete
                         </ModernButton>
@@ -308,18 +308,18 @@ export default function AdminPage() {
       .catch((err) => console.error("Update failed:", err));
   };
 
-  const handleDeleteUser = async (username) => {
-    if (!confirm(`Are you sure you want to delete user "${username}"?`)) return;
-    
+  const handleDeleteUser = async (user) => {
+    if (!confirm(`Are you sure you want to delete user "${user.username}"?`)) return;
+
     try {
-      const res = await fetch(`${BASE_URL}/admin/users/${username}`, {
+      const res = await fetch(`${BASE_URL}/admin/users/${user.id}`, {
         method: "DELETE",
         credentials: "include",
       });
-      
+
       if (res.ok) {
-        setUsers(users.filter(u => u.username !== username));
-        alert(`User ${username} deleted successfully`);
+        setUsers(users.filter(u => u.id !== user.id));
+        alert(`User ${user.username} deleted successfully`);
       } else {
         const data = await res.json();
         alert(`Failed to delete user: ${data.error}`);
@@ -330,18 +330,18 @@ export default function AdminPage() {
     }
   };
 
-  const handleRoleChange = async (username, newRole) => {
+  const handleRoleChange = async (user, newRole) => {
     try {
-      const res = await fetch(`${BASE_URL}/admin/users/${username}/role`, {
+      const res = await fetch(`${BASE_URL}/admin/users/${user.id}/role`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ role: newRole }),
       });
-      
+
       if (res.ok) {
-        setUsers(users.map(u => 
-          u.username === username ? { ...u, role: newRole } : u
+        setUsers(users.map(u =>
+          u.id === user.id ? { ...u, role: newRole } : u
         ));
         alert(`User ${username} role updated to ${newRole}`);
       } else {
