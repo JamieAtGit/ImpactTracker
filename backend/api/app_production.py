@@ -237,14 +237,42 @@ def create_app(config_name='production'):
             try:
                 print("🔄 Creating/verifying database tables...")
                 db.create_all()
+                # Add last_login column to existing deployments if missing
+                try:
+                    from sqlalchemy import text as _text
+                    with db.engine.connect() as _conn:
+                        _conn.execute(_text(
+                            "ALTER TABLE users ADD COLUMN last_login TIMESTAMP"
+                        ))
+                        _conn.commit()
+                    print("✅ Added last_login column to users table")
+                except Exception:
+                    pass  # Column already exists — ignore
                 print("✅ Database tables ready")
                 _seed_products_from_csv()
             except Exception as e:
                 print(f"❌ Database setup error: {e}")
                 import traceback
                 traceback.print_exc()
+
     else:
         print("ℹ️ Skipping DB bootstrap in production startup (set RUN_DB_BOOTSTRAP=1 to enable).")
+
+    # Seed admin user from env vars if no admin exists in DB (runs always)
+    with app.app_context():
+        try:
+            admin_username = os.getenv('ADMIN_USERNAME', 'admin')
+            admin_password = os.getenv('ADMIN_PASSWORD', '')
+            if admin_password and not User.query.filter_by(role='admin').first():
+                admin_user = User(username=admin_username, email='admin@impacttracker.app', role='admin')
+                admin_user.set_password(admin_password)
+                db.session.add(admin_user)
+                db.session.commit()
+                print(f"✅ Admin user '{admin_username}' created in database")
+            elif not admin_password:
+                print("ℹ️  ADMIN_PASSWORD not set — admin user not auto-created")
+        except Exception as _ae:
+            print(f"⚠️  Admin seeding failed: {_ae}")
     
     # Load ML models
     # Unified ML assets directory (single location)
@@ -2233,9 +2261,12 @@ def create_app(config_name='production'):
             if not user or not user.check_password(password):
                 return jsonify({'error': 'Invalid username or password'}), 401
 
-            # Update last_login timestamp
-            user.last_login = datetime.utcnow()
-            db.session.commit()
+            # Update last_login timestamp (graceful — column may not exist on older deployments)
+            try:
+                user.last_login = datetime.utcnow()
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
 
             session.permanent = True
             session['user'] = {'id': user.id, 'username': user.username, 'role': user.role or 'user'}
