@@ -9,9 +9,9 @@ gunicorn==23.0.0
 Werkzeug==3.1.3
 
 # Database
-PyMySQL==1.1.1
+# PyMySQL==1.1.1  # Not used by production API (MySQL driver, we use PostgreSQL)
 cryptography>=42.0.0
-redis==6.0.0
+# redis==6.0.0  # Not used by production API (only in realtime_carbon_analytics.py, not imported)
 psycopg2-binary==2.9.10
 
 # Machine Learning & Data Science
@@ -21,21 +21,21 @@ shap>=0.46.0
 pandas==2.2.3
 numpy==2.2.5
 joblib==1.4.2
-imbalanced-learn==0.13.0
+# imbalanced-learn==0.13.0  # Not used by production API (only in ml/training scripts)
 
-# Data Visualization (for ML training & analysis)
-matplotlib==3.10.0
-seaborn==0.13.2
+# Data Visualization (for ML training & analysis only — not used by API)
+# matplotlib==3.10.0  # Only used in ml/training scripts
+# seaborn==0.13.2  # Only used in ml/training scripts
 
 # Web Scraping
-selenium==4.31.0
+# selenium==4.31.0  # Not used by production API (only in backend/scrapers/amazon/)
 beautifulsoup4==4.13.4
 requests==2.32.3
-undetected-chromedriver==3.5.5
-webdriver-manager==4.0.2
+# undetected-chromedriver==3.5.5  # Not used by production API (only in backend/scrapers/amazon/)
+# webdriver-manager==4.0.2  # Not used by production API (only in backend/scrapers/amazon/)
 fake-useragent==1.5.1
 
-# Geographic & Utilities  
+# Geographic & Utilities
 pgeocode==0.5.0
 pycountry>=23.12.11
 python-dotenv==1.1.0
@@ -48,5 +48,5 @@ werkzeug>=3.0.0
 marshmallow>=3.20.0
 
 # Optional for enhanced features
-altair==5.5.0
+# altair==5.5.0  # Not used by production API
 flask-limiter==3.9.0
