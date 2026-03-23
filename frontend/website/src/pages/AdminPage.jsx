@@ -53,8 +53,10 @@ const PredictionManagement = ({ submissions, selected, updatedLabel, setUpdatedL
           <thead>
             <tr className="border-b border-slate-600">
               <th className="text-left p-3 text-slate-300 font-medium">Product Title</th>
-              <th className="text-left p-3 text-slate-300 font-medium">Predicted</th>
+              <th className="text-left p-3 text-slate-300 font-medium">Origin</th>
+              <th className="text-left p-3 text-slate-300 font-medium">ML Grade</th>
               <th className="text-left p-3 text-slate-300 font-medium">Confidence</th>
+              <th className="text-left p-3 text-slate-300 font-medium">CO₂ (kg)</th>
               <th className="text-left p-3 text-slate-300 font-medium">True Label</th>
               <th className="text-left p-3 text-slate-300 font-medium">Actions</th>
             </tr>
@@ -62,29 +64,38 @@ const PredictionManagement = ({ submissions, selected, updatedLabel, setUpdatedL
           <tbody>
             {Array.isArray(submissions) && submissions.length > 0 ? (
               submissions.map((item, index) => (
-                <motion.tr 
-                  key={index} 
+                <motion.tr
+                  key={index}
                   className="border-b border-slate-700/50 hover:bg-slate-800/30"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
                 >
                   <td className="p-3 text-slate-300">
-                    <div className="max-w-xs truncate">{item.title}</div>
+                    <div className="max-w-[200px] truncate" title={item.title}>{item.title}</div>
+                    {item.material && <div className="text-slate-500 text-xs mt-0.5">{item.material}</div>}
                   </td>
+                  <td className="p-3 text-slate-400 text-sm">{item.origin || '—'}</td>
                   <td className="p-3">
-                    <ModernBadge 
-                      variant={
-                        item.predicted_label === 'A+' || item.predicted_label === 'A' ? 'success' : 
-                        item.predicted_label === 'B' || item.predicted_label === 'C' ? 'warning' : 'error'
-                      }
-                      size="sm"
-                    >
-                      {item.predicted_label}
-                    </ModernBadge>
+                    {item.predicted_label ? (
+                      <ModernBadge
+                        variant={
+                          item.predicted_label === 'A+' || item.predicted_label === 'A' ? 'success' :
+                          item.predicted_label === 'B' || item.predicted_label === 'C' ? 'warning' : 'error'
+                        }
+                        size="sm"
+                      >
+                        {item.predicted_label}
+                      </ModernBadge>
+                    ) : (
+                      <span className="text-slate-500 text-xs">No prediction</span>
+                    )}
                   </td>
-                  <td className="p-3 text-slate-400">
-                    {item.confidence || "N/A"}
+                  <td className="p-3 text-slate-400 text-sm">
+                    {item.confidence || <span className="text-slate-600">—</span>}
+                  </td>
+                  <td className="p-3 text-slate-400 text-sm font-mono">
+                    {item.co2_kg != null ? item.co2_kg.toFixed(2) : <span className="text-slate-600">—</span>}
                   </td>
                   <td className="p-3">
                     {index === selected ? (
@@ -92,12 +103,12 @@ const PredictionManagement = ({ submissions, selected, updatedLabel, setUpdatedL
                         type="text"
                         value={updatedLabel}
                         onChange={(e) => setUpdatedLabel(e.target.value)}
-                        placeholder="A+, A, B, C, D, E, F"
-                        className="w-24"
+                        placeholder="A+, A, B…"
+                        className="w-20"
                       />
                     ) : (
-                      <span className="text-slate-300">
-                        {item.true_label || <span className="text-slate-500">—</span>}
+                      <span className={item.true_label ? "text-emerald-400 font-medium" : "text-slate-500"}>
+                        {item.true_label || '—'}
                       </span>
                     )}
                   </td>
@@ -125,7 +136,7 @@ const PredictionManagement = ({ submissions, selected, updatedLabel, setUpdatedL
                         size="sm"
                         onClick={() => handleEdit(index)}
                       >
-                        Edit
+                        Label
                       </ModernButton>
                     )}
                   </td>
@@ -343,7 +354,7 @@ export default function AdminPage() {
         setUsers(users.map(u =>
           u.id === user.id ? { ...u, role: newRole } : u
         ));
-        alert(`User ${username} role updated to ${newRole}`);
+        alert(`User ${user.username} role updated to ${newRole}`);
       } else {
         const data = await res.json();
         alert(`Failed to update role: ${data.error}`);

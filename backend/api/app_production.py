@@ -238,16 +238,21 @@ def create_app(config_name='production'):
                 print("🔄 Creating/verifying database tables...")
                 db.create_all()
                 # Add last_login column to existing deployments if missing
-                try:
-                    from sqlalchemy import text as _text
-                    with db.engine.connect() as _conn:
-                        _conn.execute(_text(
-                            "ALTER TABLE users ADD COLUMN last_login TIMESTAMP"
-                        ))
-                        _conn.commit()
-                    print("✅ Added last_login column to users table")
-                except Exception:
-                    pass  # Column already exists — ignore
+                from sqlalchemy import text as _text
+                _migrations = [
+                    ("ALTER TABLE users ADD COLUMN last_login TIMESTAMP", "users.last_login"),
+                    ("ALTER TABLE emission_calculations ADD COLUMN eco_grade_ml VARCHAR(5)", "emission_calculations.eco_grade_ml"),
+                    ("ALTER TABLE emission_calculations ADD COLUMN ml_confidence DECIMAL(5,2)", "emission_calculations.ml_confidence"),
+                    ("ALTER TABLE admin_reviews ADD COLUMN corrected_grade VARCHAR(5)", "admin_reviews.corrected_grade"),
+                ]
+                for sql, col in _migrations:
+                    try:
+                        with db.engine.connect() as _conn:
+                            _conn.execute(_text(sql))
+                            _conn.commit()
+                        print(f"✅ Added column {col}")
+                    except Exception:
+                        pass  # Column already exists — ignore
                 print("✅ Database tables ready")
                 _seed_products_from_csv()
             except Exception as e:
@@ -1143,7 +1148,9 @@ def create_app(config_name='production'):
                     'rule_based_prediction': rule_co2,
                     'final_emission': (ml_co2 + rule_co2) / 2,
                     'confidence_level': confidence_score,
-                    'calculation_method': 'combined'
+                    'calculation_method': 'combined',
+                    'eco_grade_ml': eco_score_ml,
+                    'ml_confidence': confidence,
                 })
 
                 # Add to products table — count grows permanently in PostgreSQL
@@ -1847,17 +1854,36 @@ def create_app(config_name='production'):
             return jsonify({'error': 'Admin access required'}), 403
             
         try:
-            # Get scraped products for admin review
-            submissions = ScrapedProduct.query.order_by(ScrapedProduct.id.desc()).limit(50).all()
-            
-            return jsonify([{
-                'id': sub.id,
-                'url': sub.amazon_url,
-                'title': sub.title,
-                'material': sub.material,
-                'status': 'pending',
-                'created_at': sub.created_at.isoformat() if sub.created_at else None
-            } for sub in submissions])
+            submissions = ScrapedProduct.query.order_by(ScrapedProduct.id.desc()).limit(100).all()
+            result = []
+            for sub in submissions:
+                # Get latest emission calculation for this product
+                calc = EmissionCalculation.query.filter_by(
+                    scraped_product_id=sub.id
+                ).order_by(EmissionCalculation.id.desc()).first()
+                # Get admin review (true label) if any
+                review = AdminReview.query.filter_by(
+                    scraped_product_id=sub.id
+                ).order_by(AdminReview.id.desc()).first()
+
+                result.append({
+                    'id': sub.id,
+                    'url': sub.amazon_url,
+                    'title': sub.title or 'Unknown product',
+                    'material': sub.material,
+                    'origin': sub.origin_country,
+                    'brand': sub.brand,
+                    'predicted_label': calc.eco_grade_ml if calc else None,
+                    'confidence': f"{float(calc.ml_confidence):.1f}%" if calc and calc.ml_confidence else None,
+                    'rule_based_label': None,
+                    'true_label': review.corrected_grade if review else None,
+                    'review_status': review.review_status if review else 'pending',
+                    'admin_notes': review.admin_notes if review else None,
+                    'co2_kg': float(calc.final_emission) if calc and calc.final_emission else None,
+                    'transport_mode': calc.transport_mode if calc else None,
+                    'created_at': sub.created_at.isoformat() if sub.created_at else None,
+                })
+            return jsonify(result)
         except Exception as e:
             return jsonify({'error': str(e)}), 500
     
@@ -1872,11 +1898,30 @@ def create_app(config_name='production'):
         try:
             data = request.json
             submission_id = data.get('id')
-            
+            true_label = (data.get('true_label') or '').strip().upper()
+            admin_notes = data.get('admin_notes', '')
+
             if not submission_id:
                 return jsonify({'error': 'No submission ID provided'}), 400
-                
-            # Here you would update the submission
+
+            review = AdminReview.query.filter_by(scraped_product_id=submission_id).order_by(AdminReview.id.desc()).first()
+            if review:
+                review.corrected_grade = true_label or None
+                review.admin_notes = admin_notes
+                review.review_status = 'approved' if true_label else 'pending'
+                review.reviewed_by = session['user'].get('id')
+                review.reviewed_at = datetime.utcnow()
+            else:
+                review = AdminReview(
+                    scraped_product_id=submission_id,
+                    corrected_grade=true_label or None,
+                    admin_notes=admin_notes,
+                    review_status='approved' if true_label else 'pending',
+                    reviewed_by=session['user'].get('id'),
+                    reviewed_at=datetime.utcnow(),
+                )
+                db.session.add(review)
+            db.session.commit()
             return jsonify({'success': True, 'message': 'Submission updated'})
         except Exception as e:
             return jsonify({'error': str(e)}), 500

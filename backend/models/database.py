@@ -140,6 +140,8 @@ class EmissionCalculation(db.Model):
     final_emission = db.Column(db.Numeric(10, 2))
     confidence_level = db.Column(db.Numeric(3, 2))
     calculation_method = db.Column(db.String(100))
+    eco_grade_ml = db.Column(db.String(5), nullable=True)
+    ml_confidence = db.Column(db.Numeric(5, 2), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Indexes
@@ -171,6 +173,7 @@ class AdminReview(db.Model):
     scraped_product_id = db.Column(db.Integer, db.ForeignKey('scraped_products.id'), nullable=False)
     review_status = db.Column(db.Enum('pending', 'approved', 'rejected', name='review_status'), default='pending')
     admin_notes = db.Column(db.Text)
+    corrected_grade = db.Column(db.String(5), nullable=True)
     reviewed_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     reviewed_at = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -228,7 +231,9 @@ def save_emission_calculation(calculation_data):
         rule_based_prediction=calculation_data.get('rule_based_prediction'),
         final_emission=calculation_data.get('final_emission'),
         confidence_level=calculation_data.get('confidence_level'),
-        calculation_method=calculation_data.get('calculation_method')
+        calculation_method=calculation_data.get('calculation_method'),
+        eco_grade_ml=calculation_data.get('eco_grade_ml'),
+        ml_confidence=calculation_data.get('ml_confidence'),
     )
     
     db.session.add(emission)

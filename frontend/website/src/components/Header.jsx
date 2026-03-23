@@ -19,8 +19,8 @@ export default function Header() {
     ];
 
     if (user) {
-      // Add admin link for admin users
       if (user.role === "admin") {
+        baseItems.push({ path: "/enterprise", label: "Enterprise", icon: "🏢" });
         baseItems.push({ path: "/admin", label: "Admin", icon: "⚙️" });
       }
       return baseItems;
