@@ -16,7 +16,7 @@ psycopg2-binary==2.9.10
 
 # Machine Learning & Data Science
 scikit-learn==1.6.1
-xgboost==3.0.0
+xgboost[cpu]==3.0.0
 shap>=0.46.0
 pandas==2.2.3
 numpy==2.2.5
