@@ -61,25 +61,23 @@ except ImportError:
 
 CHROMEDRIVER_PATH = r"C:\Dev\DSP\tools\selenium\chromedriver\chromedriver.exe"
 
-chrome_options = Options()
-chrome_options.add_argument("--headless")
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--disable-dev-shm-usage")
-chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-chrome_options.add_argument("window-size=1280,800")
+chrome_options = None
+if webdriver is not None:
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+    chrome_options.add_argument("window-size=1280,800")
 
-#driver_path = ChromeDriverManager(version="136.0.7103.114").install()
-#print("🚀 Using ChromeDriver from:", driver_path)
-
+    ua = UserAgent()
+    random_user_agent = ua.random
+    chrome_options.add_argument(f"user-agent={random_user_agent}")
+    print(f"🧢 Using User-Agent: {random_user_agent}")
 
 material_co2_map = load_material_co2_data()
 
 fallback_mode = False
-
-ua = UserAgent()
-random_user_agent = ua.random
-chrome_options.add_argument(f"user-agent={random_user_agent}")
-print(f"🧢 Using User-Agent: {random_user_agent}")
 
 # === ChromeDriver instantiation should happen *inside* your scraping functions
 # For test or fallback mode only:
