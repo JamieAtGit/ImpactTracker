@@ -1315,15 +1315,25 @@ def create_app(config_name='production'):
             decoded_score = app.label_encoder.inverse_transform([prediction[0]])[0]
 
             confidence = 0.0
+            proba_distribution = []
             if hasattr(app.xgb_model, 'predict_proba'):
                 proba = app.xgb_model.predict_proba(X)
                 confidence = round(float(np.max(proba[0])) * 100, 1)
+                try:
+                    classes = app.label_encoder.classes_
+                    proba_distribution = [
+                        {"grade": str(g), "probability": round(float(p) * 100, 1)}
+                        for g, p in zip(classes, proba[0])
+                    ]
+                except Exception:
+                    pass
 
             print(f"🧠 Predicted: {decoded_score} ({confidence}%)")
 
             return jsonify({
                 'predicted_label': decoded_score,
                 'confidence': f'{confidence}%',
+                'proba_distribution': proba_distribution,
                 'raw_input': {
                     'material': material,
                     'weight': weight,
