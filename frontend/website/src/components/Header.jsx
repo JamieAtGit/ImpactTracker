@@ -15,7 +15,8 @@ export default function Header() {
       { path: "/", label: "Home", icon: "🏠" },
       { path: "/learn", label: "Learn", icon: "📖" },
       { path: "/predict", label: "Predict", icon: "📊" },
-      { path: "/extension", label: "Extension", icon: "🔗" },
+      { path: "/extension", label: "Extension", icon: "🧩" },
+      { path: "/contact", label: "Contact", icon: "✉️" },
     ];
 
     if (user) {
