@@ -1126,6 +1126,7 @@ def create_app(config_name='production'):
                 }
                 confidence_score = confidence_to_score.get(confidence_label, 0.7)
 
+                _session_user_id = session.get('user', {}).get('id')
                 scraped_product = get_or_create_scraped_product({
                     'amazon_url': url,
                     'asin': product.get('asin') or asin_key,
@@ -1137,7 +1138,7 @@ def create_app(config_name='production'):
                     'origin_country': origin_country,
                     'confidence_score': product.get('confidence_score', 0.85),
                     'scraping_status': 'success'
-                })
+                }, user_id=_session_user_id)
                 
                 save_emission_calculation({
                     'scraped_product_id': scraped_product.id,
@@ -2377,6 +2378,86 @@ def create_app(config_name='production'):
         user.role = new_role
         db.session.commit()
         return jsonify({'message': f'{user.username} role set to {new_role}'}), 200
+
+    # ── User history & stats ─────────────────────────────────────────────────
+    @app.route('/api/my/history', methods=['GET'])
+    def my_history():
+        user_info = session.get('user')
+        if not user_info:
+            return jsonify({'error': 'Login required'}), 401
+        uid = user_info['id']
+        try:
+            products = (
+                ScrapedProduct.query
+                .filter_by(user_id=uid)
+                .order_by(ScrapedProduct.created_at.desc())
+                .limit(100)
+                .all()
+            )
+            result = []
+            for p in products:
+                calc = EmissionCalculation.query.filter_by(
+                    scraped_product_id=p.id
+                ).order_by(EmissionCalculation.id.desc()).first()
+                result.append({
+                    'id': p.id,
+                    'title': p.title or 'Unknown product',
+                    'brand': p.brand,
+                    'material': p.material,
+                    'origin': p.origin_country,
+                    'eco_grade': calc.eco_grade_ml if calc else None,
+                    'co2_kg': float(calc.final_emission) if calc and calc.final_emission else None,
+                    'confidence': float(calc.ml_confidence) if calc and calc.ml_confidence else None,
+                    'transport_mode': calc.transport_mode if calc else None,
+                    'scanned_at': p.created_at.isoformat() if p.created_at else None,
+                })
+            return jsonify(result)
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
+    @app.route('/api/my/stats', methods=['GET'])
+    def my_stats():
+        user_info = session.get('user')
+        if not user_info:
+            return jsonify({'error': 'Login required'}), 401
+        uid = user_info['id']
+        try:
+            products = ScrapedProduct.query.filter_by(user_id=uid).all()
+            total = len(products)
+            if total == 0:
+                return jsonify({'total_scans': 0, 'avg_co2_kg': None, 'total_co2_kg': None,
+                                'grade_distribution': {}, 'top_material': None, 'best_grade': None})
+
+            grades, co2_vals, materials = [], [], []
+            for p in products:
+                calc = EmissionCalculation.query.filter_by(
+                    scraped_product_id=p.id
+                ).order_by(EmissionCalculation.id.desc()).first()
+                if calc:
+                    if calc.eco_grade_ml:
+                        grades.append(calc.eco_grade_ml)
+                    if calc.final_emission:
+                        co2_vals.append(float(calc.final_emission))
+                if p.material:
+                    materials.append(p.material)
+
+            grade_order = ['A+', 'A', 'B', 'C', 'D', 'E', 'F']
+            grade_dist = {g: grades.count(g) for g in grade_order if grades.count(g) > 0}
+            best_grade = next((g for g in grade_order if g in grade_dist), None)
+            top_material = max(set(materials), key=materials.count) if materials else None
+            total_co2 = round(sum(co2_vals), 2) if co2_vals else None
+            avg_co2 = round(sum(co2_vals) / len(co2_vals), 2) if co2_vals else None
+
+            return jsonify({
+                'total_scans': total,
+                'avg_co2_kg': avg_co2,
+                'total_co2_kg': total_co2,
+                'grade_distribution': grade_dist,
+                'top_material': top_material,
+                'best_grade': best_grade,
+            })
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
 
     # ── Enterprise dashboard blueprint ───────────────────────────────────────
     try:

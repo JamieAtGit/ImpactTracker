@@ -19,6 +19,7 @@ export default function Header() {
     ];
 
     if (user) {
+      baseItems.push({ path: "/history", label: "History", icon: "📜" });
       if (user.role === "admin") {
         baseItems.push({ path: "/enterprise", label: "Enterprise", icon: "🏢" });
         baseItems.push({ path: "/admin", label: "Admin", icon: "⚙️" });
