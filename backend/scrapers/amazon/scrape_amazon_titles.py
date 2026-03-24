@@ -158,18 +158,18 @@ except Exception as e:
 
 # === CONFIG ===
 ua = UserAgent()
-chrome_options = Options()
-chrome_options.binary_location = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
-chrome_options.add_argument("--headless")
-chrome_options.add_argument("--log-level=3")
-chrome_options.add_argument("window-size=1280,800")  # 🖥️ Simulate realistic screen
-chrome_options.add_argument("--lang=en-GB")  # Optional: browser language
+if webdriver is not None:
+    chrome_options = Options()
+    chrome_options.binary_location = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--log-level=3")
+    chrome_options.add_argument("window-size=1280,800")
+    chrome_options.add_argument("--lang=en-GB")
 
-
-# 🧢 Rotate user-agent for stealth
-random_user_agent = ua.random
-chrome_options.add_argument(f"user-agent={random_user_agent}")
-Log.info(f"🧢 Using User-Agent: {random_user_agent}")
+    # 🧢 Rotate user-agent for stealth
+    random_user_agent = ua.random
+    chrome_options.add_argument(f"user-agent={random_user_agent}")
+    Log.info(f"🧢 Using User-Agent: {random_user_agent}")
 
 
 
