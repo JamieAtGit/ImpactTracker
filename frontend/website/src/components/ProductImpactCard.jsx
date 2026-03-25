@@ -422,7 +422,7 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
             </div>
             
             {/* Price & CO₂ per £ */}
-            {price && (
+            {price && !isNaN(price) && (
               <div className="p-3 glass-card rounded-lg">
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400">Price:</span>
