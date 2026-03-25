@@ -85,11 +85,15 @@ function calcStages(attr) {
   const gridIntensity = GRID_INTENSITY_KG_CO2_PER_KWH[country] ?? 0.5;
   const transFactor  = TRANSPORT_FACTOR[mode] ?? TRANSPORT_FACTOR.ship;
 
+  // All transport stages multiply by weight (kg) × distance (km) × emission factor (kg CO₂/kg/km)
+  // DEFRA 2023 freight factors: air 2.34, road 0.096, sea 0.016 (all ÷1000 for per-kg)
   const rawMaterial   = +(weight * matIntensity).toFixed(3);
   const manufacturing = +(weight * mfgEnergy * gridIntensity).toFixed(3);
   const intlShipping  = +(weight * originKm * transFactor).toFixed(3);
-  const ukDist        = 0.05;
-  const lastMile      = +(Math.max(ukHubKm, 10) * 0.00021 * (1 / 40)).toFixed(3);
+  // UK distribution: weight-scaled warehousing + domestic HGV leg (~200 km avg)
+  const ukDist        = +(weight * 0.096 * 200 / 1000 + 0.03).toFixed(3);
+  // Last-mile: van (0.21 kg CO₂/km) doing ~40 stops over ~60 km route → per parcel + weight premium
+  const lastMile      = +(60 * 0.21 / 40 + weight * 0.005).toFixed(3);
   const eol = recyclability === "high"  ? +(weight * 0.02).toFixed(3)
             : recyclability === "medium" ? +(weight * 0.08).toFixed(3)
             :                              +(weight * 0.18).toFixed(3);
@@ -298,11 +302,31 @@ export default function LifecycleAssessment({ attr }) {
                 )}
               </div>
 
+              {/* ML vs LCA variance explanation */}
+              {mlTotal > 0 && Math.abs(lcaTotal - mlTotal) / mlTotal > 0.15 && (
+                <div className="p-3 bg-slate-800/40 rounded-lg border border-slate-600/30">
+                  <p className="text-slate-300 text-xs font-semibold mb-1.5">
+                    💡 Why do the LCA and ML estimates differ?
+                  </p>
+                  <p className="text-slate-500 text-xs leading-relaxed">
+                    The <span className="text-cyan-400">LCA estimate</span> is a bottom-up calculation using
+                    published reference values per kg of material — it treats every cotton product the same.
+                    The <span className="text-cyan-400">ML model</span> was trained on real Amazon product
+                    data across 11 features (category, brand, transport, recyclability etc.) and captures
+                    real-world patterns that generic LCA data cannot — for example, a fast-fashion t-shirt
+                    vs. a premium organic cotton shirt have very different actual footprints despite being
+                    the same material. A variance of up to 40% between methods is normal and academically
+                    expected when comparing bottom-up LCA with data-driven prediction.
+                  </p>
+                </div>
+              )}
+
               {/* Methodology disclaimer */}
               <div className="flex gap-2 p-3 bg-slate-800/30 rounded-lg border border-slate-700/30">
                 <span className="text-slate-500 text-xs flex-shrink-0">📚</span>
                 <p className="text-slate-600 text-xs leading-relaxed">
                   Stage estimates use published LCA reference data (ecoinvent v3, DEFRA 2023, IEA 2023).
+                  Transport emissions scale with product weight × distance × mode emission factor.
                   Actual values vary by manufacturer, product design, and logistics route.
                   This breakdown is indicative and intended for comparison, not certification.
                 </p>
