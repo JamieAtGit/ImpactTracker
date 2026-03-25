@@ -35,7 +35,8 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
   const emoji = getEmojiForScore(ecoScore);
 
   const [materialAvg, setMaterialAvg] = React.useState(null);
-  const price = attr.price ? parseFloat(attr.price) : null;
+  const _parsedPrice = parseFloat(attr.price);
+  const price = (!isNaN(_parsedPrice) && _parsedPrice > 0) ? _parsedPrice : null;
   const co2PerPound = (price && attr.carbon_kg && price > 0)
     ? (parseFloat(attr.carbon_kg) / price).toFixed(3)
     : null;
@@ -422,7 +423,7 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
             </div>
             
             {/* Price & CO₂ per £ */}
-            {price && !isNaN(price) && (
+            {price && (
               <div className="p-3 glass-card rounded-lg">
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400">Price:</span>
