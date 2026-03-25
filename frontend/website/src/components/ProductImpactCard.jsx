@@ -20,7 +20,11 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
   const mlConfidence = attr.eco_score_ml_confidence || "N/A";
   const ruleScore = attr.eco_score_rule_based || "N/A";
   const methodAgreement = attr.method_agreement || "No";
-  const treesToOffset = Math.max(1, parseInt(attr.trees_to_offset) || 1);
+  const _treesExact = (parseFloat(attr.carbon_kg) || 0) / 21;
+  const treesToOffset = Math.ceil(_treesExact) || 1;
+  const treesDisplay = _treesExact < 1
+    ? `${Math.round(_treesExact * 365)} days of tree absorption`
+    : `${treesToOffset} tree${treesToOffset > 1 ? "s" : ""}`;
   
   // For the main eco score display (use ML score as primary)
   const ecoScore = mlScore;
@@ -418,7 +422,7 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
             <div className="flex justify-between items-center p-3 glass-card rounded-lg">
               <span className="text-slate-400">🌳 Trees to Offset:</span>
               <ModernBadge variant="success" size="sm">
-                {treesToOffset} tree{treesToOffset > 1 ? "s" : ""}
+                {treesDisplay}
               </ModernBadge>
             </div>
             
