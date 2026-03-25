@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Eco Tooltip + Estimator",
-  "version": "3",
+  "version": "4",
   "description": "Estimates emissions and shows eco tooltips on Amazon.",
 
   "permissions": ["storage", "activeTab", "scripting", "notifications"],
