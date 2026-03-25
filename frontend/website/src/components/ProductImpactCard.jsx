@@ -10,7 +10,7 @@ import ConfidenceDistributionChart from "./ConfidenceDistributionChart";
 import ConformalPredictionBadge from "./ConformalPredictionBadge";
 import LifecycleAssessment from "./LifecycleAssessment";
 
-const TABS = ["Overview", "Specifications", "Deep Analysis"];
+const TABS = ["Specifications", "Overview", "Deep Analysis"];
 
 function Tab({ label, active, onClick }) {
   return (
@@ -182,8 +182,127 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
           transition={{ duration: 0.22 }}
         >
 
-          {/* ════ OVERVIEW ════ */}
+          {/* ════ SPECIFICATIONS ════ */}
           {activeTab === 0 && (
+            <div className="space-y-4">
+
+              {/* Weights */}
+              <div className="glass-card rounded-xl p-4">
+                <h4 className="text-slate-300 font-semibold text-sm mb-3">⚖️ Weight</h4>
+                <Row label="Product weight" value={`${attr.raw_product_weight_kg} kg`} />
+                <Row label="Weight incl. packaging" value={`${attr.weight_kg} kg`} />
+              </div>
+
+              {/* Origin & manufacturing — grouped */}
+              <div className="glass-card rounded-xl p-4">
+                <h4 className="text-slate-300 font-semibold text-sm mb-3">🌐 Origin & Manufacturing</h4>
+                <Row
+                  label="Country of origin"
+                  value={attr.country_of_origin || attr.origin || "Unknown"}
+                  badge badgeVariant="default"
+                />
+                {attr.facility_origin && attr.facility_origin !== "Unknown" && (
+                  <Row label="Manufacturing facility" value={attr.facility_origin} />
+                )}
+                <Row label="Transport mode" value={attr.transport_mode || "Unknown"} />
+                <Row label="International distance" value={`${originKm.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")} km`} />
+                <Row label="UK hub distance" value={`${ukKm.toFixed(0)} km`} />
+              </div>
+
+              {/* Materials — primary + secondary + all detected */}
+              <div className="glass-card rounded-xl p-4">
+                <h4 className="text-slate-300 font-semibold text-sm mb-3">🧱 Materials</h4>
+
+                {/* Primary */}
+                <Row label="Primary material" value={primaryMaterial} badge badgeVariant="info" />
+                {materialTier && (
+                  <Row label="Detection tier" value={`Tier ${materialTier}: ${attr.materials?.tier_name || ""}`} />
+                )}
+                {materialConf && (
+                  <Row label="Detection confidence" value={`${((materialConf || 0) * 100).toFixed(0)}%`} />
+                )}
+                {attr.materials?.primary_percentage && !isNaN(parseFloat(attr.materials.primary_percentage)) && (
+                  <Row label="Primary material share" value={`${attr.materials.primary_percentage}%`} />
+                )}
+                {attr.materials?.environmental_impact_score && (
+                  <Row label="Material impact score" value={`${attr.materials.environmental_impact_score} kg CO₂/kg`} />
+                )}
+
+                {/* Secondary materials */}
+                {attr.materials?.secondary_materials?.length > 0 && (
+                  <div className="pt-3 mt-1 border-t border-slate-700/40">
+                    <p className="text-slate-400 text-xs font-medium mb-2">Secondary materials</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {attr.materials.secondary_materials.map((m, i) => (
+                        <span key={i} className="px-2 py-1 text-xs bg-slate-800 text-slate-300 rounded-md border border-slate-600">
+                          {m.name}{m.percentage && !isNaN(parseFloat(m.percentage)) ? ` · ${m.percentage}%` : ""}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* All detected materials */}
+                {attr.materials?.all_materials?.length > 0 && (
+                  <div className="pt-3 mt-1 border-t border-slate-700/40">
+                    <p className="text-slate-400 text-xs font-medium mb-2">All detected materials</p>
+                    <div className="space-y-1.5">
+                      {attr.materials.all_materials.map((m, i) => {
+                        const pct = m.weight ? (m.weight * 100).toFixed(0) : m.percentage || null;
+                        return (
+                          <div key={i} className="flex items-center justify-between">
+                            <span className="text-slate-300 text-xs">{m.name}</span>
+                            {pct && (
+                              <div className="flex items-center gap-2">
+                                <div className="w-20 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full bg-cyan-500/60 rounded-full"
+                                    style={{ width: `${Math.min(parseFloat(pct), 100)}%` }}
+                                  />
+                                </div>
+                                <span className="text-slate-500 text-xs w-8 text-right">{pct}%</span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Recyclability */}
+              <div className="glass-card rounded-xl p-4">
+                <h4 className="text-slate-300 font-semibold text-sm mb-3">♻️ End-of-Life</h4>
+                <Row
+                  label="Recyclability"
+                  value={attr.recyclability || "Unknown"}
+                  badge
+                  badgeVariant={attr.recyclability === "High" ? "success" : attr.recyclability === "Medium" ? "warning" : "error"}
+                />
+                {attr.recyclability_percentage && (
+                  <Row label="Recyclable content" value={`${attr.recyclability_percentage}%`} />
+                )}
+                {attr.recyclability_description && (
+                  <p className="text-slate-500 text-xs mt-2 leading-relaxed">{attr.recyclability_description}</p>
+                )}
+              </div>
+
+              {/* Seller info */}
+              {(attr.sold_by || attr.dispatched_from || price) && (
+                <div className="glass-card rounded-xl p-4">
+                  <h4 className="text-slate-300 font-semibold text-sm mb-3">🛒 Listing Details</h4>
+                  {price && <Row label="Price" value={`£${price.toFixed(2)}`} />}
+                  {co2PerPound && <Row label="CO₂ per £ spent" value={`${co2PerPound} kg/£`} />}
+                  {attr.sold_by && attr.sold_by !== "Not found" && <Row label="Sold by" value={attr.sold_by} />}
+                  {attr.dispatched_from && attr.dispatched_from !== "Not found" && <Row label="Dispatched from" value={attr.dispatched_from} />}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ════ OVERVIEW ════ */}
+          {activeTab === 1 && (
             <div className="space-y-5">
 
               {/* Carbon metrics circle */}
@@ -287,86 +406,6 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
                 currentCo2={attr.carbon_kg}
                 productTitle={result.title}
               />
-            </div>
-          )}
-
-          {/* ════ SPECIFICATIONS ════ */}
-          {activeTab === 1 && (
-            <div className="space-y-4">
-
-              {/* Weights */}
-              <div className="glass-card rounded-xl p-4">
-                <h4 className="text-slate-300 font-semibold text-sm mb-3">⚖️ Weight</h4>
-                <Row label="Product weight" value={`${attr.raw_product_weight_kg} kg`} />
-                <Row label="Weight incl. packaging" value={`${attr.weight_kg} kg`} />
-              </div>
-
-              {/* Origin & shipping */}
-              <div className="glass-card rounded-xl p-4">
-                <h4 className="text-slate-300 font-semibold text-sm mb-3">🌐 Origin & Shipping</h4>
-                <Row label="Country of origin" value={attr.country_of_origin || attr.origin || "Unknown"} badge badgeVariant="default" />
-                {attr.facility_origin && attr.facility_origin !== "Unknown" && (
-                  <Row label="Manufacturing facility" value={attr.facility_origin} />
-                )}
-                <Row label="Transport mode" value={attr.transport_mode || "Unknown"} />
-                <Row label="International distance" value={`${originKm.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")} km`} />
-                <Row label="UK hub distance" value={`${ukKm.toFixed(0)} km`} />
-              </div>
-
-              {/* Materials */}
-              <div className="glass-card rounded-xl p-4">
-                <h4 className="text-slate-300 font-semibold text-sm mb-3">🧱 Materials</h4>
-                <Row label="Primary material" value={primaryMaterial} badge badgeVariant="info" />
-                {materialTier && (
-                  <Row label="Detection tier" value={`Tier ${materialTier}: ${attr.materials?.tier_name || ""}`} />
-                )}
-                {materialConf && (
-                  <Row label="Detection confidence" value={`${((materialConf || 0) * 100).toFixed(0)}%`} />
-                )}
-                {attr.materials?.environmental_impact_score && (
-                  <Row label="Material impact score" value={`${attr.materials.environmental_impact_score} kg CO₂/kg`} />
-                )}
-                {attr.materials?.secondary_materials?.length > 0 && (
-                  <div className="pt-2.5 mt-1 border-t border-slate-700/40">
-                    <p className="text-slate-500 text-xs mb-2">Secondary materials</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {attr.materials.secondary_materials.map((m, i) => (
-                        <span key={i} className="px-2 py-1 text-xs bg-slate-800 text-slate-300 rounded border border-slate-600">
-                          {m.name}{m.percentage && !isNaN(parseFloat(m.percentage)) ? ` (${m.percentage}%)` : ""}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Recyclability */}
-              <div className="glass-card rounded-xl p-4">
-                <h4 className="text-slate-300 font-semibold text-sm mb-3">♻️ End-of-Life</h4>
-                <Row
-                  label="Recyclability"
-                  value={attr.recyclability || "Unknown"}
-                  badge
-                  badgeVariant={attr.recyclability === "High" ? "success" : attr.recyclability === "Medium" ? "warning" : "error"}
-                />
-                {attr.recyclability_percentage && (
-                  <Row label="Recyclable content" value={`${attr.recyclability_percentage}%`} />
-                )}
-                {attr.recyclability_description && (
-                  <p className="text-slate-500 text-xs mt-2 leading-relaxed">{attr.recyclability_description}</p>
-                )}
-              </div>
-
-              {/* Seller info */}
-              {(attr.sold_by || attr.dispatched_from || price) && (
-                <div className="glass-card rounded-xl p-4">
-                  <h4 className="text-slate-300 font-semibold text-sm mb-3">🛒 Listing Details</h4>
-                  {price && <Row label="Price" value={`£${price.toFixed(2)}`} />}
-                  {co2PerPound && <Row label="CO₂ per £ spent" value={`${co2PerPound} kg/£`} />}
-                  {attr.sold_by && attr.sold_by !== "Not found" && <Row label="Sold by" value={attr.sold_by} />}
-                  {attr.dispatched_from && attr.dispatched_from !== "Not found" && <Row label="Dispatched from" value={attr.dispatched_from} />}
-                </div>
-              )}
             </div>
           )}
 
