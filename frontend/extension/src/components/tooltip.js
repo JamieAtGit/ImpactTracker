@@ -511,6 +511,57 @@ async function smartGuessMaterialFromTitle(title) {
   return null;
 }
 
+function getLcaBreakdown(info) {
+  const impact = info.impact || 'Unknown';
+  const recyclable = info.recyclable;
+  const materialName = (info.name || '').toLowerCase();
+
+  // Production = overall material impact
+  const productionLevel = impact;
+
+  // Transport heuristic
+  const lowTransportMaterials = ['timber', 'bamboo', 'cork', 'stone', 'brick', 'concrete', 'clay', 'sand', 'gravel'];
+  const highTransportMaterials = ['platinum', 'palladium', 'titanium', 'rare earth', 'lithium'];
+  let transportLevel = 'Moderate';
+  if (lowTransportMaterials.some(m => materialName.includes(m))) transportLevel = 'Low';
+  if (highTransportMaterials.some(m => materialName.includes(m))) transportLevel = 'High';
+
+  // Use phase — electronics/energy-dependent materials are higher
+  const highUseMaterials = ['battery', 'lithium', 'led', 'electronics', 'copper', 'tungsten'];
+  const lowUseMaterials = ['timber', 'stone', 'ceramic', 'glass', 'cotton', 'wool', 'leather', 'paper', 'bamboo'];
+  let useLevel = 'Low';
+  if (highUseMaterials.some(m => materialName.includes(m))) useLevel = 'Moderate';
+  if (lowUseMaterials.some(m => materialName.includes(m))) useLevel = 'Low';
+
+  // End-of-life
+  const eolLevel = recyclable === true ? 'Low' : recyclable === false ? 'High' : 'Moderate';
+  const eolLabel = recyclable === true ? 'Low ♻️' : recyclable === false ? 'High 🚯' : 'Unknown';
+
+  const levelColor = {
+    'Low': '#10b981', 'Low-Moderate': '#84cc16',
+    'Moderate': '#f59e0b', 'High': '#ef4444', 'Unknown': '#6b7280'
+  };
+  const levelBar = {
+    'Low': '██░░░', 'Low-Moderate': '███░░',
+    'Moderate': '████░', 'High': '█████', 'Unknown': '░░░░░'
+  };
+
+  const row = (icon, label, level, display) =>
+    `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+      <span style="color:#cbd5e1;">${icon} ${label}</span>
+      <span style="color:${levelColor[level]||'#6b7280'};font-family:monospace;font-size:10px;">${levelBar[level]||'░░░░░'} ${display||level}</span>
+    </div>`;
+
+  return `
+    <div style="margin-top:8px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.15);font-size:11px;">
+      <div style="font-weight:600;margin-bottom:5px;color:#e2e8f0;font-size:11px;">🔄 Lifecycle Assessment</div>
+      ${row('🏭','Manufacturing', productionLevel, productionLevel)}
+      ${row('🚢','Transport', transportLevel, transportLevel)}
+      ${row('💡','Use Phase', useLevel, useLevel)}
+      ${row('🗑️','End-of-Life', eolLevel, eolLabel)}
+    </div>`;
+}
+
 function showTooltipFor(target, info) {
   if (!info || typeof info !== "object" || !info.name || info.name === "unknown") {
     console.warn("⚠️ Skipping tooltip — no valid info provided.");
@@ -530,59 +581,44 @@ function showTooltipFor(target, info) {
               : info.impact === "Low-Moderate" ? "🌿"
               : "❓";
 
-  const recycle = info.recyclable === true ? "♻️ Recyclable"
-                   : info.recyclable === false ? "🚯 Not recyclable"
-                   : "❓ Recyclability unknown";
-
   // Enhanced tooltip with confidence indicator and material specificity
-  const confidenceColor = confidence >= 80 ? "#10b981" 
-                         : confidence >= 60 ? "#f59e0b" 
+  const confidenceColor = confidence >= 80 ? "#10b981"
+                         : confidence >= 60 ? "#f59e0b"
                          : "#ef4444";
 
   // Enhanced material name display with family information
   const materialName = info.name;
-  const isSpecificMaterial = info.isSpecific || materialName.includes(' ') || 
-                           ['faux leather', 'recycled', 'organic', 'vegan', 'genuine', 'stainless', 'carbon'].some(prefix => 
+  const isSpecificMaterial = info.isSpecific || materialName.includes(' ') ||
+                           ['faux leather', 'recycled', 'organic', 'vegan', 'genuine', 'stainless', 'carbon'].some(prefix =>
                            materialName.toLowerCase().includes(prefix));
-  
-  // Enhanced material categorization with family info
+
   const familyInfo = info.family ? ` (${info.family.replace('_', ' ')})` : '';
-  const subcategoryInfo = info.subcategory ? ` - ${info.subcategory.replace('_', ' ')}` : '';
-  
+
   // Material type icons based on family
   const familyIcons = {
-    metals: '🔩',
-    polymers: '🧪',
-    elastomers: '🔄',
-    ceramics: '🏺',
-    glasses: '🔍',
-    stone_mineral: '🪨',
-    textiles: '🧵',
-    leather: '💼',
-    wood_plant: '🌳',
-    paper_cellulose: '📄',
-    composites: '⚙️',
-    construction: '🏠',
-    chemical: '⚗️'
+    metals: '🔩', polymers: '🧪', elastomers: '🔄', ceramics: '🏺',
+    glasses: '🔍', stone_mineral: '🪨', textiles: '🧵', leather: '💼',
+    wood_plant: '🌳', paper_cellulose: '📄', composites: '⚙️',
+    construction: '🏠', chemical: '⚗️'
   };
-  
-  const materialIcon = info.family && familyIcons[info.family] ? familyIcons[info.family] : 
+
+  const materialIcon = info.family && familyIcons[info.family] ? familyIcons[info.family] :
                       (isSpecificMaterial ? "🎯" : "🧬");
-  
-  const specificityNote = isSpecificMaterial ? 
-    `<div style="font-size: 10px; color: #10b981; margin-top: 2px;">✨ Specific material type detected${familyInfo}</div>` : 
+
+  const specificityNote = isSpecificMaterial ?
+    `<div style="font-size: 10px; color: #10b981; margin-top: 2px;">✨ Specific material detected${familyInfo}</div>` :
     `<div style="font-size: 10px; color: #888; margin-top: 2px;">📈 General material category${familyInfo}</div>`;
 
-  // Enhanced compound material info
-  const compoundInfo = info.compound && info.originalHint ? 
+  const compoundInfo = info.compound && info.originalHint ?
     `<div style="font-size: 10px; color: #a78bfa; margin-top: 2px;">🧬 Detected from: "${info.originalHint}"</div>` : '';
 
-  // Look for related materials to suggest alternatives
   const relatedMaterials = findRelatedMaterials(materialName);
-  const relatedSection = relatedMaterials.length > 0 ? 
+  const relatedSection = relatedMaterials.length > 0 ?
     `<div style="font-size: 11px; color: #94a3b8; margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.1);">
       <strong>🔗 Related materials:</strong> ${relatedMaterials.slice(0, 3).join(', ')}
     </div>` : '';
+
+  const lcaSection = getLcaBreakdown(info);
 
   const html = `
     <div style="border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 8px; margin-bottom: 8px;">
@@ -596,13 +632,14 @@ function showTooltipFor(target, info) {
     <div style="margin-bottom: 8px;">
       <strong>${emoji} ${info.impact || "Unknown"} Environmental Impact</strong>
     </div>
-    <div style="font-size: 13px; line-height: 1.4; margin-bottom: 8px;">
+    <div style="font-size: 12px; line-height: 1.4; margin-bottom: 6px; color: #e2e8f0;">
       ${info.summary || "No summary available."}
     </div>
-    <div style="font-size: 12px; color: #ccc;">
-      <em>${recycle}</em>
-    </div>
+    ${lcaSection}
     ${relatedSection}
+    <div style="margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 10px; color: #64748b; text-align: center;">
+      Click <strong style="color:#10b981;">🌱 Eco</strong> button for full carbon analysis
+    </div>
   `;
 
   attachTooltipEvents(target, html);
@@ -823,39 +860,57 @@ async function enhanceTooltips() {
   } else {
     // Comprehensive selectors for different Amazon layouts
     const productSelectors = [
-      // Search results page
+      // Search results — standard and A/B variants
       "h2.a-size-mini.a-spacing-none.a-color-base span.a-text-normal",
       "h2.s-size-mini.s-spacing-none.s-color-base span",
       "h2 span.a-text-normal",
       "span.a-text-normal",
-      
-      // Grid view products
       "div[data-component-type='s-search-result'] h2 span",
+      "div[data-cel-widget*='SEARCH_RESULTS'] h2 span",
+      "li[data-asin] h2 span",
+      "[data-asin] h2 span.a-size-base-plus",
+      ".s-main-slot h2 span.a-color-base",
+
+      // Grid / tile view
       "div.puisg-title span",
       "div.puisg-title h2 span",
-      
-      // Category pages
       "div.a-section.a-spacing-none h2 span",
       "div.s-title-instructions-style h2 span",
-      
+
+      // Sponsored / promoted products
+      "div[data-component-type='sp-sponsored-result'] h2 span",
+      ".AdHolder h2 span",
+
+      // Best Sellers & carousels
+      "div.p13n-sc-truncated span",
+      ".p13n-sc-truncated-desktop-type2",
+      ".p13n-desktop-shoveler h2 span",
+      ".a-carousel-card h2 span",
+      ".a-carousel-card .a-truncate-full span",
+      "[class*='carousel'] h2 span",
+      ".s-widget-container h2 span",
+
+      // "Customers also viewed" / recommendation sidebars
+      "div.a-cardui h2 span",
+      "#similarities_feature_div h2 span",
+      "#sims-consolidated-2_feature_div h2 span",
+      ".sims-fbt-title span",
+
+      // Today's Deals & Lightning Deals
+      "div.DealLink h2 span",
+      "div.deals-shoveler h2 span",
+      ".dealView h2 span",
+
       // Mobile layouts
       "div._bGlmZ_itemName_19mCu span",
       "h2._bGlmZ_truncate_2bzXt span",
-      
-      // Today's deals and special pages
-      "div.DealLink h2 span",
-      "div.deals-shoveler h2 span",
-      
-      // Recommendation sections
-      "div.a-cardui h2 span",
-      "div.p13n-sc-truncated span",
-      
+
       // Alternative product title formats
       "a.a-link-normal span.a-text-normal",
       "a[data-image-source-density] span",
       "h3.a-size-base span",
-      
-      // Fresh/Whole Foods products
+
+      // Fresh / Whole Foods
       "div.fresh-tile h2 span",
       "div.wf-product-tile h2 span"
     ];

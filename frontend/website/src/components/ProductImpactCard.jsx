@@ -9,6 +9,7 @@ import CounterfactualExplanation from "./CounterfactualExplanation";
 import AlternativeRecommendations from "./AlternativeRecommendations";
 import ConfidenceDistributionChart from "./ConfidenceDistributionChart";
 import ConformalPredictionBadge from "./ConformalPredictionBadge";
+import LifecycleAssessment from "./LifecycleAssessment";
 
 export default function ProductImpactCard({ result, showML, toggleShowML }) {
   const attr = result.attributes || {};
@@ -497,6 +498,9 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
             </div>
           </motion.div>
         )}
+
+        {/* Lifecycle Assessment */}
+        <LifecycleAssessment attr={attr} />
 
         {/* Amazon Climate Pledge Friendly */}
         {attr.climate_pledge_friendly !== undefined && (

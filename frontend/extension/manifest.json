@@ -40,7 +40,7 @@
         "https://www.amazon.co.uk/*",
         "https://www.amazon.com/*"
       ],
-      "js": ["assets/content.js", "src/leaf-indicator.js", "src/persistent-overlay.js"],
+      "js": ["assets/content.js", "leaf-indicator.js", "persistent-overlay.js"],
       "css": ["tooltip.css", "overlay.css"],
       "run_at": "document_end"
     }
