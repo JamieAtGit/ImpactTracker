@@ -20,6 +20,7 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
   const mlConfidence = attr.eco_score_ml_confidence || "N/A";
   const ruleScore = attr.eco_score_rule_based || "N/A";
   const methodAgreement = attr.method_agreement || "No";
+  const treesToOffset = Math.max(1, parseInt(attr.trees_to_offset) || 1);
   
   // For the main eco score display (use ML score as primary)
   const ecoScore = mlScore;
@@ -416,7 +417,7 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
             <div className="flex justify-between items-center p-3 glass-card rounded-lg">
               <span className="text-slate-400">🌳 Trees to Offset:</span>
               <ModernBadge variant="success" size="sm">
-                {attr.trees_to_offset} tree{attr.trees_to_offset > 1 ? "s" : ""}
+                {treesToOffset} tree{treesToOffset > 1 ? "s" : ""}
               </ModernBadge>
             </div>
             
@@ -466,7 +467,7 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
           ecoScore={attr.eco_score_ml}
           recyclability={attr.recyclability}
           recyclabilityPercentage={attr.recyclability_percentage}
-          treesToOffset={attr.trees_to_offset}
+          treesToOffset={treesToOffset}
         />
 
         {/* CO₂ Real-World Equivalents */}
