@@ -149,7 +149,7 @@
     output.innerHTML = '<div class="eco-loading-message">Analyzing product... This may take a few seconds.</div>';
     
     // Use production API
-    const BASE_URL = 'https://web-production-a62d7.up.railway.app';
+    const BASE_URL = 'https://impacttracker-production.up.railway.app';
     
     try {
       const res = await fetch(`${BASE_URL}/estimate_emissions`, {

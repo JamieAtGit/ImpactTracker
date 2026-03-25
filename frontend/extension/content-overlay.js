@@ -550,7 +550,7 @@
       analyzeButton.disabled = true;
       output.innerHTML = '<div class="loading-message">Analyzing product... This may take a few seconds.</div>';
 
-      const BASE_URL = "https://web-production-a62d7.up.railway.app";
+      const BASE_URL = "https://impacttracker-production.up.railway.app";
 
       try {
         // Send message to background script to make the API call

@@ -8,7 +8,7 @@
 
   "host_permissions": [
     "http://localhost:5000/*",
-    "https://web-production-a62d7.up.railway.app/*",
+    "https://impacttracker-production.up.railway.app/*",
     "https://dsp-environmentaltracker-1.onrender.com/*",
     "https://www.amazon.co.uk/*",
     "https://www.amazon.com/*"

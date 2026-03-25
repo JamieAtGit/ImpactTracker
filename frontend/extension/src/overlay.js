@@ -149,7 +149,7 @@
     output.innerHTML = '<div class="eco-loading-message">Analyzing product... This may take a few seconds.</div>';
     
     // Use production API
-    const BASE_URL = 'https://web-production-a62d7.up.railway.app';
+    const BASE_URL = 'https://impacttracker-production.up.railway.app';
     
     try {
       const res = await fetch(`${BASE_URL}/estimate_emissions`, {
@@ -226,10 +226,20 @@
           </div>
           
           <div class="eco-metric-item">
+            <span class="eco-metric-label">Confidence</span>
+            <span class="eco-metric-value">${attributes.eco_score_ml_confidence ? attributes.eco_score_ml_confidence + '%' : 'N/A'}</span>
+          </div>
+
+          <div class="eco-metric-item">
+            <span class="eco-metric-label">Origin</span>
+            <span class="eco-metric-value">${attributes.country_of_origin || attributes.origin || 'Unknown'}</span>
+          </div>
+
+          <div class="eco-metric-item">
             <span class="eco-metric-label">Material</span>
             <span class="eco-metric-value">${attributes.material_type || 'Unknown'}</span>
           </div>
-          
+
           <div class="eco-metric-item">
             <span class="eco-metric-label">Transport</span>
             <span class="eco-metric-value">${attributes.transport_mode || 'N/A'} ${getTransportEmoji(attributes.transport_mode)}</span>
@@ -268,15 +278,26 @@
   
   function getCompactEquivalence(attributes) {
     if (!attributes.carbon_kg) return '';
-    
     const carbonKg = parseFloat(attributes.carbon_kg);
-    if (!isFinite(carbonKg)) return '';
-    
-    const trees = attributes.trees_to_offset || Math.round(carbonKg / 21.77);
-    
+    if (!isFinite(carbonKg) || carbonKg <= 0) return '';
+
+    const treesExact = carbonKg / 21;
+    const treesLabel = treesExact < 1
+      ? `${Math.round(treesExact * 365)} days of tree absorption`
+      : `${Math.ceil(treesExact)} tree${Math.ceil(treesExact) > 1 ? 's' : ''} to offset`;
+
+    const kmDriven = Math.round(carbonKg / 0.21);
+    const phoneCharges = Math.round(carbonKg / 0.005);
+    const climateLine = attributes.climate_pledge_friendly
+      ? `<span class="eco-equiv-item">🌿 Amazon Climate Pledge Friendly ✅</span>`
+      : '';
+
     return `
       <div class="eco-equivalence">
-        <span class="eco-equiv-item">🌳 ${trees} trees to offset</span>
+        <span class="eco-equiv-item">🌳 ${treesLabel}</span>
+        <span class="eco-equiv-item">🚗 ${kmDriven} km driven</span>
+        <span class="eco-equiv-item">📱 ${phoneCharges} phone charges</span>
+        ${climateLine}
       </div>
     `;
   }
