@@ -30,8 +30,33 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
   const getEmojiForScore = (score) => ({
     "A+": "🌍", A: "🌿", B: "🍃", C: "🌱", D: "⚠️", E: "❌", F: "💀"
   }[score] || "🔍");
-  
+
   const emoji = getEmojiForScore(ecoScore);
+
+  const [materialAvg, setMaterialAvg] = React.useState(null);
+  const price = attr.price ? parseFloat(attr.price) : null;
+  const co2PerPound = (price && attr.carbon_kg && price > 0)
+    ? (parseFloat(attr.carbon_kg) / price).toFixed(3)
+    : null;
+
+  // CO₂ real-world equivalents
+  const carbonKg = parseFloat(attr.carbon_kg || 0);
+  const equivalents = carbonKg > 0 ? [
+    { icon: "🚗", label: "km driven", value: Math.round(carbonKg / 0.21) },
+    { icon: "📱", label: "phone charges", value: Math.round(carbonKg / 0.005) },
+    { icon: "💻", label: "hrs laptop use", value: Math.round(carbonKg / 0.05) },
+    { icon: "✈️", label: "% LHR→JFK flight", value: (carbonKg / 300 * 100).toFixed(1) },
+  ] : [];
+
+  React.useEffect(() => {
+    const mat = attr.material_type;
+    if (!mat || mat === 'Not found') return;
+    const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+    fetch(`${BASE_URL}/api/material-avg?material=${encodeURIComponent(mat)}`)
+      .then(r => r.json())
+      .then(d => { if (d.avg_co2_kg && d.sample_size >= 5) setMaterialAvg(d); })
+      .catch(() => {});
+  }, [attr.material_type]);
 
   return (
     <ModernCard className="max-w-6xl mx-auto" solid>
@@ -324,6 +349,28 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
                 </div>
               )}
             </div>
+
+            {/* Sold by / Dispatched from */}
+            {(attr.sold_by || attr.dispatched_from) && (
+              <div className="p-3 glass-card rounded-lg space-y-2">
+                {attr.sold_by && attr.sold_by !== "Not found" && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400 text-sm">Sold by:</span>
+                    <span className="text-slate-200 text-sm font-medium text-right max-w-[55%] truncate">
+                      {attr.sold_by}
+                    </span>
+                  </div>
+                )}
+                {attr.dispatched_from && attr.dispatched_from !== "Not found" && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400 text-sm">Dispatched from:</span>
+                    <span className="text-slate-200 text-sm font-medium text-right max-w-[55%] truncate">
+                      {attr.dispatched_from}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </motion.div>
 
@@ -373,6 +420,22 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
               </ModernBadge>
             </div>
             
+            {/* Price & CO₂ per £ */}
+            {price && (
+              <div className="p-3 glass-card rounded-lg">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">Price:</span>
+                  <span className="font-medium text-slate-200">£{price.toFixed(2)}</span>
+                </div>
+                {co2PerPound && (
+                  <div className="flex justify-between items-center mt-1.5">
+                    <span className="text-slate-400 text-xs">CO₂ per £ spent:</span>
+                    <span className="text-amber-400 font-mono text-xs">{co2PerPound} kg/£</span>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="flex justify-between items-center p-3 glass-card rounded-lg">
               <span className="text-slate-400">International Distance:</span>
               <span className="font-medium text-slate-200">
@@ -405,6 +468,110 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
           recyclabilityPercentage={attr.recyclability_percentage}
           treesToOffset={attr.trees_to_offset}
         />
+
+        {/* CO₂ Real-World Equivalents */}
+        {equivalents.length > 0 && (
+          <motion.div
+            className="glass-card p-5 rounded-xl"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <h4 className="text-slate-200 font-display font-semibold mb-4 flex items-center gap-2">
+              <span>🌍</span> That's equivalent to…
+            </h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {equivalents.map(eq => (
+                <div key={eq.label} className="bg-slate-800/60 border border-slate-700/50 rounded-lg p-3 text-center">
+                  <div className="text-2xl mb-1">{eq.icon}</div>
+                  <div className="text-slate-100 font-bold text-lg font-mono">{eq.value}</div>
+                  <div className="text-slate-500 text-xs mt-0.5">{eq.label}</div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Amazon Climate Pledge Friendly */}
+        {attr.climate_pledge_friendly !== undefined && (
+          <motion.div
+            className={`p-4 rounded-xl border ${attr.climate_pledge_friendly ? 'bg-emerald-500/8 border-emerald-500/30' : 'bg-slate-800/40 border-slate-700/40'}`}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.25 }}
+          >
+            <div className="flex items-start gap-3">
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${attr.climate_pledge_friendly ? 'bg-emerald-500/20' : 'bg-slate-700/60'}`}>
+                <span className="text-xl">{attr.climate_pledge_friendly ? '🌿' : '🔍'}</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-slate-200 font-medium text-sm">
+                  Amazon Climate Pledge Friendly
+                </p>
+                {attr.climate_pledge_friendly ? (
+                  <>
+                    <p className="text-emerald-400 text-xs mt-0.5">✅ Badge detected on this listing</p>
+                    <p className="text-slate-500 text-xs mt-1">
+                      Amazon's label and our ML model {mlScore <= 'C' ? 'agree' : 'disagree'} — our grade is <span className="text-slate-300 font-medium">{mlScore}</span>.
+                      {mlScore > 'C' ? ' Our model flags higher environmental cost despite the badge.' : ''}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-slate-400 text-xs mt-0.5">No badge found on this listing</p>
+                    <p className="text-slate-500 text-xs mt-1">
+                      Amazon has not labelled this product as Climate Pledge Friendly. Our ML grade is <span className="text-slate-300 font-medium">{mlScore}</span>.
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Material Average Comparison */}
+        {materialAvg && attr.carbon_kg && (
+          <motion.div
+            className="glass-card p-5 rounded-xl"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <h4 className="text-slate-200 font-display font-semibold mb-3 flex items-center gap-2">
+              <span>📊</span> vs. Similar Products
+            </h4>
+            <p className="text-slate-500 text-xs mb-3">
+              Average CO₂ across {materialAvg.sample_size} {attr.material_type} products in our database
+            </p>
+            {(() => {
+              const thisVal = parseFloat(attr.carbon_kg);
+              const avgVal  = materialAvg.avg_co2_kg;
+              const diff    = ((thisVal - avgVal) / avgVal * 100).toFixed(0);
+              const better  = thisVal < avgVal;
+              return (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-400">This product</span>
+                    <span className="text-slate-200 font-mono">{thisVal.toFixed(2)} kg CO₂</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-400">{attr.material_type} average</span>
+                    <span className="text-slate-400 font-mono">{avgVal.toFixed(2)} kg CO₂</span>
+                  </div>
+                  <div className={`flex items-center gap-2 mt-2 px-3 py-2 rounded-lg text-sm font-medium ${better ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
+                    <span>{better ? '✅' : '⚠️'}</span>
+                    <span>
+                      {better
+                        ? `${Math.abs(diff)}% below average for ${attr.material_type} products`
+                        : `${Math.abs(diff)}% above average for ${attr.material_type} products`
+                      }
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
+          </motion.div>
+        )}
 
         {/* ML vs DEFRA Chart with Toggle */}
         <div className="space-y-4">

@@ -1078,7 +1078,10 @@ def create_app(config_name='production'):
                 "asin": product.get("asin"),
                 "image_url": product.get("image_url"),
                 "manufacturer": product.get("manufacturer"),
-                "category": product.get("category")
+                "category": product.get("category"),
+                "climate_pledge_friendly": product.get("climate_pledge_friendly", False),
+                "sold_by": product.get("sold_by"),
+                "dispatched_from": product.get("dispatched_from"),
             }
 
             attributes = standardize_attributes(attributes, [
@@ -1216,6 +1219,32 @@ def create_app(config_name='production'):
             traceback.print_exc()
             return jsonify({"error": str(e)}), 500
     
+    @app.route('/api/material-avg', methods=['GET'])
+    def material_avg_co2():
+        """Return average CO2 for products with the same material type."""
+        from sqlalchemy import func as sql_func
+        material_q = request.args.get('material', 'Mixed')
+        try:
+            row = db.session.query(
+                sql_func.avg(EmissionCalculation.final_emission).label('avg_co2'),
+                sql_func.count(EmissionCalculation.id).label('n')
+            ).join(
+                ScrapedProduct, EmissionCalculation.scraped_product_id == ScrapedProduct.id
+            ).filter(
+                ScrapedProduct.material.ilike(f'%{material_q}%'),
+                EmissionCalculation.final_emission > 0,
+                EmissionCalculation.final_emission < 500
+            ).first()
+            avg_val = float(row.avg_co2) if row and row.avg_co2 else None
+            sample  = int(row.n)         if row and row.n      else 0
+            return jsonify({
+                "material": material_q,
+                "avg_co2_kg": round(avg_val, 2) if avg_val else None,
+                "sample_size": sample
+            })
+        except Exception as e:
+            return jsonify({"material": material_q, "avg_co2_kg": None, "sample_size": 0})
+
     @app.route('/predict', methods=['POST'])
     def predict_ml():
         """Direct ML prediction endpoint"""

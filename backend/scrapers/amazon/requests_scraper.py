@@ -380,7 +380,61 @@ class RequestsScraper:
                             continue
         else:
             material = self.detect_material(title, all_text)
-        
+
+        # === Price extraction ===
+        price = None
+        price_selectors = [
+            '.apexPriceToPay .a-offscreen',
+            '#apex_offerDisplay_desktop .a-price .a-offscreen',
+            '.a-price .a-offscreen',
+            '#priceblock_ourprice',
+            '#priceblock_dealprice',
+            '#corePriceDisplay_desktop_feature_div .a-offscreen',
+        ]
+        for _sel in price_selectors:
+            _el = soup.select_one(_sel)
+            if _el:
+                _raw = _el.get_text().strip().replace(',', '')
+                _m = re.search(r'[\d]+\.?\d*', _raw)
+                if _m:
+                    try:
+                        price = float(_m.group())
+                        if price > 0:
+                            break
+                    except Exception:
+                        pass
+
+        # === Amazon Climate Pledge Friendly ===
+        climate_pledge_friendly = False
+        _full_text = soup.get_text().lower()
+        if 'climate pledge friendly' in _full_text:
+            climate_pledge_friendly = True
+        _cpf_el = soup.select_one(
+            '#climatePledgeFriendlyBadge, '
+            '[id*="climatePledge"], '
+            '[data-feature-name="climatePledgeFriendlyBadge"], '
+            '.a-section.certifications-label-container'
+        )
+        if _cpf_el:
+            climate_pledge_friendly = True
+
+        # === Sold by / Dispatched from ===
+        sold_by = None
+        dispatched_from = None
+        _buybox_el = soup.select_one('#tabular-buybox, #buybox, #desktop_buybox, #olpLinkWidget_feature_div')
+        if _buybox_el:
+            _bbox_text = _buybox_el.get_text()
+            _sold_m = re.search(r'sold by[:\s]+([^\n\t]+)', _bbox_text, re.IGNORECASE)
+            if _sold_m:
+                sold_by = _sold_m.group(1).strip()[:100]
+            _disp_m = re.search(r'dispatched from[:\s]+([^\n\t]+)', _bbox_text, re.IGNORECASE)
+            if _disp_m:
+                dispatched_from = _disp_m.group(1).strip()[:100]
+        if not sold_by:
+            _seller_el = soup.select_one('#sellerProfileTriggerId, #merchant-info')
+            if _seller_el:
+                sold_by = _seller_el.get_text().strip()[:100]
+
         result = {
             "title": title,
             "origin": origin,
@@ -398,7 +452,11 @@ class RequestsScraper:
             "asin": asin,
             "data_quality_score": 85,
             "confidence": "High",
-            "method": "Requests Scraping"
+            "method": "Requests Scraping",
+            "price": price,
+            "climate_pledge_friendly": climate_pledge_friendly,
+            "sold_by": sold_by,
+            "dispatched_from": dispatched_from,
         }
         
         print(f"📡 Requests extracted: {title[:50]}...")
