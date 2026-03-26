@@ -227,6 +227,11 @@ def create_app(config_name='production'):
             'https://impacttracker.netlify.app',
             'https://silly-cuchufli-b154e2.netlify.app',
             r'^https://.*--impacttracker\.netlify\.app$',
+            # Chrome extension — requests come from Amazon page origin
+            'https://www.amazon.co.uk',
+            'https://www.amazon.com',
+            'https://amazon.co.uk',
+            'https://amazon.com',
         ],
         methods=['GET', 'POST', 'OPTIONS'],
         allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -568,10 +573,10 @@ def create_app(config_name='production'):
                 materials_service = deps['materials_service']
                 materials_result = materials_service.detect_materials({
                     'title': product.get('title', ''),
-                    'material_type': material,
-                    'category': product.get('category'),
+                    'material_type': material or 'Unknown',
+                    'category': product.get('category') or '',
                     'price': product.get('price'),
-                    'brand': product.get('brand'),
+                    'brand': product.get('brand') or '',
                 })
             except Exception as _mat_err:
                 print(f"⚠️ Materials detection failed: {_mat_err}")
