@@ -57,8 +57,10 @@ def _load_estimation_dependencies():
         )
         from backend.services.response_standardizer import standardize_attributes
         from backend.routes.api import calculate_eco_score
+        from backend.services.materials_service_enhanced import EnhancedMaterialsIntelligenceService
 
         _ESTIMATION_DEPS = {
+            'materials_service': EnhancedMaterialsIntelligenceService(),
             'scrape_amazon_product_page': scrape_amazon_product_page,
             'estimate_origin_country': estimate_origin_country,
             'resolve_brand_origin': resolve_brand_origin,
@@ -560,7 +562,21 @@ def create_app(config_name='production'):
                 material = normalized_material
             else:
                 material = product.get("material_type") or material
-            
+
+            # Multi-material detection (primary / secondary / tertiary)
+            try:
+                materials_service = deps['materials_service']
+                materials_result = materials_service.detect_materials({
+                    'title': product.get('title', ''),
+                    'material_type': material,
+                    'category': product.get('category'),
+                    'price': product.get('price'),
+                    'brand': product.get('brand'),
+                })
+            except Exception as _mat_err:
+                print(f"⚠️ Materials detection failed: {_mat_err}")
+                materials_result = None
+
             # Get weight
             raw_weight = product.get("weight_kg") or product.get("raw_product_weight_kg") or 0.5
             weight = float(raw_weight)
@@ -1014,6 +1030,7 @@ def create_app(config_name='production'):
                 # Product features
                 "dimensions_cm": product.get("dimensions_cm"),
                 "material_type": product.get("material_type", "Not found"),
+                "materials": materials_result,
                 "recyclability": recyclability_label,
                 "recyclability_percentage": recyclability_pct,
                 "recyclability_description": f"{recyclability_pct}% of {material} is recycled globally",

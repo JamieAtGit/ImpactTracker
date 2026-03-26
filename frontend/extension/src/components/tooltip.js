@@ -952,7 +952,49 @@ async function enhanceTooltips() {
       const info = await window.ecoLookup(title, materialHint);
       // showTooltipFor now handles confidence checking internally
       showTooltipFor(tile, info);
+      addImpactBadge(tile, info);
     }
+  }
+}
+
+// Inject a small coloured impact badge inline after the product title text
+function addImpactBadge(target, info) {
+  if (!info || !info.impact || info.impact === "Unknown") return;
+  if (target.dataset.ecoBadgeAdded) return;
+  target.dataset.ecoBadgeAdded = "true";
+
+  const colorMap = {
+    "Low":          { bg: "#10b981", text: "🌱 Low" },
+    "Low-Moderate": { bg: "#84cc16", text: "🌿 Low-Med" },
+    "Moderate":     { bg: "#f59e0b", text: "⚠️ Med" },
+    "High":         { bg: "#ef4444", text: "🔥 High" },
+  };
+  const style = colorMap[info.impact] || { bg: "#6b7280", text: "❓ Unknown" };
+
+  const badge = document.createElement("span");
+  badge.className = "eco-impact-badge";
+  badge.style.cssText = [
+    "display:inline-block",
+    "margin-left:6px",
+    "padding:1px 7px",
+    "border-radius:9999px",
+    "font-size:10px",
+    "font-weight:700",
+    "color:#fff",
+    `background:${style.bg}`,
+    "vertical-align:middle",
+    "line-height:1.6",
+    "white-space:nowrap",
+    "pointer-events:none",
+    "font-family:system-ui,-apple-system,sans-serif",
+  ].join(";");
+  badge.textContent = style.text;
+
+  // Insert after the target span, or append inside it if no next sibling
+  if (target.nextSibling) {
+    target.parentNode.insertBefore(badge, target.nextSibling);
+  } else {
+    target.parentNode?.appendChild(badge);
   }
 }
 
