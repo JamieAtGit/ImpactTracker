@@ -548,18 +548,24 @@ def create_app(config_name='production'):
                 print(f"  {key}: {value}")
             print("🔍 END DEBUG")
             
-            # Material detection if needed
-            material = product.get("material_type") or product.get("material")
-            if not material or material.lower() in ["unknown", "other", "", "not found", "n/a"]:
-                guessed = smart_guess_material(product.get("title", ""))
-                if guessed:
-                    print(f"🧠 Guessed material: {guessed}")
-                    material = guessed.title()
-                    product["material_type"] = material
-            
-            # Ensure material is set
-            if not product.get("material_type"):
-                product["material_type"] = material or "Mixed"
+            # Material detection — title-based guess always runs first because the
+            # product title names what the product IS (e.g. "Velvet Footrest"),
+            # whereas the scraped spec table often names a minor component like
+            # the metal frame or wooden legs.
+            title_material = smart_guess_material(product.get("title", ""))
+            scraped_material = product.get("material_type") or product.get("material") or ""
+
+            if title_material:
+                material = title_material
+                print(f"🧠 Title-based material: {material}")
+            elif scraped_material and scraped_material.lower() not in ["unknown", "other", "", "not found", "n/a", "mixed"]:
+                material = scraped_material
+                print(f"📋 Scraped material: {material}")
+            else:
+                material = "Mixed"
+                print("⚠️ No material detected — defaulting to Mixed")
+
+            product["material_type"] = material
 
             normalized_material = apply_material_title_consistency(product)
             if normalized_material and str(normalized_material).strip().lower() != str(material or '').strip().lower():

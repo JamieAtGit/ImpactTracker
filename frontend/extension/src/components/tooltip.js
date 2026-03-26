@@ -333,6 +333,12 @@ async function smartGuessMaterialFromTitle(title) {
     { words: ['copper','brass','bronze'], material: 'brass' },
     // Glass
     { words: ['borosilicate','tempered glass','toughened glass','safety glass','frosted glass'], material: 'glass' },
+    // Upholstery / soft furnishings — must appear before generic "metal"
+    { words: ['velvet','velour'], material: 'polyester' },
+    { words: ['boucle','bouclé','chenille'], material: 'wool' },
+    { words: ['upholstered','upholstery'], material: 'polyester' },
+    { words: ['foam mattress','memory foam'], material: 'polyurethane' },
+    { words: ['cushion cover','cushion insert'], material: 'cotton' },
     // Natural fibres — specific first
     { words: ['100% cotton','organic cotton','pure cotton'], material: 'cotton' },
     { words: ['merino wool','pure wool','100% wool'], material: 'merino wool' },
@@ -356,6 +362,7 @@ async function smartGuessMaterialFromTitle(title) {
 
   // ── STEP 0b: Generic single material words (still beats category guessing) ─
   const GENERIC_WORDS = [
+    { words: ['velvet','velour','boucle','chenille','upholstered'], material: 'polyester' },
     { words: ['wooden','timber','wood'], material: 'timber' },
     { words: ['metal','steel','iron','metallic','alloy steel'], material: 'steel' },
     { words: ['glass'], material: 'glass' },
