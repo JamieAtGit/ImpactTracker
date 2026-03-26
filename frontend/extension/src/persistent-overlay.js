@@ -274,93 +274,126 @@
         to { transform: translate(-50%, -50%) rotate(360deg); }
       }
       
+      /* ── Result card ── */
       .eco-result-card {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
-        padding: 16px;
-        margin-top: 16px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 14px;
+        padding: 18px;
+        margin-top: 14px;
         animation: eco-slideIn 0.3s ease;
       }
-      
+
       @keyframes eco-slideIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0);   }
       }
-      
-      .eco-result-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 16px;
-        gap: 12px;
-      }
-      
-      .eco-product-title {
-        font-size: 14px;
-        font-weight: 600;
-        color: #ffffff;
-        line-height: 1.3;
-        flex: 1;
-      }
-      
-      .eco-new-analysis-btn {
-        background: linear-gradient(135deg, #7c3aed, #00d4ff);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 8px 12px;
+
+      .eco-product-name {
         font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        white-space: nowrap;
-      }
-      
-      .eco-new-analysis-btn:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
-      }
-      
-      .eco-metric-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        margin-bottom: 12px;
-      }
-      
-      .eco-metric-item {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
-        padding: 12px;
-        text-align: center;
-      }
-      
-      .eco-metric-item.full-width {
-        grid-column: 1 / -1;
-      }
-      
-      .eco-metric-label {
-        font-size: 11px;
-        color: #a1a1aa;
         font-weight: 500;
-        margin-bottom: 4px;
-        display: block;
+        color: #94a3b8;
+        line-height: 1.4;
+        margin-bottom: 14px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
       }
-      
-      .eco-metric-value {
-        font-size: 14px;
-        font-weight: 700;
-        color: #00d4ff;
+
+      /* Carbon hero */
+      .eco-carbon-hero {
+        text-align: center;
+        margin-bottom: 16px;
       }
-      
-      .eco-metric-value.eco-carbon {
-        background: linear-gradient(135deg, #00d4ff, #7c3aed);
+      .eco-carbon-number {
+        font-size: 36px;
+        font-weight: 800;
+        background: linear-gradient(135deg,#00d4ff,#7c3aed);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
+        letter-spacing: -1px;
+      }
+      .eco-carbon-unit {
+        font-size: 13px;
+        color: #64748b;
+        margin-left: 4px;
+        font-weight: 500;
+      }
+
+      /* Score badges */
+      .eco-scores-row {
+        display: flex;
+        align-items: stretch;
+        gap: 0;
+        margin-bottom: 14px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .eco-score-badge {
+        flex: 1;
+        padding: 10px 8px;
+        text-align: center;
+      }
+      .eco-scores-divider {
+        width: 1px;
+        background: rgba(255,255,255,0.08);
+      }
+      .eco-score-method {
+        font-size: 10px;
+        color: #64748b;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+      }
+      .eco-score-value {
+        display: inline-block;
         font-size: 16px;
+        font-weight: 800;
+        padding: 3px 10px;
+        border-radius: 6px;
+      }
+
+      /* Stats rows */
+      .eco-stats-block {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 14px;
+      }
+      .eco-stat-row {
+        display: flex;
+        align-items: center;
+        padding: 9px 12px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        gap: 8px;
+      }
+      .eco-stat-row:last-child { border-bottom: none; }
+      .eco-stat-icon { font-size: 13px; width: 18px; text-align: center; flex-shrink: 0; }
+      .eco-stat-label { font-size: 11px; color: #64748b; font-weight: 500; flex: 1; }
+      .eco-stat-value { font-size: 12px; color: #e2e8f0; font-weight: 600; text-align: right; }
+
+      .eco-new-analysis-btn {
+        display: block;
+        width: 100%;
+        padding: 11px;
+        background: rgba(124,58,237,0.15);
+        border: 1px solid rgba(124,58,237,0.3);
+        border-radius: 10px;
+        color: #a78bfa;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-top: 4px;
+      }
+      .eco-new-analysis-btn:hover {
+        background: rgba(124,58,237,0.25);
+        border-color: rgba(124,58,237,0.5);
+        color: #c4b5fd;
       }
       
       .eco-equivalence {
@@ -571,61 +604,65 @@
   function displayResults(response) {
     const output = document.getElementById('ecoOutput');
     const data = response.data;
-    const attributes = data.attributes || {};
+    const attr = data.attributes || {};
     const productTitle = response.title || data.title || 'Unknown Product';
-    
-    const mlScore = attributes.eco_score_ml || 'N/A';
-    const ruleScore = attributes.eco_score_rule_based || 'N/A';
-    
+
+    const mlScore   = attr.eco_score_ml || 'N/A';
+    const ruleScore = attr.eco_score_rule_based || 'N/A';
+    const carbonKg  = attr.carbon_kg;
+    const confidence = attr.eco_score_ml_confidence;
+    const origin    = attr.country_of_origin || attr.origin || null;
+    const material  = attr.material_type || 'Unknown';
+    const transport = attr.transport_mode || null;
+
+    const scoreColor = s => ({ 'A+':'#10b981','A':'#10b981','B':'#84cc16','C':'#f59e0b','D':'#f97316','E':'#ef4444','F':'#dc2626' }[s] || '#6b7280');
+    const scoreBg    = s => scoreColor(s) + '22';
+
+    const scoreBadge = (label, score, icon) => `
+      <div class="eco-score-badge">
+        <div class="eco-score-method">${label}</div>
+        <div class="eco-score-value" style="color:${scoreColor(score)};background:${scoreBg(score)};">
+          ${icon} ${score}
+        </div>
+      </div>`;
+
+    const statRow = (icon, label, value) => value ? `
+      <div class="eco-stat-row">
+        <span class="eco-stat-icon">${icon}</span>
+        <span class="eco-stat-label">${label}</span>
+        <span class="eco-stat-value">${value}</span>
+      </div>` : '';
+
     output.innerHTML = `
       <div class="eco-result-card">
-        <div class="eco-result-header">
-          <div class="eco-product-title">📦 ${productTitle}</div>
-          <button class="eco-new-analysis-btn" onclick="window.startNewEcoAnalysis()">
-            🔄 Try Another Product
-          </button>
-        </div>
-        
-        <div class="eco-metric-grid">
-          <div class="eco-metric-item">
-            <span class="eco-metric-label">ML Score</span>
-            <span class="eco-metric-value">${mlScore} ${getEmojiForScore(mlScore)}</span>
-          </div>
-          
-          <div class="eco-metric-item">
-            <span class="eco-metric-label">Rule Score</span>
-            <span class="eco-metric-value">${ruleScore} ${getEmojiForScore(ruleScore)}</span>
-          </div>
-          
-          <div class="eco-metric-item full-width">
-            <span class="eco-metric-label">Carbon Emissions</span>
-            <span class="eco-metric-value eco-carbon">${attributes.carbon_kg || 'N/A'} kg CO₂</span>
-          </div>
-          
-          <div class="eco-metric-item">
-            <span class="eco-metric-label">Material</span>
-            <span class="eco-metric-value">${attributes.material_type || 'Unknown'}</span>
-          </div>
 
-          <div class="eco-metric-item">
-            <span class="eco-metric-label">Transport</span>
-            <span class="eco-metric-value">${attributes.transport_mode || 'N/A'} ${getTransportEmoji(attributes.transport_mode)}</span>
-          </div>
-
-          ${attributes.country_of_origin || attributes.origin ? `
-          <div class="eco-metric-item">
-            <span class="eco-metric-label">Origin</span>
-            <span class="eco-metric-value">${attributes.country_of_origin || attributes.origin}</span>
-          </div>` : ''}
-
-          ${attributes.eco_score_ml_confidence ? `
-          <div class="eco-metric-item">
-            <span class="eco-metric-label">Confidence</span>
-            <span class="eco-metric-value">${attributes.eco_score_ml_confidence}%</span>
-          </div>` : ''}
+        <div class="eco-product-name">
+          ${productTitle.length > 72 ? productTitle.substring(0,70)+'…' : productTitle}
         </div>
 
-        ${getCompactEquivalence(attributes)}
+        <div class="eco-carbon-hero">
+          <span class="eco-carbon-number">${carbonKg != null ? carbonKg : '—'}</span>
+          <span class="eco-carbon-unit">kg CO₂e</span>
+        </div>
+
+        <div class="eco-scores-row">
+          ${scoreBadge('🧠 ML Model', mlScore, getEmojiForScore(mlScore))}
+          <div class="eco-scores-divider"></div>
+          ${scoreBadge('📊 Rule-Based', ruleScore, getEmojiForScore(ruleScore))}
+        </div>
+
+        <div class="eco-stats-block">
+          ${statRow('🧱', 'Material',   material)}
+          ${statRow('🚢', 'Transport',  transport ? `${getTransportEmoji(transport)} ${transport}` : null)}
+          ${statRow('🌐', 'Origin',     origin)}
+          ${statRow('🎯', 'Confidence', confidence ? `${confidence}%` : null)}
+        </div>
+
+        ${getCompactEquivalence(attr)}
+
+        <button class="eco-new-analysis-btn" onclick="window.startNewEcoAnalysis()">
+          🔄 Analyse Another Product
+        </button>
       </div>
     `;
   }

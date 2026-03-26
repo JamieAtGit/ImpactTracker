@@ -314,10 +314,78 @@ function extractMaterialFromTile(tile) {
 
 async function smartGuessMaterialFromTitle(title) {
   const titleLower = title.toLowerCase();
-  
+
+  // ── STEP 0: Explicit material words in the title (highest confidence) ──────
+  // Check BEFORE any category guessing. Longer/more specific phrases first.
+  const EXPLICIT_MATERIALS = [
+    // Wood — specific species and types first
+    { words: ['solid oak','solid pine','solid walnut','solid wood','solid timber','solid beech'], material: 'timber' },
+    { words: ['oak','pine','walnut','birch','teak','mahogany','maple','beech','ash wood','acacia'], material: 'timber' },
+    { words: ['engineered wood','mdf board','mdf','particleboard','chipboard','plywood','fibreboard','fibreboard','fsc-certified wood','fsc certified'], material: 'timber' },
+    { words: ['wooden','reclaimed wood','bamboo board','bamboo shelf','bamboo table','bamboo desk'], material: 'timber' },
+    // Metals — specific alloys first
+    { words: ['stainless steel','surgical steel','304 steel','316 steel'], material: 'stainless steel' },
+    { words: ['cast iron'], material: 'cast iron' },
+    { words: ['carbon steel'], material: 'carbon steel' },
+    { words: ['titanium'], material: 'titanium alloys' },
+    { words: ['aluminium frame','aluminum frame','aluminium body','anodised aluminium','anodized aluminum','aluminium alloy','aluminum alloy'], material: 'aluminum' },
+    { words: ['aluminium','aluminum'], material: 'aluminum' },
+    { words: ['copper','brass','bronze'], material: 'brass' },
+    // Glass
+    { words: ['borosilicate','tempered glass','toughened glass','safety glass','frosted glass'], material: 'glass' },
+    // Natural fibres — specific first
+    { words: ['100% cotton','organic cotton','pure cotton'], material: 'cotton' },
+    { words: ['merino wool','pure wool','100% wool'], material: 'merino wool' },
+    { words: ['genuine leather','real leather','full grain','top grain','full-grain','top-grain'], material: 'leather' },
+    { words: ['vegan leather','faux leather','pu leather','synthetic leather','pu coated'], material: 'faux leather' },
+    { words: ['recycled polyester','rpet'], material: 'recycled polyester' },
+    { words: ['recycled plastic'], material: 'recovered plastic' },
+    // Ceramics
+    { words: ['porcelain','stoneware','earthenware'], material: 'ceramic' },
+    // Rubber / silicone
+    { words: ['natural rubber','vulcanised rubber'], material: 'rubber' },
+    { words: ['food grade silicone','medical grade silicone'], material: 'silicone' },
+  ];
+
+  for (const entry of EXPLICIT_MATERIALS) {
+    if (entry.words.some(w => titleLower.includes(w))) {
+      console.log(`🎯 Explicit material match: "${entry.material}" from title`);
+      return entry.material;
+    }
+  }
+
+  // ── STEP 0b: Generic single material words (still beats category guessing) ─
+  const GENERIC_WORDS = [
+    { words: ['wooden','timber','wood'], material: 'timber' },
+    { words: ['metal','steel','iron','metallic','alloy steel'], material: 'steel' },
+    { words: ['glass'], material: 'glass' },
+    { words: ['plastic','polypropylene','polyethylene','pvc','acrylic'], material: 'plastics' },
+    { words: ['leather'], material: 'leather' },
+    { words: ['cotton','denim'], material: 'cotton' },
+    { words: ['polyester','fleece'], material: 'polyester' },
+    { words: ['nylon'], material: 'nylon' },
+    { words: ['rubber'], material: 'rubber' },
+    { words: ['silicone'], material: 'silicone' },
+    { words: ['ceramic'], material: 'ceramic' },
+    { words: ['bamboo'], material: 'bamboo' },
+    { words: ['canvas','fabric','textile','linen'], material: 'cotton' },
+    { words: ['paper','cardboard'], material: 'paper' },
+    { words: ['concrete','cement'], material: 'concrete' },
+    { words: ['marble','granite'], material: 'marble' },
+    { words: ['carbon fibre','carbon fiber'], material: 'carbon fiber' },
+  ];
+
+  for (const entry of GENERIC_WORDS) {
+    if (entry.words.some(w => titleLower.includes(w))) {
+      console.log(`🔤 Generic material word: "${entry.material}" from title`);
+      return entry.material;
+    }
+  }
+
+  // ── STEP 1: Category-pattern guessing (fallback when no material words present) ─
   // Load material insights to get comprehensive list
   const insights = window.materialInsights || await window.loadMaterialInsights?.() || {};
-  
+
   // Enhanced category-based guessing with comprehensive material families
   const categoryPatterns = [
     // LEATHER PRODUCTS (Comprehensive leather detection)
