@@ -858,83 +858,75 @@ async function enhanceTooltips() {
     });
 
   } else {
-    // Comprehensive selectors for different Amazon layouts
-    const productSelectors = [
-      // Search results — standard and A/B variants
-      "h2.a-size-mini.a-spacing-none.a-color-base span.a-text-normal",
-      "h2.s-size-mini.s-spacing-none.s-color-base span",
+    // ── PASS 1: Quick class-based selectors (catches obvious cases fast) ──────
+    const QUICK_SELECTORS = [
       "h2 span.a-text-normal",
       "span.a-text-normal",
       "div[data-component-type='s-search-result'] h2 span",
-      "div[data-cel-widget*='SEARCH_RESULTS'] h2 span",
-      "li[data-asin] h2 span",
-      "[data-asin] h2 span.a-size-base-plus",
-      ".s-main-slot h2 span.a-color-base",
-
-      // Grid / tile view
       "div.puisg-title span",
-      "div.puisg-title h2 span",
-      "div.a-section.a-spacing-none h2 span",
-      "div.s-title-instructions-style h2 span",
-
-      // Sponsored / promoted products
-      "div[data-component-type='sp-sponsored-result'] h2 span",
-      ".AdHolder h2 span",
-
-      // Best Sellers & carousels
-      "div.p13n-sc-truncated span",
+      ".p13n-sc-truncated",
       ".p13n-sc-truncated-desktop-type2",
-      ".p13n-desktop-shoveler h2 span",
-      ".a-carousel-card h2 span",
-      ".a-carousel-card .a-truncate-full span",
-      "[class*='carousel'] h2 span",
-      ".s-widget-container h2 span",
-
-      // "Customers also viewed" / recommendation sidebars
-      "div.a-cardui h2 span",
-      "#similarities_feature_div h2 span",
-      "#sims-consolidated-2_feature_div h2 span",
-      ".sims-fbt-title span",
-
-      // Today's Deals & Lightning Deals
-      "div.DealLink h2 span",
-      "div.deals-shoveler h2 span",
-      ".dealView h2 span",
-
-      // Mobile layouts
-      "div._bGlmZ_itemName_19mCu span",
-      "h2._bGlmZ_truncate_2bzXt span",
-
-      // Alternative product title formats
-      "a.a-link-normal span.a-text-normal",
-      "a[data-image-source-density] span",
-      "h3.a-size-base span",
-
-      // Fresh / Whole Foods
-      "div.fresh-tile h2 span",
-      "div.wf-product-tile h2 span"
     ];
-    
+
     let tiles = [];
-    for (const selector of productSelectors) {
-      const elements = Array.from(document.querySelectorAll(selector));
-      tiles.push(...elements);
+    for (const sel of QUICK_SELECTORS) {
+      Array.from(document.querySelectorAll(sel)).forEach(el => tiles.push(el));
     }
-    
-    // Filter for valid product titles and remove duplicates
+
+    // ── PASS 2: Universal ASIN sweep — layout-agnostic, catches everything ────
+    // Amazon always stamps data-asin on product containers regardless of layout.
+    // We find the title text inside each unscanned container with a heuristic
+    // rather than relying on class names that change with every A/B test.
+    document.querySelectorAll('[data-asin]').forEach(container => {
+      const asin = container.getAttribute('data-asin');
+      if (!asin || container.dataset.asinScanned) return;
+      container.dataset.asinScanned = "true";
+
+      // Don't double-process containers whose title was already found in pass 1
+      if (container.querySelector('[data-tooltip-attached="true"], [data-enhanced-tooltip-attached="true"]')) return;
+
+      // Priority 1: heading element → its non-hidden span child
+      let titleEl =
+        container.querySelector('h2 span:not([class*="offscreen"]):not([class*="hidden"])') ||
+        container.querySelector('h3 span:not([class*="offscreen"]):not([class*="hidden"])') ||
+        container.querySelector('h2') ||
+        container.querySelector('h3');
+
+      // Priority 2: heuristic — the longest span/anchor text that looks like a product name
+      if (!titleEl) {
+        let best = null, bestLen = 0;
+        container.querySelectorAll('span, a').forEach(el => {
+          // Skip elements that are ancestors/descendants of already-found elements
+          const text = (el.textContent || '').trim();
+          if (
+            text.length > 20 && text.length < 250 &&
+            text.length > bestLen &&
+            !text.match(/^[\£\$\€\d]/) &&            // not a price or pure number
+            !text.match(/\d+\s*star/i) &&              // not a rating
+            !/^(see more|add to|buy now|in stock|free delivery|sponsored|results|filter|sort|back to top)/i.test(text) &&
+            el.children.length < 4                    // avoid wrapper divs
+          ) {
+            best = el;
+            bestLen = text.length;
+          }
+        });
+        titleEl = best;
+      }
+
+      if (titleEl && !titleEl.dataset.tooltipAttached && !tiles.includes(titleEl)) {
+        tiles.push(titleEl);
+      }
+    });
+
+    // ── Deduplicate and validate ───────────────────────────────────────────────
     tiles = tiles.filter((el, index, arr) => {
       const text = el.textContent.trim();
-      return text.length > 10 && 
-             text.length < 200 && 
+      return text.length > 10 &&
+             text.length < 250 &&
              !el.dataset.tooltipAttached &&
-             el.dataset.enhancedTooltipAttached !== "true" && // Prevent duplicates from enhanced system
-             // Remove duplicates based on text content
+             el.dataset.enhancedTooltipAttached !== "true" &&
              arr.findIndex(other => other.textContent.trim() === text) === index &&
-             // Exclude navigation and UI elements
-             !text.toLowerCase().includes('see more') &&
-             !text.toLowerCase().includes('view details') &&
-             !text.toLowerCase().includes('add to cart') &&
-             !text.toLowerCase().includes('check each product page');
+             !/^(see more|view details|add to cart|check each product page|back to results)/i.test(text);
     });
     
     console.log("✅ Product tiles found:", tiles.length);
@@ -1082,12 +1074,11 @@ if (document.readyState === 'loading') {
 // Monitor for dynamic content changes (common on Amazon)
 const observer = new MutationObserver((mutations) => {
   // Only trigger if meaningful changes occurred
-  const hasRelevantChanges = mutations.some(mutation => 
-    mutation.type === 'childList' && 
+  const hasRelevantChanges = mutations.some(mutation =>
+    mutation.type === 'childList' &&
     mutation.addedNodes.length > 0 &&
-    Array.from(mutation.addedNodes).some(node => 
-      node.nodeType === Node.ELEMENT_NODE &&
-      (node.tagName === 'DIV' || node.tagName === 'SPAN' || node.tagName === 'H2' || node.tagName === 'H3')
+    Array.from(mutation.addedNodes).some(node =>
+      node.nodeType === Node.ELEMENT_NODE
     )
   );
   
