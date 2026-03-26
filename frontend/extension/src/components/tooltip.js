@@ -810,7 +810,7 @@ function showTooltipFor(target, info, secondaryMaterial) {
   const lcaSection = getLcaBreakdown(info);
 
   const secondaryLine = secondaryMaterial
-    ? `<div style="font-size:10px;color:#94a3b8;margin-top:3px;">+ ${capitalizeFirst(secondaryMaterial)} <span style="color:#64748b;">(secondary)</span></div>`
+    ? `<div style="font-size:11px;color:#a8b8cc;margin-top:4px;font-weight:500;">+ ${capitalizeFirst(secondaryMaterial)} <span style="color:#7a8a9a;font-weight:400;">(secondary material)</span></div>`
     : '';
 
   const html = `
@@ -832,7 +832,7 @@ function showTooltipFor(target, info, secondaryMaterial) {
     ${lcaSection}
     ${relatedSection}
     <div style="margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 10px; color: #64748b; text-align: center;">
-      Click <strong style="color:#10b981;">🌱 Eco</strong> button for full carbon analysis
+      ℹ️ Material estimate from title &bull; Click <strong style="color:#10b981;">🌱 Eco</strong> for full carbon analysis
     </div>
   `;
 
@@ -987,84 +987,48 @@ async function enhanceTooltips() {
 
   if (isProductDetail) {
     const titleEl = document.querySelector("#productTitle");
-    console.log("🧩 Found titleEl:", titleEl);
     if (!titleEl || titleEl.dataset.tooltipAttached) return;
-
     titleEl.dataset.tooltipAttached = "true";
     const title = titleEl.textContent.trim();
-    let materialHint = extractMaterialFromDetailPage();
 
-    console.log("🧪 Product Page Title:", title);
+    // PRIMARY: title-based detection (title names what product IS)
+    const { primary: titlePrimary, secondary: titleSecondary } = await detectMaterials(title);
+    let materialHint = titlePrimary;
 
-    // Fallback 1: Try guessing material from title
+    // SUPPLEMENT: if title gave no signal at all, try DOM extraction
     if (!materialHint) {
-      const titleLower = title.toLowerCase();
-      const materialList = Object.keys(window.materialInsights || {});
-      const titleMatch = materialList.find(mat => titleLower.includes(mat.toLowerCase()));
-
-      if (titleMatch) {
-        materialHint = titleMatch.toLowerCase();
-        console.log("🪵 Fallback from title:", materialHint);
+      const domMaterial = extractMaterialFromDetailPage();
+      if (domMaterial) {
+        materialHint = domMaterial;
+        console.log("📋 Supplemental DOM material:", domMaterial);
       }
     }
 
-    // Fallback 2: Try guessing material from product description and features
-    if (!materialHint) {
-      const descSelectors = [
-        "#productDescription",
-        "#feature-bullets ul",
-        "#aplus_feature_div",
-        ".a-section.a-spacing-medium"
-      ];
-      
-      for (const selector of descSelectors) {
-        const descEl = document.querySelector(selector);
-        if (descEl) {
-          const descText = descEl.innerText || "";
-          const descMatch = descText.match(/\b(aluminum|plastic|metal|wood|steel|rubber|polycarbonate|carbon fiber|cotton|polyester|nylon|leather|ceramic|glass|bamboo|silicone)\b/i);
-          if (descMatch) {
-            materialHint = descMatch[1].toLowerCase();
-            console.log("📜 Fallback from description:", materialHint);
-            break;
-          }
-        }
-      }
-    }
-    
-    // Fallback 3: Full multi-material detection from title
-    if (!materialHint) {
-      const { primary, secondary: detectedSecondary } = await detectMaterials(title);
-      materialHint = primary;
-      if (!window._detailSecondary) window._detailSecondary = detectedSecondary;
-    }
-
-    if (!materialHint) {
-      console.warn("❓ No material found — using 'unknown'");
-      materialHint = "unknown";
-    }
-
-    console.log("🧪 Final Material Hint:", materialHint);
-
-    // Run detectMaterials to get secondary even when primary came from DOM extraction
-    const { secondary: titleSecondary } = await detectMaterials(title);
+    if (!materialHint) materialHint = "unknown";
+    console.log("🧪 Final Material Hint (product page):", materialHint, "| secondary:", titleSecondary);
 
     const info = await window.ecoLookup(title, materialHint);
-
-    showTooltipFor(titleEl, info || {
-      impact: "Unknown",
-      summary: "No insight found.",
-      recyclable: null
-    }, titleSecondary);
+    showTooltipFor(titleEl, info || { impact: "Unknown", summary: "No insight found.", recyclable: null }, titleSecondary);
+    return;
 
   } else {
     // ── PASS 1: Quick class-based selectors (catches obvious cases fast) ──────
     const QUICK_SELECTORS = [
       "h2 span.a-text-normal",
+      "h2 span.a-color-base",
+      "h2 span.a-size-base-plus",
       "span.a-text-normal",
       "div[data-component-type='s-search-result'] h2 span",
       "div.puisg-title span",
       ".p13n-sc-truncated",
       ".p13n-sc-truncated-desktop-type2",
+      "[data-cy='title-recipe'] span",
+      ".a-carousel-card h2 span",
+      ".a-carousel-card span.a-text-normal",
+      "li[data-asin] span.a-text-normal",
+      "li[data-asin] h2 span",
+      "._cDEzb_p13n-sc-css-line-clamp-1_1Fn1y",
+      "._cDEzb_p13n-sc-css-line-clamp-3_g3dy1",
     ];
 
     let tiles = [];
@@ -1103,7 +1067,7 @@ async function enhanceTooltips() {
         container.querySelectorAll('span, a').forEach(el => {
           const text = (el.textContent || '').trim();
           if (
-            text.length > 20 && text.length < 250 &&
+            text.length > 15 && text.length < 250 &&
             text.length > bestLen &&
             !text.match(/^[\£\$\€\d]/) &&
             !text.match(/\d+\s*star/i) &&

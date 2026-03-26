@@ -60,8 +60,8 @@
         </div>
 
         <div class="eco-tab-bar">
-          <button class="eco-tab-btn eco-tab-active" id="ecoTabCalculator" onclick="window.ecoSwitchTab('calculator')">🔍 Calculator</button>
-          <button class="eco-tab-btn" id="ecoTabHistory" onclick="window.ecoSwitchTab('history')">📋 History</button>
+          <button class="eco-tab-btn eco-tab-active" id="ecoTabCalculator">🔍 Calculator</button>
+          <button class="eco-tab-btn" id="ecoTabHistory">📋 History</button>
         </div>
 
         <div class="eco-overlay-content">
@@ -209,27 +209,32 @@
       }
       
       .eco-input-field {
-        width: 100%;
-        padding: 14px 16px;
-        border: 2px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
-        background: rgba(255, 255, 255, 0.05);
-        color: #ffffff;
-        font-size: 14px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        box-sizing: border-box;
+        width: 100% !important;
+        padding: 14px 16px !important;
+        border: 2px solid rgba(255, 255, 255, 0.2) !important;
+        border-radius: 12px !important;
+        background: rgba(30, 30, 50, 0.95) !important;
+        color: #ffffff !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        transition: all 0.3s ease !important;
+        box-sizing: border-box !important;
+        -webkit-text-fill-color: #ffffff !important;
+        outline: none !important;
       }
-      
+
       .eco-input-field::placeholder {
-        color: #a1a1aa;
+        color: rgba(200, 200, 220, 0.7) !important;
+        -webkit-text-fill-color: rgba(200, 200, 220, 0.7) !important;
       }
-      
+
       .eco-input-field:focus {
-        outline: none;
-        border-color: #00d4ff;
-        background: rgba(0, 212, 255, 0.1);
-        box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+        outline: none !important;
+        border-color: #00d4ff !important;
+        background: rgba(0, 50, 80, 0.95) !important;
+        box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15) !important;
+        -webkit-text-fill-color: #ffffff !important;
+        color: #ffffff !important;
       }
       
       .eco-btn-primary {
@@ -496,8 +501,12 @@
     `;
     
     document.head.appendChild(style);
+    // Dismiss any existing auto-banner when overlay opens
+    const existingBanner = document.getElementById('eco-auto-banner');
+    if (existingBanner) existingBanner.remove();
+
     document.body.appendChild(overlay);
-    
+
     // Setup event listeners
     setupEventListeners();
     
@@ -519,11 +528,15 @@
   function setupEventListeners() {
     // Close button
     document.querySelector('.eco-close-btn').addEventListener('click', hideOverlay);
-    
+
+    // Tab buttons
+    document.getElementById('ecoTabCalculator').addEventListener('click', () => switchTab('calculator'));
+    document.getElementById('ecoTabHistory').addEventListener('click', () => switchTab('history'));
+
     // Form submission
     const form = document.getElementById('ecoEstimateForm');
     form.addEventListener('submit', handleFormSubmit);
-    
+
     // Save postcode as user types
     const postcodeInput = document.getElementById('eco_postcode');
     postcodeInput.addEventListener('input', () => {
@@ -614,6 +627,7 @@
     const origin    = attr.country_of_origin || attr.origin || null;
     const material  = attr.material_type || 'Unknown';
     const transport = attr.transport_mode || null;
+    const weightKg  = attr.weight_kg || attr.estimated_weight_kg || attr.product_weight_kg || null;
 
     const scoreColor = s => ({ 'A+':'#10b981','A':'#10b981','B':'#84cc16','C':'#f59e0b','D':'#f97316','E':'#ef4444','F':'#dc2626' }[s] || '#6b7280');
     const scoreBg    = s => scoreColor(s) + '22';
@@ -653,6 +667,7 @@
 
         <div class="eco-stats-block">
           ${statRow('🧱', 'Material',   material)}
+          ${statRow('⚖️', 'Est. Weight', weightKg ? `${weightKg} kg` : null)}
           ${statRow('🚢', 'Transport',  transport ? `${getTransportEmoji(transport)} ${transport}` : null)}
           ${statRow('🌐', 'Origin',     origin)}
           ${statRow('🎯', 'Confidence', confidence ? `${confidence}%` : null)}
@@ -660,11 +675,16 @@
 
         ${getCompactEquivalence(attr)}
 
-        <button class="eco-new-analysis-btn" onclick="window.startNewEcoAnalysis()">
+        <button class="eco-new-analysis-btn" id="ecoNewAnalysisBtn">
           🔄 Analyse Another Product
         </button>
       </div>
     `;
+
+    const newAnalysisBtn = document.getElementById('ecoNewAnalysisBtn');
+    if (newAnalysisBtn) {
+      newAnalysisBtn.addEventListener('click', startNewEcoAnalysis);
+    }
   }
   
   function showError(message) {
@@ -718,7 +738,7 @@
   }
   
   // ── Tab switching ──────────────────────────────────────────────────────────
-  window.ecoSwitchTab = function(tab) {
+  function switchTab(tab) {
     activeOverlayTab = tab;
     const calcPane = document.getElementById('ecoTabPaneCalculator');
     const histPane = document.getElementById('ecoTabPaneHistory');
@@ -738,7 +758,7 @@
       histBtn.classList.add('eco-tab-active');
       renderHistory();
     }
-  };
+  }
 
   // ── History helpers ────────────────────────────────────────────────────────
   function saveToHistory(analysisData) {
@@ -771,7 +791,7 @@
       container.innerHTML = history.map((item, i) => {
         const date = new Date(item.timestamp).toLocaleDateString('en-GB', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
         return `
-          <div class="eco-history-item" onclick="window.ecoLoadHistoryItem(${i})">
+          <div class="eco-history-item" data-history-index="${i}">
             <div class="eco-history-title">📦 ${item.title}</div>
             <div class="eco-history-meta">
               <span class="eco-history-carbon">${item.carbonKg ? item.carbonKg + ' kg CO₂' : 'N/A'}</span>
@@ -779,22 +799,29 @@
             </div>
           </div>`;
       }).join('');
+
+      container.querySelectorAll('.eco-history-item').forEach((item, i) => {
+        item.addEventListener('click', () => loadHistoryItem(i));
+      });
     });
   }
 
-  window.ecoLoadHistoryItem = function(index) {
+  function loadHistoryItem(index) {
     chrome.storage.local.get(['analysisHistory'], (data) => {
       const item = (data.analysisHistory || [])[index];
       if (!item) return;
       // Re-fill URL and switch to calculator
-      window.ecoSwitchTab('calculator');
+      switchTab('calculator');
       const urlInput = document.getElementById('eco_amazon_url');
       if (urlInput) urlInput.value = item.url;
     });
-  };
+  }
 
   // ── Auto-analyse on product detail pages ──────────────────────────────────
   function autoAnalyzeProductPage() {
+    // Don't show if overlay is already open
+    if (document.getElementById('eco-persistent-overlay')) return;
+
     const url = window.location.href;
     const asinMatch = url.match(/\/dp\/([A-Z0-9]{10})/);
     if (!asinMatch) return;
@@ -843,11 +870,12 @@
     el.innerHTML = `
       <div class="eco-banner-header">
         <span class="eco-banner-title">🌱 Eco Impact</span>
-        <button class="eco-banner-close" onclick="document.getElementById('eco-auto-banner').remove()">×</button>
+        <button class="eco-banner-close" id="ecoBannerCloseBtn">×</button>
       </div>
       <div id="eco-banner-body"></div>
     `;
     document.body.appendChild(el);
+    el.querySelector('#ecoBannerCloseBtn').addEventListener('click', () => el.remove());
     return el;
   }
 
@@ -883,11 +911,17 @@
     }, 12000);
   }
 
-  // Global function for new analysis
-  window.startNewEcoAnalysis = function() {
-    document.getElementById('eco_amazon_url').value = window.location.href;
-    document.getElementById('ecoOutput').innerHTML = '';
+  // Local function for new analysis
+  function startNewEcoAnalysis() {
+    switchTab('calculator');
+    const urlInput = document.getElementById('eco_amazon_url');
+    if (urlInput) {
+      urlInput.value = window.location.href;
+      urlInput.focus();
+    }
+    const output = document.getElementById('ecoOutput');
+    if (output) output.innerHTML = '';
     chrome.storage.local.remove('lastAnalysisData');
     lastAnalysisData = null;
-  };
+  }
 })();
