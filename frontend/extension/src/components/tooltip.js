@@ -586,6 +586,120 @@ async function smartGuessMaterialFromTitle(title) {
   return null;
 }
 
+// Returns {primary, secondary} by scanning the full title for up to 2 distinct materials.
+// Primary = first match; secondary = second distinct match or inferred from category.
+async function detectMaterials(title) {
+  const titleLower = title.toLowerCase();
+
+  // Flat ordered rule list — same priority order as the explicit/generic checks
+  // but traversed fully so we can collect a second material
+  const ALL_RULES = [
+    { words: ['velvet','velour'],                                           material: 'polyester' },
+    { words: ['boucle','bouclé','chenille'],                                material: 'wool' },
+    { words: ['upholstered','upholstery'],                                  material: 'polyester' },
+    { words: ['foam mattress','memory foam'],                               material: 'polyurethane' },
+    { words: ['solid oak','solid pine','solid walnut','solid wood','solid timber','solid beech'], material: 'timber' },
+    { words: ['oak','pine','walnut','birch','teak','mahogany','maple','beech','acacia'],          material: 'timber' },
+    { words: ['engineered wood','mdf','particleboard','chipboard','plywood','fibreboard','fsc-certified wood'], material: 'timber' },
+    { words: ['stainless steel','surgical steel'],                          material: 'stainless steel' },
+    { words: ['cast iron'],                                                 material: 'cast iron' },
+    { words: ['carbon steel'],                                              material: 'carbon steel' },
+    { words: ['titanium'],                                                  material: 'titanium alloys' },
+    { words: ['aluminium alloy','aluminum alloy','anodised aluminium','anodized aluminum','aluminium frame','aluminum frame'], material: 'aluminum' },
+    { words: ['aluminium','aluminum'],                                      material: 'aluminum' },
+    { words: ['copper','brass','bronze'],                                   material: 'brass' },
+    { words: ['borosilicate','tempered glass','toughened glass','safety glass'], material: 'glass' },
+    { words: ['100% cotton','organic cotton','pure cotton'],                material: 'cotton' },
+    { words: ['merino wool','pure wool','100% wool'],                       material: 'merino wool' },
+    { words: ['genuine leather','real leather','full grain','top grain'],   material: 'leather' },
+    { words: ['vegan leather','faux leather','pu leather','synthetic leather','pu coated'], material: 'faux leather' },
+    { words: ['recycled polyester','rpet'],                                 material: 'recycled polyester' },
+    { words: ['recycled plastic'],                                          material: 'recovered plastic' },
+    { words: ['porcelain','stoneware','earthenware'],                       material: 'ceramic' },
+    { words: ['food grade silicone','medical grade silicone'],              material: 'silicone' },
+    // Generic single-word fallbacks
+    { words: ['wooden','timber','wood'],                                    material: 'timber' },
+    { words: ['metal frame','metal leg','metal base','alloy steel','metallic'], material: 'steel' },
+    { words: ['glass'],                                                     material: 'glass' },
+    { words: ['plastic','polypropylene','polyethylene','pvc','acrylic'],    material: 'plastics' },
+    { words: ['leather'],                                                   material: 'leather' },
+    { words: ['cotton','denim'],                                            material: 'cotton' },
+    { words: ['polyester','fleece'],                                        material: 'polyester' },
+    { words: ['nylon'],                                                     material: 'nylon' },
+    { words: ['rubber'],                                                    material: 'rubber' },
+    { words: ['silicone'],                                                  material: 'silicone' },
+    { words: ['ceramic'],                                                   material: 'ceramic' },
+    { words: ['bamboo'],                                                    material: 'bamboo' },
+    { words: ['canvas','fabric','textile','linen'],                         material: 'cotton' },
+    { words: ['paper','cardboard'],                                         material: 'paper' },
+    { words: ['carbon fibre','carbon fiber'],                               material: 'carbon fiber' },
+    { words: ['marble','granite'],                                          material: 'marble' },
+    // Generic metal last — only fires when no specific material found
+    { words: ['metal','steel','iron'],                                      material: 'steel' },
+  ];
+
+  const found = [];
+  for (const entry of ALL_RULES) {
+    if (found.length >= 2) break;
+    if (entry.words.some(w => titleLower.includes(w))) {
+      const mat = entry.material;
+      if (!found.includes(mat)) found.push(mat);
+    }
+  }
+
+  // Infer secondary from product category if still only one material found
+  if (found.length === 1) {
+    const sec = inferSecondaryMaterial(titleLower, found[0]);
+    if (sec) found.push(sec);
+  }
+
+  // Fall back to category-pattern guessing if title has no material signal at all
+  if (found.length === 0) {
+    const guessed = await smartGuessMaterialFromTitle(title);
+    if (guessed) found.push(guessed);
+  }
+
+  return { primary: found[0] || null, secondary: found[1] || null };
+}
+
+// Infers a likely secondary material based on product category + primary material.
+function inferSecondaryMaterial(titleLower, primaryMaterial) {
+  const p = (primaryMaterial || '').toLowerCase();
+
+  // Soft-upholstered furniture → structural frame as secondary
+  const SOFT = ['polyester','cotton','wool','velvet','linen','silk','leather','faux leather',
+                'merino wool','recycled polyester','down','boucle','chenille'];
+  if (SOFT.some(m => p.includes(m))) {
+    if (/\b(stool|chair|sofa|bench|ottoman|footrest|seat|armchair|couch|loveseat|settee|pouf|pouffe)\b/.test(titleLower)) {
+      if (/\b(wood|oak|pine|walnut|beech|bamboo|wooden)\b/.test(titleLower)) return 'timber';
+      return 'steel'; // default: metal legs
+    }
+    if (/\b(mattress|bed frame|divan)\b/.test(titleLower)) return 'timber';
+  }
+
+  // Wood furniture → metal hardware/legs as secondary
+  const WOOD = ['timber','engineered wood','bamboo','solid wood'];
+  if (WOOD.some(m => p.includes(m))) {
+    if (/\b(desk|table|shelf|shelving|unit|cabinet|drawer|wardrobe|bookcase|storage|frame|stand)\b/.test(titleLower)) {
+      return 'steel';
+    }
+  }
+
+  // Electronics: glass or metal primary → plastic secondary, and vice-versa
+  if (/\b(phone|laptop|tablet|computer|monitor|tv|television|camera|speaker|headphone|earbuds|charger|router|keyboard|mouse)\b/.test(titleLower)) {
+    if (p === 'aluminum' || p === 'glass') return 'plastics';
+    if (p === 'plastics') return 'aluminum';
+  }
+
+  // Cookware: often steel + another material
+  if (/\b(pan|pot|wok|skillet|saucepan|casserole)\b/.test(titleLower)) {
+    if (p === 'stainless steel' || p === 'cast iron' || p === 'carbon steel') return 'plastics'; // handle
+    if (p === 'aluminum') return 'steel';
+  }
+
+  return null;
+}
+
 function getLcaBreakdown(info) {
   const impact = info.impact || 'Unknown';
   const recyclable = info.recyclable;
@@ -637,7 +751,7 @@ function getLcaBreakdown(info) {
     </div>`;
 }
 
-function showTooltipFor(target, info) {
+function showTooltipFor(target, info, secondaryMaterial) {
   if (!info || typeof info !== "object" || !info.name || info.name === "unknown") {
     console.warn("⚠️ Skipping tooltip — no valid info provided.");
     return;
@@ -695,9 +809,14 @@ function showTooltipFor(target, info) {
 
   const lcaSection = getLcaBreakdown(info);
 
+  const secondaryLine = secondaryMaterial
+    ? `<div style="font-size:10px;color:#94a3b8;margin-top:3px;">+ ${capitalizeFirst(secondaryMaterial)} <span style="color:#64748b;">(secondary)</span></div>`
+    : '';
+
   const html = `
     <div style="border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 8px; margin-bottom: 8px;">
       <strong>${materialIcon} Material: ${capitalizeFirst(materialName)}</strong>
+      ${secondaryLine}
       ${specificityNote}
       ${compoundInfo}
       <div style="margin-top: 4px; font-size: 11px; color: #888;">
@@ -912,9 +1031,11 @@ async function enhanceTooltips() {
       }
     }
     
-    // Fallback 3: Smart guess from title using enhanced patterns
+    // Fallback 3: Full multi-material detection from title
     if (!materialHint) {
-      materialHint = await smartGuessMaterialFromTitle(title);
+      const { primary, secondary: detectedSecondary } = await detectMaterials(title);
+      materialHint = primary;
+      if (!window._detailSecondary) window._detailSecondary = detectedSecondary;
     }
 
     if (!materialHint) {
@@ -924,13 +1045,16 @@ async function enhanceTooltips() {
 
     console.log("🧪 Final Material Hint:", materialHint);
 
+    // Run detectMaterials to get secondary even when primary came from DOM extraction
+    const { secondary: titleSecondary } = await detectMaterials(title);
+
     const info = await window.ecoLookup(title, materialHint);
 
     showTooltipFor(titleEl, info || {
       impact: "Unknown",
       summary: "No insight found.",
       recyclable: null
-    });
+    }, titleSecondary);
 
   } else {
     // ── PASS 1: Quick class-based selectors (catches obvious cases fast) ──────
@@ -949,37 +1073,42 @@ async function enhanceTooltips() {
     }
 
     // ── PASS 2: Universal ASIN sweep — layout-agnostic, catches everything ────
-    // Amazon always stamps data-asin on product containers regardless of layout.
-    // We find the title text inside each unscanned container with a heuristic
-    // rather than relying on class names that change with every A/B test.
     document.querySelectorAll('[data-asin]').forEach(container => {
       const asin = container.getAttribute('data-asin');
       if (!asin || container.dataset.asinScanned) return;
       container.dataset.asinScanned = "true";
 
-      // Don't double-process containers whose title was already found in pass 1
       if (container.querySelector('[data-tooltip-attached="true"], [data-enhanced-tooltip-attached="true"]')) return;
 
-      // Priority 1: heading element → its non-hidden span child
+      // Priority 1: heading span
       let titleEl =
         container.querySelector('h2 span:not([class*="offscreen"]):not([class*="hidden"])') ||
         container.querySelector('h3 span:not([class*="offscreen"]):not([class*="hidden"])') ||
         container.querySelector('h2') ||
         container.querySelector('h3');
 
-      // Priority 2: heuristic — the longest span/anchor text that looks like a product name
+      // Priority 2: explicit title class
+      if (!titleEl) {
+        titleEl =
+          container.querySelector('[class*="product-title"]') ||
+          container.querySelector('[class*="item-title"]') ||
+          container.querySelector('[class*="s-line-clamp"]') ||
+          container.querySelector('[data-cy="title-recipe"]');
+      }
+
+      // Priority 3: longest plausible text node — removed children<4 constraint
+      // which was incorrectly excluding many valid title spans
       if (!titleEl) {
         let best = null, bestLen = 0;
         container.querySelectorAll('span, a').forEach(el => {
-          // Skip elements that are ancestors/descendants of already-found elements
           const text = (el.textContent || '').trim();
           if (
             text.length > 20 && text.length < 250 &&
             text.length > bestLen &&
-            !text.match(/^[\£\$\€\d]/) &&            // not a price or pure number
-            !text.match(/\d+\s*star/i) &&              // not a rating
+            !text.match(/^[\£\$\€\d]/) &&
+            !text.match(/\d+\s*star/i) &&
             !/^(see more|add to|buy now|in stock|free delivery|sponsored|results|filter|sort|back to top)/i.test(text) &&
-            el.children.length < 4                    // avoid wrapper divs
+            el.nodeName !== 'DIV'
           ) {
             best = el;
             bestLen = text.length;
@@ -991,6 +1120,20 @@ async function enhanceTooltips() {
       if (titleEl && !titleEl.dataset.tooltipAttached && !tiles.includes(titleEl)) {
         tiles.push(titleEl);
       }
+    });
+
+    // ── PASS 3: Product link sweep — catches anything ASIN sweep missed ───────
+    // Any anchor linking to /dp/ is a product page link; its text is the title.
+    document.querySelectorAll('a[href*="/dp/"]').forEach(anchor => {
+      if (anchor.dataset.tooltipAttached || anchor.dataset.enhancedTooltipAttached) return;
+      const titleSpan =
+        anchor.querySelector('span:not([class*="offscreen"]):not([class*="hidden"])') ||
+        anchor;
+      const text = (titleSpan.textContent || '').trim();
+      if (text.length < 20 || text.length > 250) return;
+      if (/^(see more|view|shop|browse|sponsored|click|visit|back)/i.test(text)) return;
+      if (tiles.some(t => t.textContent.trim() === text)) return;
+      if (!titleSpan.dataset.tooltipAttached) tiles.push(titleSpan);
     });
 
     // ── Deduplicate and validate ───────────────────────────────────────────────
@@ -1009,16 +1152,18 @@ async function enhanceTooltips() {
     for (const tile of tiles) {
       tile.dataset.tooltipAttached = "true";
       const title = tile.textContent.trim();
-      let materialHint = extractMaterialFromTile(tile);
-      
-      // Enhanced material detection for tiles
-      if (!materialHint) {
-        materialHint = await smartGuessMaterialFromTitle(title);
-      }
-      
+
+      // Try extracting primary from tile DOM context first
+      let tileContextMaterial = extractMaterialFromTile(tile);
+
+      // Always run full title scan to get both primary and secondary
+      const { primary: titlePrimary, secondary } = await detectMaterials(title);
+
+      // Prefer tile-context material for primary (more specific), fall back to title scan
+      const materialHint = tileContextMaterial || titlePrimary;
+
       const info = await window.ecoLookup(title, materialHint);
-      // showTooltipFor now handles confidence checking internally
-      showTooltipFor(tile, info);
+      showTooltipFor(tile, info, secondary);
       addImpactBadge(tile, info);
     }
   }
