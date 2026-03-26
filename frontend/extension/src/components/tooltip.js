@@ -1087,15 +1087,18 @@ async function enhanceTooltips() {
     });
 
     // ── PASS 3: Product link sweep — catches anything ASIN sweep missed ───────
-    // Any anchor linking to /dp/ is a product page link; its text is the title.
-    document.querySelectorAll('a[href*="/dp/"]').forEach(anchor => {
+    // Anchors linking to /dp/ or /gp/product/ are product page links.
+    const PRODUCT_LINK_SELECTOR = 'a[href*="/dp/"], a[href*="/gp/product/"]';
+    document.querySelectorAll(PRODUCT_LINK_SELECTOR).forEach(anchor => {
       if (anchor.dataset.tooltipAttached || anchor.dataset.enhancedTooltipAttached) return;
+      // Prefer an inner visible span, but fall back to the anchor itself
       const titleSpan =
-        anchor.querySelector('span:not([class*="offscreen"]):not([class*="hidden"])') ||
+        anchor.querySelector('span:not([class*="offscreen"]):not([class*="sr-only"]):not([class*="hidden"]):not([class*="aok-offscreen"])') ||
         anchor;
       const text = (titleSpan.textContent || '').trim();
-      if (text.length < 20 || text.length > 250) return;
-      if (/^(see more|view|shop|browse|sponsored|click|visit|back)/i.test(text)) return;
+      if (text.length < 10 || text.length > 250) return;
+      if (/^(see more|view|shop|browse|sponsored|click|visit|back|deals|all|sign in|your|cart|list|registry|orders|account)/i.test(text)) return;
+      if (/^\d/.test(text)) return; // skip price-like strings
       if (tiles.some(t => t.textContent.trim() === text)) return;
       if (!titleSpan.dataset.tooltipAttached) tiles.push(titleSpan);
     });
@@ -1103,12 +1106,13 @@ async function enhanceTooltips() {
     // ── Deduplicate and validate ───────────────────────────────────────────────
     tiles = tiles.filter((el, index, arr) => {
       const text = el.textContent.trim();
-      return text.length > 10 &&
+      return text.length >= 10 &&
              text.length < 250 &&
              !el.dataset.tooltipAttached &&
              el.dataset.enhancedTooltipAttached !== "true" &&
              arr.findIndex(other => other.textContent.trim() === text) === index &&
-             !/^(see more|view details|add to cart|check each product page|back to results)/i.test(text);
+             !/^\d/.test(text) && // skip price strings
+             !/^(see more|view details|add to cart|check each product page|back to results|sign in|your orders|cart|wishlist)/i.test(text);
     });
     
     console.log("✅ Product tiles found:", tiles.length);
@@ -1127,10 +1131,52 @@ async function enhanceTooltips() {
       const materialHint = tileContextMaterial || titlePrimary;
 
       const info = await window.ecoLookup(title, materialHint);
-      showTooltipFor(tile, info, secondary);
-      addImpactBadge(tile, info);
+
+      // Synthesise a minimal badge-info when ecoLookup has no data.
+      // This ensures every detected product gets a coloured pill — even when
+      // the exact material isn't in material_insights.json.
+      let badgeInfo = info;
+      if (!badgeInfo || !badgeInfo.impact || badgeInfo.impact === 'Unknown') {
+        const estimatedImpact = estimateImpactFromTitle(materialHint || titlePrimary, title);
+        if (estimatedImpact) {
+          badgeInfo = { impact: estimatedImpact, name: materialHint || titlePrimary || 'unknown' };
+        }
+      }
+
+      showTooltipFor(tile, info, secondary);   // tooltip uses real lookup (may be null → no tooltip)
+      addImpactBadge(tile, badgeInfo);          // badge uses best available info
     }
   }
+}
+
+// Fast title/material-based impact estimator — used as final badge fallback
+// when ecoLookup has no data for the detected material.
+function estimateImpactFromTitle(materialHint, title) {
+  const s = ((materialHint || '') + ' ' + (title || '')).toLowerCase();
+
+  // Low — renewables, recycled, natural bio materials
+  if (/\b(bamboo|cork|hemp|organic cotton|recycled cotton|recycled polyester|recycled nylon|recycled plastic|reclaimed wood|linen|paper|cardboard|beeswax|rattan|jute|sisal)\b/.test(s)) return 'Low';
+
+  // Low-Moderate — natural, long-lasting materials
+  if (/\b(cotton|wool|merino|cashmere|silk|down|timber|oak|pine|walnut|birch|teak|mahogany|maple|beech|acacia|leather|rubber|silicone|ceramic|porcelain|stoneware|glass|bamboo board)\b/.test(s)) return 'Low-Moderate';
+
+  // Moderate — common industrially produced materials
+  if (/\b(steel|iron|aluminium|aluminum|metal|polyester|nylon|plastic|polypropylene|polyethylene|pvc|acrylic|velvet|upholster|foam|memory foam|fleece|viscose|rayon|faux leather|vegan leather)\b/.test(s)) return 'Moderate';
+
+  // High — energy/mining-intensive materials
+  if (/\b(carbon fibre|carbon fiber|carbon steel|stainless steel|cast iron|titanium|lithium|battery|circuit|pcb|electronic)\b/.test(s)) return 'High';
+
+  // Category-based fallbacks on title alone
+  const t = (title || '').toLowerCase();
+  if (/\b(book|paperback|hardcover|notebook|journal|diary|puzzle|board game|card game)\b/.test(t)) return 'Low';
+  if (/\b(t-shirt|shirt|tee|socks|underwear|hoodie|jumper|sweater|dress|skirt|jeans|trousers|leggings|hat|scarf|gloves|trainers|sneakers|shoes|boots)\b/.test(t)) return 'Low-Moderate';
+  if (/\b(sofa|couch|chair|stool|table|desk|shelf|cabinet|bed|mattress|wardrobe|bookcase|ottoman|footrest|pouffe)\b/.test(t)) return 'Moderate';
+  if (/\b(bag|backpack|luggage|suitcase|wallet|purse|belt|handbag|tote)\b/.test(t)) return 'Moderate';
+  if (/\b(mug|cup|plate|bowl|bottle|flask|tumbler|pan|pot|wok|cookware|cutlery|utensil|chopping board)\b/.test(t)) return 'Moderate';
+  if (/\b(toy|game|lego|playset|doll|action figure|puzzle|fidget)\b/.test(t)) return 'Moderate';
+  if (/\b(phone|laptop|tablet|computer|monitor|tv|television|camera|headphones|earbuds|charger|speaker|router|keyboard|mouse|smartwatch|console|gaming)\b/.test(t)) return 'High';
+
+  return null; // Give up only if truly nothing matches
 }
 
 // Inject a small coloured impact badge inline after the product title text
