@@ -2587,6 +2587,117 @@ def create_app(config_name='production'):
     except Exception as _e:
         print(f"⚠️  Enterprise blueprint not loaded: {_e}")
 
+    # ── AI Visual Material Analysis ───────────────────────────────────────────
+    @app.route('/api/analyse-image', methods=['POST', 'OPTIONS'])
+    def analyse_image():
+        """Use Claude vision to identify materials and percentages from a product image."""
+        if request.method == 'OPTIONS':
+            return '', 204
+
+        data = request.get_json() or {}
+        image_url = (data.get('image_url') or '').strip()
+        product_title = (data.get('title') or '')
+
+        if not image_url:
+            return jsonify({'error': 'image_url required'}), 400
+
+        api_key = os.getenv('ANTHROPIC_API_KEY')
+        if not api_key:
+            return jsonify({'error': 'Vision analysis not configured — ANTHROPIC_API_KEY missing'}), 503
+
+        try:
+            import anthropic as _anthropic
+            import base64
+
+            # Fetch the image bytes
+            img_resp = __import__('requests').get(
+                image_url, timeout=12,
+                headers={'User-Agent': 'Mozilla/5.0 (compatible; ImpactTracker/1.0)'}
+            )
+            img_resp.raise_for_status()
+
+            content_type = img_resp.headers.get('content-type', 'image/jpeg')
+            if 'png' in content_type:
+                media_type = 'image/png'
+            elif 'webp' in content_type:
+                media_type = 'image/webp'
+            elif 'gif' in content_type:
+                media_type = 'image/gif'
+            else:
+                media_type = 'image/jpeg'
+
+            img_b64 = base64.standard_b64encode(img_resp.content).decode('utf-8')
+
+            client = _anthropic.Anthropic(api_key=api_key)
+
+            prompt = (
+                f"You are a materials scientist analysing a consumer product image.\n"
+                f"Product title: {product_title}\n\n"
+                "Carefully examine the image and identify each distinct visible component.\n"
+                "For each component provide:\n"
+                "  1. part  – descriptive name (e.g. 'frame', 'seat cushion', 'screen', 'outer casing')\n"
+                "  2. material – specific material name (e.g. 'Stainless Steel', 'ABS Plastic', 'Tempered Glass', 'Cotton Fabric')\n"
+                "  3. percentage – estimated share of the total product weight as an integer (all must sum to 100)\n\n"
+                "Return ONLY valid JSON in this exact format (no markdown, no extra text):\n"
+                '{"components":[{"part":"...","material":"...","percentage":45}],'
+                '"confidence":"high","notes":"brief comment"}\n\n'
+                "Rules:\n"
+                "- Percentages must be integers summing to exactly 100\n"
+                "- Use specific material names, not generic ones\n"
+                "- Include 2–6 components only\n"
+                "- confidence must be \"high\", \"medium\", or \"low\"\n"
+                "- Return only the JSON object"
+            )
+
+            message = client.messages.create(
+                model="claude-sonnet-4-6",
+                max_tokens=512,
+                messages=[{
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": media_type,
+                                "data": img_b64,
+                            },
+                        },
+                        {"type": "text", "text": prompt},
+                    ],
+                }],
+            )
+
+            response_text = message.content[0].text.strip()
+            # Strip markdown code fences if present
+            if '```' in response_text:
+                response_text = re.sub(r'```(?:json)?\s*|\s*```', '', response_text).strip()
+
+            result = json.loads(response_text)
+
+            components = result.get('components', [])
+            if not components:
+                return jsonify({'error': 'No components detected in image'}), 422
+
+            # Normalise percentages to sum to 100
+            total = sum(c.get('percentage', 0) for c in components)
+            if total > 0 and total != 100:
+                for c in components:
+                    c['percentage'] = round(c.get('percentage', 0) * 100 / total)
+
+            return jsonify({
+                'components': components,
+                'confidence': result.get('confidence', 'medium'),
+                'notes': result.get('notes', ''),
+            })
+
+        except json.JSONDecodeError as e:
+            print(f"⚠️ Image analysis JSON parse error: {e}")
+            return jsonify({'error': 'Could not parse AI response as JSON'}), 500
+        except Exception as e:
+            print(f"⚠️ Image analysis error: {e}")
+            return jsonify({'error': str(e)}), 500
+
     print("✅ app_production routes initialized")
     return app
 

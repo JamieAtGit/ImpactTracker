@@ -9,6 +9,7 @@ import AlternativeRecommendations from "./AlternativeRecommendations";
 import ConfidenceDistributionChart from "./ConfidenceDistributionChart";
 import ConformalPredictionBadge from "./ConformalPredictionBadge";
 import LifecycleAssessment from "./LifecycleAssessment";
+import ImageMaterialAnalysis from "./ImageMaterialAnalysis";
 
 const TABS = ["Specifications", "Overview", "Deep Analysis"];
 
@@ -270,6 +271,11 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
                   </div>
                 )}
               </div>
+
+              {/* AI Image Material Analysis */}
+              {attr.image_url && attr.image_url !== "Not found" && (
+                <ImageMaterialAnalysis imageUrl={attr.image_url} title={result.title} />
+              )}
 
               {/* Recyclability */}
               <div className="glass-card rounded-xl p-4">
