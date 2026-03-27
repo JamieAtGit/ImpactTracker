@@ -360,25 +360,43 @@ class EnhancedMaterialsIntelligenceService:
             'scarf': {'primary': 'Fabric', 'secondary': [], 'confidence': 0.9},
             'tie': {'primary': 'Silk', 'secondary': [], 'confidence': 0.85},
             
-            # ========== LIGHTING (NEW CATEGORY) ==========
+            # ========== LIGHTING (most-specific entries FIRST) ==========
+            # Clip / portable / book lights — Plastic + Silicone body
+            'led book light': {'primary': 'Plastic', 'secondary': ['Silicone'], 'confidence': 0.88},
+            'book light':     {'primary': 'Plastic', 'secondary': ['Silicone'], 'confidence': 0.88},
+            'reading light':  {'primary': 'Plastic', 'secondary': ['Silicone'], 'confidence': 0.87},
+            'clip light':     {'primary': 'Plastic', 'secondary': ['Metal'],   'confidence': 0.85},
+            'clip lamp':      {'primary': 'Plastic', 'secondary': ['Metal'],   'confidence': 0.85},
+            'clip on light':  {'primary': 'Plastic', 'secondary': ['Metal'],   'confidence': 0.85},
+            # Floor / standing lamps
             'led floor lamp': {'primary': 'Aluminium', 'secondary': ['Polycarbonate', 'Plastic'], 'confidence': 0.82},
-            'floor lamp': {'primary': 'Metal', 'secondary': ['Polycarbonate', 'Plastic'], 'confidence': 0.78},
-            'corner lamp': {'primary': 'Metal', 'secondary': ['Polycarbonate', 'Plastic'], 'confidence': 0.78},
-            'standing lamp': {'primary': 'Metal', 'secondary': ['Polycarbonate', 'Plastic'], 'confidence': 0.75},
-            'rgb light': {'primary': 'Plastic', 'secondary': ['Metal'], 'confidence': 0.8},
-            'led light': {'primary': 'Plastic', 'secondary': ['Metal'], 'confidence': 0.8},
-            'lamp': {'primary': 'Metal', 'secondary': ['Plastic'], 'confidence': 0.75},
-            'light bulb': {'primary': 'Glass', 'secondary': ['Metal'], 'confidence': 0.9},
-            'led bulb': {'primary': 'Plastic', 'secondary': ['Metal'], 'confidence': 0.85},
-            'flashlight': {'primary': 'Plastic', 'secondary': ['Metal'], 'confidence': 0.85},
-            'torch': {'primary': 'Plastic', 'secondary': ['Metal'], 'confidence': 0.85},
-            'chandelier': {'primary': 'Metal', 'secondary': ['Glass'], 'confidence': 0.8},
-            'ceiling fan': {'primary': 'Metal', 'secondary': ['Plastic'], 'confidence': 0.85},
-            'string lights': {'primary': 'Plastic', 'secondary': [], 'confidence': 0.85},
-            'candle': {'primary': 'Wax', 'secondary': ['Glass'], 'confidence': 0.8},
-            'lantern': {'primary': 'Metal', 'secondary': ['Glass'], 'confidence': 0.8},
-            'night light': {'primary': 'Plastic', 'secondary': [], 'confidence': 0.85},
-            'desk lamp': {'primary': 'Metal', 'secondary': ['Plastic'], 'confidence': 0.8},
+            'floor lamp':     {'primary': 'Metal', 'secondary': ['Polycarbonate', 'Plastic'], 'confidence': 0.78},
+            'corner lamp':    {'primary': 'Metal', 'secondary': ['Polycarbonate', 'Plastic'], 'confidence': 0.78},
+            'standing lamp':  {'primary': 'Metal', 'secondary': ['Polycarbonate', 'Plastic'], 'confidence': 0.75},
+            # Desk / table lamps
+            'led desk lamp':  {'primary': 'Metal', 'secondary': ['Plastic'], 'confidence': 0.82},
+            'desk lamp':      {'primary': 'Metal', 'secondary': ['Plastic'], 'confidence': 0.80},
+            'table lamp':     {'primary': 'Metal', 'secondary': ['Fabric', 'Plastic'], 'confidence': 0.78},
+            'bedside lamp':   {'primary': 'Metal', 'secondary': ['Plastic'], 'confidence': 0.78},
+            # Small / novelty LED lights
+            'rgb light':      {'primary': 'Plastic', 'secondary': ['Metal'], 'confidence': 0.80},
+            'led light':      {'primary': 'Plastic', 'secondary': ['Metal'], 'confidence': 0.80},
+            'night light':    {'primary': 'Plastic', 'secondary': [],        'confidence': 0.85},
+            'led strip':      {'primary': 'Plastic', 'secondary': ['Metal'], 'confidence': 0.82},
+            'string lights':  {'primary': 'Plastic', 'secondary': [],        'confidence': 0.85},
+            'fairy lights':   {'primary': 'Plastic', 'secondary': [],        'confidence': 0.85},
+            # Bulbs
+            'light bulb':     {'primary': 'Glass',   'secondary': ['Metal'], 'confidence': 0.90},
+            'led bulb':       {'primary': 'Plastic', 'secondary': ['Metal'], 'confidence': 0.85},
+            # Torches / flashlights
+            'flashlight':     {'primary': 'Plastic', 'secondary': ['Metal'], 'confidence': 0.85},
+            'torch':          {'primary': 'Plastic', 'secondary': ['Metal'], 'confidence': 0.85},
+            # Other
+            'chandelier':     {'primary': 'Metal',   'secondary': ['Glass'], 'confidence': 0.80},
+            'ceiling fan':    {'primary': 'Metal',   'secondary': ['Plastic'], 'confidence': 0.85},
+            'candle':         {'primary': 'Wax',     'secondary': ['Glass'], 'confidence': 0.80},
+            'lantern':        {'primary': 'Metal',   'secondary': ['Glass'], 'confidence': 0.80},
+            'lamp':           {'primary': 'Metal',   'secondary': ['Plastic'], 'confidence': 0.72},
             
             # ========== EXISTING CATEGORIES (ENHANCED) ==========
             
@@ -1095,46 +1113,66 @@ class EnhancedMaterialsIntelligenceService:
     
     def _tier4_enhanced_category_based(self, product_data: Dict) -> Optional[Dict]:
         """Enhanced Tier 4: Smart category-based material prediction with fuzzy matching"""
-        title = product_data.get('title', '').lower()
+        import re as _re
+        title_full = product_data.get('title', '').lower()
         category = product_data.get('category', '').lower()
-        
+
+        # ── Strip use-case / compatibility phrases before matching ───────────
+        # "LED Book Light for Reading at Night, for Bed, Tablet" contains
+        # "tablet" as a use-case word, NOT a product type.  By cutting the
+        # title at the first "for / with / compatible / designed for / works
+        # with / suitable for" we get the core product description only.
+        _STRIP = _re.compile(
+            r'\s*\b(?:for|with|compatible|designed for|works with|suitable for'
+            r'|ideal for|perfect for|fits|including|features)\b.*$',
+            _re.IGNORECASE,
+        )
+        title = _STRIP.sub('', title_full).strip() or title_full
+
         # Enhanced matching with fuzzy logic
         best_match = None
         best_score = 0
-        
+
         for product_type, material_info in self.category_materials.items():
             score = 0
-            
-            # Exact matches get highest score
+
+            # Exact substring match (whole key present in core title or category)
             if product_type in title or product_type in category:
                 score = 10
-            
-            # Partial matches (individual words)
+
+            # Partial matches: each word of the key found independently
             product_words = product_type.split()
             for word in product_words:
-                if word in title or word in category:
+                if len(word) > 2 and (word in title or word in category):
                     score += 3
-            
-            # Fuzzy matching for similar terms
+
+            # Fuzzy matching for synonyms
             if 'phone' in product_type and ('mobile' in title or 'cell' in title):
                 score += 5
             if 'laptop' in product_type and ('notebook' in title or 'computer' in title):
                 score += 5
             if 'shirt' in product_type and ('tee' in title or 'top' in title):
                 score += 3
-            
-            if score > best_score:
+
+            # Prefer higher score; break ties by key length (longer = more specific)
+            if score > best_score or (
+                score == best_score and best_match is not None
+                and len(product_type) > len(best_match[0])
+            ):
                 best_score = score
                 best_match = (product_type, material_info)
-        
-        if best_match and best_score >= 3:  # Minimum threshold
+
+        # Require score ≥ 6 so a single short word casually appearing in the
+        # stripped title (score = 3) cannot trigger a category guess.
+        if best_match and best_score >= 6:  # Minimum threshold
             product_type, material_info = best_match
             primary = material_info['primary']
             secondary_list = material_info['secondary']
             base_confidence = material_info['confidence']
             
-            # Adjust confidence based on match quality
-            confidence = base_confidence * (min(best_score, 10) / 10)
+            # Adjust confidence based on match quality.
+            # Cap at 0.70 — tier 4 is a category guess, not ground truth.
+            confidence = min(base_confidence * (min(best_score, 10) / 10), 0.70)
             
             # Create secondary materials list
             secondary_materials = [{'name': mat, 'percentage': None} for mat in secondary_list]

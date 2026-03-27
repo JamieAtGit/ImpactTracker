@@ -625,6 +625,16 @@ def create_app(config_name='production'):
                 print(f"⚠️ Materials detection failed: {_mat_err}")
                 materials_result = None
 
+            # Sync the material used for CO₂ calculation with what detect_materials
+            # determined from the spec table (tiers 1–2 = high confidence spec data).
+            # Tier 3+ are heuristics and may be wrong, so we keep the original material.
+            if materials_result and materials_result.get('tier', 5) <= 2:
+                _detected = (materials_result.get('primary_material') or '').strip()
+                if _detected and _detected.lower() not in ('unknown', 'mixed', ''):
+                    material = _detected
+                    product['material_type'] = material
+                    print(f"🧱 CO₂ material synced from spec table: {material}")
+
             # Get weight
             raw_weight = product.get("weight_kg") or product.get("raw_product_weight_kg") or 0.5
             weight = float(raw_weight)
