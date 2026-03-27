@@ -595,13 +595,16 @@ def create_app(config_name='production'):
             # Multi-material detection (primary / secondary / tertiary)
             try:
                 materials_service = deps['materials_service']
-                materials_result = materials_service.detect_materials({
-                    'title': product.get('title', ''),
-                    'material_type': material or 'Unknown',
-                    'category': product.get('category') or '',
-                    'price': product.get('price'),
-                    'brand': product.get('brand') or '',
-                })
+                materials_result = materials_service.detect_materials(
+                    {
+                        'title': product.get('title', ''),
+                        'material_type': material or 'Unknown',
+                        'category': product.get('category') or '',
+                        'price': product.get('price'),
+                        'brand': product.get('brand') or '',
+                    },
+                    amazon_extracted_materials=product.get('amazon_materials_extracted'),
+                )
             except Exception as _mat_err:
                 print(f"⚠️ Materials detection failed: {_mat_err}")
                 materials_result = None

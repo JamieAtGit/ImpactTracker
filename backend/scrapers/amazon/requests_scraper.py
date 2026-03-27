@@ -393,6 +393,9 @@ class RequestsScraper:
             else:
                 material = self.detect_material(title, all_text)
 
+        # Extract ALL material fields for multi-material pipeline
+        amazon_materials_extracted = self.extract_all_materials_from_spec_table(soup)
+
         # === Price extraction ===
         price = None
         price_selectors = [
@@ -456,9 +459,10 @@ class RequestsScraper:
             "weight_kg": weight,
             "dimensions_cm": [20, 15, 10],
             "material_type": material,
+            "amazon_materials_extracted": amazon_materials_extracted,
             "recyclability": "Medium",
             "eco_score_ml": "C",
-            "transport_mode": "Ship", 
+            "transport_mode": "Ship",
             "carbon_kg": None,
             "brand": brand,
             "asin": asin,
@@ -802,14 +806,96 @@ class RequestsScraper:
         return "Unknown"
 
     def extract_material_from_spec_table(self, soup: BeautifulSoup) -> Optional[str]:
-        """Extract material from Amazon's structured product detail tables (highest confidence)."""
-        material_keys = [
+        """Extract primary material from Amazon's structured product detail tables.
+
+        Uses a two-pass strategy so the plain "Material" / "Material Type" field
+        (whole-product) always wins over component-level fields like "Shade Material",
+        "Frame Material", "Sole Material" etc., which describe only one part.
+        """
+        # Primary keys — these describe the whole product
+        primary_exact = {'material', 'material type', 'material composition', 'fabric type'}
+        # Secondary keys — subcomponent fields (used as fallback only)
+        secondary_keys = {
+            'outer material', 'inner material', 'lining material', 'shell material',
+            'frame material', 'filling material', 'sole material', 'upper material',
+            'shade material', 'body material', 'cover material',
+        }
+
+        def _extract_rows(soup_obj):
+            """Yield (key, raw_value) pairs from all known Amazon table formats."""
+            # th/td product details tables
+            for table in soup_obj.select(
+                '#productDetails_techSpec_section_1, '
+                '#productDetails_detailBullets_sections1, '
+                '#productDetails_db_sections table, '
+                'table'
+            ):
+                for row in table.select('tr'):
+                    th = row.select_one('th')
+                    td = row.select_one('td')
+                    if th and td:
+                        yield (
+                            self._normalize_extraction_text(th.get_text(' ', strip=True)).lower(),
+                            self._normalize_extraction_text(td.get_text(' ', strip=True)),
+                        )
+            # po-attribute-list (condensed attribute list)
+            for row in soup_obj.select('.po-attribute-list tr, .po-attribute-list__item'):
+                label_el = row.select_one('.po-attribute-list__label, .a-span3')
+                value_el = row.select_one('.po-attribute-list__value, .a-span9')
+                if label_el and value_el:
+                    yield (
+                        self._normalize_extraction_text(label_el.get_text(' ', strip=True)).lower(),
+                        self._normalize_extraction_text(value_el.get_text(' ', strip=True)),
+                    )
+
+        primary_hit = None
+        secondary_hit = None
+
+        for key, value in _extract_rows(soup):
+            if not value or not (2 < len(value) < 150):
+                continue
+            # Exact primary match (key IS one of the primary fields, no extra words)
+            if key in primary_exact and primary_hit is None:
+                primary_hit = value
+                print(f"🧵 Spec table primary material field '{key}': '{value}'")
+            # Substring secondary match (key CONTAINS a primary word but has a modifier)
+            elif any(pk in key for pk in primary_exact) and secondary_hit is None:
+                secondary_hit = value
+                print(f"🧵 Spec table secondary material field '{key}': '{value}'")
+            # Explicit subcomponent field
+            elif any(sk in key for sk in secondary_keys) and secondary_hit is None:
+                secondary_hit = value
+
+        # Detail bullets — "Material ‎ : ‎ Velvet" format
+        all_keys = primary_exact | secondary_keys
+        for li in soup.select('#detailBullets_feature_div li, #detailBulletsWrapper_feature_div li'):
+            text = self._normalize_extraction_text(li.get_text(' ', strip=True))
+            text_lower = text.lower()
+            for mk in sorted(primary_exact, key=len, reverse=True):  # longest first
+                if mk in text_lower:
+                    match = re.search(
+                        r'(?:' + re.escape(mk) + r')[\s\u200e\u200f:‎]+([^:\n‎]{2,100})',
+                        text, re.IGNORECASE
+                    )
+                    if match:
+                        value = match.group(1).strip().strip('‎').strip()
+                        if value and len(value) < 150 and primary_hit is None:
+                            primary_hit = value
+                            print(f"🧵 Detail bullets material '{mk}': '{value}'")
+
+        result = primary_hit or secondary_hit
+        return result
+
+    def extract_all_materials_from_spec_table(self, soup: BeautifulSoup) -> Optional[Dict]:
+        """Extract ALL material fields from the spec table and return as structured data for multi-material detection."""
+        all_material_keys = {
             'material', 'material type', 'material composition', 'fabric type',
             'outer material', 'inner material', 'lining material', 'shell material',
             'frame material', 'filling material', 'sole material', 'upper material',
-        ]
+            'shade material', 'body material', 'cover material',
+        }
+        collected = []
 
-        # Method 1: Standard th/td table rows (productDetails_techSpec, productDetails_detailBullets)
         for table in soup.select(
             '#productDetails_techSpec_section_1, '
             '#productDetails_detailBullets_sections1, '
@@ -822,41 +908,35 @@ class RequestsScraper:
                 if not th or not td:
                     continue
                 key = self._normalize_extraction_text(th.get_text(' ', strip=True)).lower()
-                if any(mk in key for mk in material_keys):
-                    value = self._normalize_extraction_text(td.get_text(' ', strip=True))
-                    if value and 2 < len(value) < 150:
-                        print(f"🧵 Spec table material (th/td): '{value}'")
-                        return value
+                if any(mk in key for mk in all_material_keys):
+                    raw = self._normalize_extraction_text(td.get_text(' ', strip=True))
+                    if raw and 1 < len(raw) < 150:
+                        collected.append(raw)
 
-        # Method 2: Detail bullets — "Material ‎ : ‎ Velvet" (unicode separators)
-        for li in soup.select('#detailBullets_feature_div li, #detailBulletsWrapper_feature_div li'):
-            text = self._normalize_extraction_text(li.get_text(' ', strip=True))
-            for mk in material_keys:
-                if mk in text.lower():
-                    match = re.search(
-                        r'(?:' + re.escape(mk) + r')[\s\u200e\u200f:‎]+([^:\n‎]{2,100})',
-                        text, re.IGNORECASE
-                    )
-                    if match:
-                        value = match.group(1).strip().strip('‎').strip()
-                        if value and len(value) < 150:
-                            print(f"🧵 Detail bullets material: '{value}'")
-                            return value
+        if not collected:
+            return None
 
-        # Method 3: po-attribute-list (Amazon's condensed attribute list)
-        for row in soup.select('.po-attribute-list tr, .po-attribute-list__item'):
-            label_el = row.select_one('.po-attribute-list__label, .a-span3')
-            value_el = row.select_one('.po-attribute-list__value, .a-span9')
-            if not label_el or not value_el:
-                continue
-            key = self._normalize_extraction_text(label_el.get_text(' ', strip=True)).lower()
-            if any(mk in key for mk in material_keys):
-                value = self._normalize_extraction_text(value_el.get_text(' ', strip=True))
-                if value and 2 < len(value) < 150:
-                    print(f"🧵 po-attribute material: '{value}'")
-                    return value
+        # Parse comma/plus/slash-separated material lists into individual names
+        parsed = []
+        seen = set()
+        for raw_val in collected:
+            # split on commas, plus signs, slashes, semicolons
+            parts = re.split(r'[,+/;]', raw_val)
+            for part in parts:
+                name = part.strip().strip('‎').strip()
+                if name and 1 < len(name) < 60:
+                    key_lower = name.lower()
+                    if key_lower not in seen:
+                        seen.add(key_lower)
+                        parsed.append({'name': name, 'confidence_score': 0.85})
 
-        return None
+        if not parsed:
+            return None
+
+        # Primary gets higher confidence
+        parsed[0]['confidence_score'] = 0.95
+        print(f"🧵 All spec table materials: {[m['name'] for m in parsed]}")
+        return {'materials': parsed}
 
     def extract_origin_from_spec_table(self, soup: BeautifulSoup) -> str:
         """Extract country of origin from Amazon's structured product detail tables (highest confidence)."""

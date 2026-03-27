@@ -361,7 +361,13 @@ class EnhancedMaterialsIntelligenceService:
             'tie': {'primary': 'Silk', 'secondary': [], 'confidence': 0.85},
             
             # ========== LIGHTING (NEW CATEGORY) ==========
-            'lamp': {'primary': 'Metal', 'secondary': ['Fabric'], 'confidence': 0.8},
+            'led floor lamp': {'primary': 'Aluminium', 'secondary': ['Polycarbonate', 'Plastic'], 'confidence': 0.82},
+            'floor lamp': {'primary': 'Metal', 'secondary': ['Polycarbonate', 'Plastic'], 'confidence': 0.78},
+            'corner lamp': {'primary': 'Metal', 'secondary': ['Polycarbonate', 'Plastic'], 'confidence': 0.78},
+            'standing lamp': {'primary': 'Metal', 'secondary': ['Polycarbonate', 'Plastic'], 'confidence': 0.75},
+            'rgb light': {'primary': 'Plastic', 'secondary': ['Metal'], 'confidence': 0.8},
+            'led light': {'primary': 'Plastic', 'secondary': ['Metal'], 'confidence': 0.8},
+            'lamp': {'primary': 'Metal', 'secondary': ['Plastic'], 'confidence': 0.75},
             'light bulb': {'primary': 'Glass', 'secondary': ['Metal'], 'confidence': 0.9},
             'led bulb': {'primary': 'Plastic', 'secondary': ['Metal'], 'confidence': 0.85},
             'flashlight': {'primary': 'Plastic', 'secondary': ['Metal'], 'confidence': 0.85},
@@ -373,7 +379,6 @@ class EnhancedMaterialsIntelligenceService:
             'lantern': {'primary': 'Metal', 'secondary': ['Glass'], 'confidence': 0.8},
             'night light': {'primary': 'Plastic', 'secondary': [], 'confidence': 0.85},
             'desk lamp': {'primary': 'Metal', 'secondary': ['Plastic'], 'confidence': 0.8},
-            'floor lamp': {'primary': 'Metal', 'secondary': ['Fabric'], 'confidence': 0.8},
             
             # ========== EXISTING CATEGORIES (ENHANCED) ==========
             
