@@ -521,6 +521,22 @@ def create_app(config_name='production'):
                     "material_type", "brand", "price", "asin",
                     "image_url", "manufacturer", "category",
                 ])
+
+                # Run multi-material detection even for cache hits so the UI
+                # always receives a populated `materials` dict with secondaries.
+                try:
+                    _cached_materials = deps['materials_service'].detect_materials({
+                        'title': cached_product.title or '',
+                        'material_type': cached_material or 'Unknown',
+                        'category': '',
+                        'price': float(cached_product.price) if cached_product.price else None,
+                        'brand': cached_product.brand or '',
+                    })
+                except Exception:
+                    _cached_materials = None
+
+                cached_attributes['materials'] = _cached_materials
+
                 cached_response = {
                     "title": cached_product.title or "Unknown Product",
                     "cache_hit": True,
