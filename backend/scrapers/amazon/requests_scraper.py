@@ -1167,23 +1167,121 @@ class RequestsScraper:
             'eva foam':          {'foam', 'plastic'},
         }
 
-        # Parse comma/plus/slash-separated material lists into individual names.
+        # ── Material name normaliser ────────────────────────────────────────
+        # Strips qualifiers that don't change the base material but confuse
+        # abbreviation expansion and keyword matching.
+        _QUAL_PREFIX = re.compile(
+            r'^(?:'
+            r'\d{1,4}[/\-]?\d{0,4}\s+'      # "304 " / "18/8 "
+            r'|grade\s+\w+\s+'               # "Grade 5 " / "Grade A "
+            r'|type\s+\w+\s+'                # "Type 304 "
+            r'|bpa[\s\-]free\s+'             # "BPA-Free "
+            r'|bpa\s+free\s+'
+            r'|food[\s\-]grade\s+'           # "Food Grade "
+            r'|medical[\s\-]grade\s+'        # "Medical Grade "
+            r'|food[\s\-]safe\s+'            # "Food Safe "
+            r'|fda[\s\-]approved\s+'         # "FDA Approved "
+            r'|eco[\s\-]friendly\s+'         # "Eco-Friendly "
+            r'|premium\s+'                   # "Premium "
+            r'|high[\s\-]quality\s+'
+            r'|heavy[\s\-]duty\s+'
+            r')',
+            re.IGNORECASE
+        )
+        _QUAL_SUFFIX = re.compile(
+            r'\s*(?:'
+            r'\(?bpa[\s\-]free\)?'           # trailing " (BPA Free)"
+            r'|\(?food[\s\-]grade\)?'
+            r'|\(?fda[\s\-]approved\)?'
+            r'|\d{3,4}\s*(?:series|grade)?'  # trailing "304" / "6061"
+            r')',
+            re.IGNORECASE
+        )
+        # Proprietary brand names → generic equivalents
+        _BRAND_MATERIALS = {
+            'tritan':      'Plastic',
+            'lexan':       'Polycarbonate',
+            'lucite':      'Acrylic',
+            'styrofoam':   'Polystyrene',
+            'styropor':    'Polystyrene',
+            'mylar':       'PET',
+            'gore-tex':    'Synthetic Fabric',
+            'gore tex':    'Synthetic Fabric',
+            'kevlar':      'Aramid Fibre',
+            'cordura':     'Nylon',
+            'formica':     'Laminate',
+            'corian':      'Acrylic',
+            'spandex':     'Elastane',
+            'lycra':       'Elastane',
+        }
+
+        def _clean_material_name(raw: str) -> str:
+            """Strip qualifiers, expand abbreviations, map brand names."""
+            n = raw.strip().strip('‎').strip()
+            n = _QUAL_PREFIX.sub('', n).strip()
+            n = _QUAL_SUFFIX.sub('', n).strip()
+            n_lower = n.lower()
+            if n_lower in _BRAND_MATERIALS:
+                return _BRAND_MATERIALS[n_lower]
+            if n_lower in _ABBREV:
+                return _ABBREV[n_lower]
+            return n
+
+        # ── Percentage composition parser ───────────────────────────────────
+        # Handles "95% Cotton, 5% Elastane" and "Cotton 95%, Elastane 5%"
+        _PCT_FIRST = re.compile(
+            r'(\d+(?:\.\d+)?)\s*%\s*([A-Za-z][A-Za-z\s\-]{1,30}?)(?=[,;/+]|\d|$)',
+        )
+        _PCT_LAST  = re.compile(
+            r'([A-Za-z][A-Za-z\s\-]{1,30}?)\s+(\d+(?:\.\d+)?)\s*%(?=[,;/+]|$)',
+        )
+
+        def _try_parse_percentages(raw_val: str, confidence: float):
+            """Return list of {name, confidence_score, weight} if valid % composition found."""
+            matches = _PCT_FIRST.findall(raw_val)
+            if not matches:
+                matches = [(pct, nm) for nm, pct in _PCT_LAST.findall(raw_val)]
+            if not matches:
+                return None
+            total = sum(float(p) for p, _ in matches)
+            if not (85 <= total <= 105):   # must roughly sum to 100%
+                return None
+            result = []
+            for pct, nm in matches:
+                cleaned = _clean_material_name(nm.strip())
+                if cleaned and 2 <= len(cleaned) <= 60:
+                    result.append({
+                        'name': cleaned,
+                        'confidence_score': confidence,
+                        'weight': round(float(pct) / 100, 4),
+                    })
+            return result if result else None
+
+        # ── Main parsing loop ────────────────────────────────────────────────
         # Primary-key entries get confidence 0.95; subcomponent entries get 0.75.
         # Sort so primary-key materials come first.
         parsed = []
         seen = set()
         for raw_val, is_primary in sorted(collected, key=lambda x: not x[1]):
             confidence = 0.95 if is_primary else 0.75
+
+            # Try percentage composition first (e.g. textiles)
+            pct_items = _try_parse_percentages(raw_val, confidence)
+            if pct_items:
+                for item in pct_items:
+                    key = item['name'].lower()
+                    if key not in seen:
+                        seen.add(key)
+                        parsed.append(item)
+                continue
+
+            # Fallback: split on separators
             parts = re.split(r'[,+/;]', raw_val)
             for part in parts:
-                name = part.strip().strip('‎').strip()
+                name = _clean_material_name(part)
                 if not name:
                     continue
-                # Normalise abbreviations (exact lowercase match only)
                 name_lower = name.lower()
-                if name_lower in _ABBREV:
-                    name = _ABBREV[name_lower]
-                    name_lower = name.lower()
                 if len(name) < 2 or len(name) > 60:
                     continue
                 if name_lower not in seen:

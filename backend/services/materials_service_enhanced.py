@@ -55,17 +55,30 @@ class EnhancedMaterialsIntelligenceService:
             
             # Plastics & Composites
             'plastic': 3.5, 'polypropylene': 3.2, 'polyethylene': 2.8, 'abs': 4.1,
-            'polycarbonate': 5.2, 'pvc': 3.8, 'nylon': 6.4, 'carbon fiber': 24.0,
-            'fiberglass': 2.9, 'resin': 4.8, 'vinyl': 3.2, 'silicon': 5.8,
-            
+            'abs plastic': 4.1, 'polycarbonate': 5.2, 'pvc': 3.8, 'nylon': 6.4,
+            'carbon fiber': 24.0, 'carbon fibre': 24.0, 'aramid fibre': 18.0,
+            'fiberglass': 2.9, 'fibreglass': 2.9, 'resin': 4.8, 'epoxy': 5.0,
+            'vinyl': 3.2, 'silicon': 5.8, 'silicone': 5.8,
+            'tpe': 3.6, 'tpu': 3.9, 'eva foam': 2.6,
+            'polystyrene': 3.4, 'hdpe': 2.8, 'ldpe': 2.5, 'pet': 3.4,
+            'acrylic': 4.5, 'pu': 3.6, 'recycled plastic': 1.8,
+            'recycled polyester': 1.5,
+
             # Natural Materials
-            'wood': 0.4, 'bamboo': 0.3, 'cork': 0.5, 'leather': 12.0,
-            'cotton': 2.1, 'linen': 1.8, 'wool': 8.5, 'silk': 11.2,
-            'down': 3.4, 'foam': 2.8, 'latex': 2.6,
-            
+            'wood': 0.4, 'timber': 0.4, 'solid wood': 0.4, 'engineered wood': 0.6,
+            'mdf': 0.7, 'plywood': 0.5, 'bamboo': 0.3, 'cork': 0.5, 'rattan': 0.5,
+            'leather': 12.0, 'genuine leather': 12.0, 'faux leather': 4.2,
+            'cotton': 2.1, 'organic cotton': 1.6, 'recycled cotton': 1.0,
+            'linen': 1.8, 'wool': 8.5, 'merino wool': 8.0, 'silk': 11.2,
+            'down': 3.4, 'foam': 2.8, 'memory foam': 3.0, 'latex': 2.6,
+            'jute': 0.9, 'hemp': 1.1, 'cashmere': 14.0, 'alpaca': 9.0,
+
             # Textiles & Synthetic
-            'polyester': 3.8, 'lycra': 4.2, 'spandex': 4.2, 'fabric': 2.1,
-            'mesh': 2.3, 'fleece': 3.6, 'denim': 2.8,
+            'polyester': 3.8, 'lycra': 4.2, 'spandex': 4.2, 'elastane': 4.2,
+            'viscose': 3.5, 'rayon': 3.5, 'modal': 2.6, 'lyocell': 1.5,
+            'tencel': 1.5, 'neoprene': 3.9, 'microfibre': 3.8, 'microfiber': 3.8,
+            'synthetic fabric': 3.8, 'fabric': 2.1, 'mesh': 2.3,
+            'fleece': 3.6, 'denim': 2.8, 'canvas': 2.5, 'velvet': 3.2,
             
             # Glass & Ceramics
             'glass': 1.3, 'ceramic': 1.7, 'porcelain': 1.9, 'clay': 1.2,
