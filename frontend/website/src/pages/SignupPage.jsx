@@ -9,7 +9,7 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function getPasswordStrength(pwd) {
   if (!pwd) return null;
-  if (pwd.length < 6) return { label: "Too short", width: "15%", bar: "bg-red-500",    text: "text-red-400"     };
+  if (pwd.length < 8) return { label: "Too short", width: "15%", bar: "bg-red-500",    text: "text-red-400"     };
   const checks = [pwd.length >= 10, /[A-Z]/.test(pwd), /[0-9]/.test(pwd), /[^a-zA-Z0-9]/.test(pwd)];
   const score = checks.filter(Boolean).length;
   if (score <= 1) return { label: "Weak",   width: "30%",  bar: "bg-red-400",     text: "text-red-400"     };
@@ -39,8 +39,12 @@ export default function SignupPage() {
       setError("Passwords do not match.");
       return;
     }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+    if (!/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
+      setError("Password must contain at least one uppercase letter and one number.");
       return;
     }
 

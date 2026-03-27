@@ -15,6 +15,7 @@ INVALID_TOKENS = {
 }
 
 ALIASES = {
+    # UK variants
     "gb": "UK",
     "uk": "UK",
     "u.k": "UK",
@@ -26,35 +27,84 @@ ALIASES = {
     "scotland": "UK",
     "wales": "UK",
     "northern ireland": "UK",
+    # USA variants
     "usa": "USA",
     "u.s": "USA",
     "u.s.": "USA",
+    "u.s.a": "USA",
+    "u.s.a.": "USA",
     "us": "USA",
     "united states": "USA",
     "united states of america": "USA",
+    "america": "USA",
+    # China variants
     "prc": "China",
-    "people s republic of china": "China",
+    "p.r.c": "China",
+    "p.r.c.": "China",
+    "p.r. china": "China",
+    "pr china": "China",
     "peoples republic of china": "China",
+    "people s republic of china": "China",
+    "the peoples republic of china": "China",
+    "mainland china": "China",
+    "china mainland": "China",
+    # Korea
     "korea": "South Korea",
     "republic of korea": "South Korea",
     "korea republic of": "South Korea",
+    "south korea": "South Korea",
+    "dprk": "North Korea",
+    "north korea": "North Korea",
+    # Other common aliases
     "russian federation": "Russia",
+    "russia": "Russia",
     "viet nam": "Vietnam",
+    "vietnam": "Vietnam",
     "taiwan province of china": "Taiwan",
     "taiwan province": "Taiwan",
     "iran islamic republic of": "Iran",
+    "iran": "Iran",
     "uae": "United Arab Emirates",
+    "united arab emirates": "United Arab Emirates",
+    # Europe
     "deutschland": "Germany",
     "espana": "Spain",
     "nederland": "Netherlands",
+    "netherlands": "Netherlands",
     "holland": "Netherlands",
     "belgie": "Belgium",
     "belgique": "Belgium",
+    "belgium": "Belgium",
     "suisse": "Switzerland",
     "schweiz": "Switzerland",
+    "switzerland": "Switzerland",
     "osterreich": "Austria",
+    "austria": "Austria",
     "polska": "Poland",
+    "poland": "Poland",
     "eire": "Ireland",
+    "republic of ireland": "Ireland",
+    "ireland": "Ireland",
+    "czechia": "Czech Republic",
+    "czech republic": "Czech Republic",
+    "turkiye": "Turkey",
+    "turkey": "Turkey",
+    # Asia-Pacific
+    "hong kong sar": "Hong Kong",
+    "hong kong": "Hong Kong",
+    "macau": "Macau",
+    "macao": "Macau",
+    "myanmar": "Myanmar",
+    "burma": "Myanmar",
+    "sri lanka": "Sri Lanka",
+    "ceylon": "Sri Lanka",
+    # Africa / Americas
+    "ivory coast": "Ivory Coast",
+    "cote d ivoire": "Ivory Coast",
+    "south africa": "South Africa",
+    "brasil": "Brazil",
+    "mexico": "Mexico",
+    "mejico": "Mexico",
 }
 
 FALLBACK_COUNTRIES = {
@@ -62,7 +112,12 @@ FALLBACK_COUNTRIES = {
     "Netherlands", "Switzerland", "Austria", "Poland", "Ireland", "Denmark", "Sweden", "Norway",
     "Belgium", "Portugal", "Turkey", "Greece", "Czech Republic", "Hungary", "Romania", "Finland",
     "South Korea", "Taiwan", "Vietnam", "Thailand", "Malaysia", "Indonesia", "Singapore", "Mexico",
-    "Brazil", "Australia", "New Zealand", "South Africa", "Russia", "United Arab Emirates"
+    "Brazil", "Australia", "New Zealand", "South Africa", "Russia", "United Arab Emirates",
+    "Hong Kong", "Macau", "Myanmar", "Sri Lanka", "Bangladesh", "Pakistan", "Cambodia",
+    "Philippines", "Ethiopia", "Egypt", "Morocco", "Tunisia", "Nigeria", "Kenya",
+    "Israel", "Jordan", "Saudi Arabia", "Qatar", "Kuwait", "Iran",
+    "Argentina", "Colombia", "Chile", "Peru",
+    "Ivory Coast", "North Korea",
 }
 
 

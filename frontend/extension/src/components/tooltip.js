@@ -3,6 +3,12 @@ let ecoSettings = { showBadges: true, showTooltips: true };
 chrome.storage.local.get(['ecoSettings'], (data) => {
   if (data.ecoSettings) ecoSettings = { ...ecoSettings, ...data.ecoSettings };
 });
+// Keep settings in sync when user changes them in the overlay
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && changes.ecoSettings) {
+    ecoSettings = { ...ecoSettings, ...changes.ecoSettings.newValue };
+  }
+});
 
 // Active filter state persists across enhanceTooltips re-runs
 let activeEcoFilter = 'all'; // 'all' | 'Low' | 'Low-Moderate' | 'Moderate' | 'High'
@@ -1381,12 +1387,26 @@ function injectOrUpdateFilterBar() {
 }
 
 function applyEcoFilter() {
-  document.querySelectorAll('[data-asin]').forEach(container => {
+  // Only target actual product result tiles, not nav/breadcrumbs/carousels
+  const productTiles = document.querySelectorAll(
+    '[data-component-type="s-search-result"][data-asin]'
+  );
+  if (productTiles.length === 0) {
+    // Fallback: li[data-asin] tiles (some Amazon layouts)
+    document.querySelectorAll('li[data-asin][data-eco-impact]').forEach(container => {
+      if (activeEcoFilter === 'all') {
+        container.style.display = '';
+      } else {
+        container.style.display = (container.dataset.ecoImpact === activeEcoFilter) ? '' : 'none';
+      }
+    });
+    return;
+  }
+  productTiles.forEach(container => {
     if (activeEcoFilter === 'all') {
       container.style.display = '';
     } else {
       const impact = container.dataset.ecoImpact;
-      // Hide if unanalysed OR wrong category
       container.style.display = (impact === activeEcoFilter) ? '' : 'none';
     }
   });

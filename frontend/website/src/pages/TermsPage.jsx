@@ -9,9 +9,9 @@ export default function TermsPage() {
     {
       title: "1. Introduction and Acceptance",
       content: [
-        "These Terms of Service ('Terms') govern your access to and use of the EcoSmart Environmental Impact Prediction Platform ('Platform'), including all related websites, applications, and services provided by the University College London Computer Science Department ('UCL', 'we', 'us', or 'our').",
+        "These Terms of Service ('Terms') govern your access to and use of the EcoSmart Environmental Impact Prediction Platform ('Platform'), including all related websites, applications, and services provided by the University of the West of England Computer Science Department ('UWE', 'we', 'us', or 'our').",
         "By accessing or using our Platform, you agree to be bound by these Terms and our Privacy Policy. If you disagree with any part of these Terms, you may not access the Platform.",
-        "These Terms constitute a legally binding agreement between you and UCL regarding your use of the Platform."
+        "These Terms constitute a legally binding agreement between you and UWE regarding your use of the Platform."
       ]
     },
     {
@@ -23,7 +23,7 @@ export default function TermsPage() {
         "• Transportation impact calculations based on origin and destination data",
         "• Packaging environmental impact evaluation",
         "• Browser extension for real-time product analysis",
-        "The Platform is designed for research, educational, and informational purposes as part of ongoing academic research at UCL."
+        "The Platform is designed for research, educational, and informational purposes as part of ongoing academic research at UWE."
       ]
     },
     {
@@ -62,8 +62,8 @@ export default function TermsPage() {
     {
       title: "6. Intellectual Property Rights",
       content: [
-        "The Platform and its original content, features, and functionality are owned by UCL and are protected by international copyright, trademark, patent, trade secret, and other intellectual property laws.",
-        "The machine learning models, algorithms, and research methodologies used in the Platform are the result of academic research and remain the intellectual property of UCL and the research team.",
+        "The Platform and its original content, features, and functionality are owned by UWE and are protected by international copyright, trademark, patent, trade secret, and other intellectual property laws.",
+        "The machine learning models, algorithms, and research methodologies used in the Platform are the result of academic research and remain the intellectual property of UWE and the research team.",
         "You may not reproduce, distribute, modify, create derivative works of, publicly display, publicly perform, republish, download, store, or transmit any of the material on our Platform without our prior written consent."
       ]
     },
@@ -72,7 +72,7 @@ export default function TermsPage() {
       content: [
         "ACADEMIC RESEARCH DISCLAIMER: The Platform provides predictions based on machine learning models developed for research purposes. These predictions are estimates and should not be considered as absolute or guaranteed environmental impact assessments.",
         "NO WARRANTY: The Platform is provided 'as is' and 'as available' without any warranties of any kind, whether express or implied, including but not limited to warranties of merchantability, fitness for a particular purpose, or non-infringement.",
-        "LIMITATION OF LIABILITY: UCL and the research team shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of the Platform.",
+        "LIMITATION OF LIABILITY: UWE and the research team shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of the Platform.",
         "The Platform is developed and maintained by students and researchers as part of academic work and may contain errors or inaccuracies."
       ]
     },
@@ -89,7 +89,7 @@ export default function TermsPage() {
     {
       title: "9. Research Ethics and Data Handling",
       content: [
-        "This research project adheres to UCL's research ethics guidelines and has been approved by the relevant ethics committee where required.",
+        "This research project adheres to UWE's research ethics guidelines and has been approved by the relevant ethics committee where required.",
         "All research data is handled in accordance with academic research standards and GDPR requirements.",
         "Participants' rights include the right to withdraw from the research and request deletion of their data.",
         "Research findings may be published in academic journals, conferences, and dissertations, but all published data will be anonymized and aggregated."
@@ -124,7 +124,7 @@ export default function TermsPage() {
       content: [
         "If you have any questions about these Terms, please contact us at:",
         "Email: legal@ecosmart.ai",
-        "Address: Department of Computer Science, University College London, Gower Street, London WC1E 6BT, United Kingdom",
+        "Address: Department of Computer Science, University of the West of England, Bristol, BS16 1QY, United Kingdom",
         "For academic inquiries: research@ecosmart.ai",
         "For technical support: support@ecosmart.ai"
       ]
@@ -243,7 +243,7 @@ export default function TermsPage() {
                       Academic Research Platform
                     </h3>
                     <p className="text-slate-300 max-w-3xl mx-auto">
-                      This platform is developed as part of a Computer Science dissertation at University College London.
+                      This platform is developed as part of a Computer Science dissertation at the University of the West of England.
                       It represents ongoing research in environmental data science and machine learning applications for sustainability.
                     </p>
                     <div className="flex items-center justify-center space-x-8 text-sm text-slate-400">

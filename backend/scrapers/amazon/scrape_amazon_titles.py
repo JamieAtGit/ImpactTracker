@@ -564,19 +564,34 @@ def fuzzy_normalize_origin(raw_origin):
 
 
 def estimate_origin_country(title):
-    title = title.lower()
-    if "huawei" in title:
-        return "China"
-    elif "adidas" in title:
-        return "Germany"
-    elif "apple" in title:
-        return "USA"
-    elif "nike" in title:
-        return "USA"  # Nike HQ is in USA, but products are made globally
-    elif "sony" in title:
-        return "Japan"
-    elif "dyson" in title:
-        return "UK"
+    if not title:
+        return "Unknown"
+    t = title.lower()
+
+    # 1. Explicit "made in X" / "product of X" patterns in the title
+    import re as _re
+    made_in_match = _re.search(
+        r"\b(?:made\s+in|product\s+of|manufactured\s+in|produced\s+in)\s+([a-z][a-z\s]{1,30}?)(?:\s*[,.|]|$)",
+        t,
+    )
+    if made_in_match:
+        raw = made_in_match.group(1).strip()
+        normalized = fuzzy_normalize_origin(raw)
+        if normalized != "Unknown":
+            return normalized
+
+    # 2. Scan known_brand_origins — longest brand name wins to avoid false matches
+    matched_country = None
+    matched_len = 0
+    for brand, country in known_brand_origins.items():
+        if brand in t and len(brand) > matched_len:
+            if isinstance(country, dict):
+                country = country.get("country", "Unknown")
+            matched_country = country
+            matched_len = len(brand)
+    if matched_country:
+        return matched_country
+
     return "Unknown"
 
 def extract_origin_from_structured_data(driver):

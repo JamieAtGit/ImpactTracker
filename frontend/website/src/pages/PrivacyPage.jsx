@@ -40,19 +40,19 @@ export default function PrivacyPage() {
     {
       title: "1. Introduction and Scope",
       content: [
-        "This Privacy Policy describes how University College London ('UCL', 'we', 'us', or 'our') collects, uses, and protects your personal information when you use the EcoSmart Environmental Impact Prediction Platform ('Platform').",
+        "This Privacy Policy describes how the University of the West of England ('UWE', 'we', 'us', or 'our') collects, uses, and protects your personal information when you use the EcoSmart Environmental Impact Prediction Platform ('Platform').",
         "This policy applies to all users of the Platform, including the web application and browser extension components.",
         "We are committed to protecting your privacy and complying with applicable data protection laws, including the UK General Data Protection Regulation (UK GDPR), the Data Protection Act 2018, and other relevant privacy legislation.",
-        "As an academic institution, UCL processes personal data for research purposes under specific legal frameworks and ethical guidelines."
+        "As an academic institution, UWE processes personal data for research purposes under specific legal frameworks and ethical guidelines."
       ]
     },
     {
       title: "2. Data Controller Information",
       content: [
-        "The data controller for this Platform is University College London (UCL), a higher education institution incorporated by Royal Charter.",
-        "Registered Address: University College London, Gower Street, London WC1E 6BT, United Kingdom",
-        "Data Protection Officer: dpo@ucl.ac.uk",
-        "Research Ethics Committee: UCL Computer Science Department Research Ethics Committee",
+        "The data controller for this Platform is the University of the West of England (UWE), a higher education institution.",
+        "Registered Address: University of the West of England, Frenchay Campus, Bristol, BS16 1QY, United Kingdom",
+        "Data Protection Officer: dpo@uwe.ac.uk",
+        "Research Ethics Committee: UWE Computer Science Department Research Ethics Committee",
         "For privacy-related inquiries specifically about this Platform, contact: privacy@ecosmart.ai"
       ]
     },
@@ -63,7 +63,7 @@ export default function PrivacyPage() {
         "• Legitimate Interest (Article 6(1)(f) UK GDPR): For academic research purposes and platform improvement",
         "• Performance of a Contract (Article 6(1)(b) UK GDPR): To provide the environmental impact prediction services",
         "• Consent (Article 6(1)(a) UK GDPR): Where explicitly requested for specific research participation",
-        "• Public Task (Article 6(1)(e) UK GDPR): As part of UCL's public research mission in environmental science",
+        "• Public Task (Article 6(1)(e) UK GDPR): As part of UWE's public research mission in environmental science",
         "For research purposes, we rely on the exemption for scientific research under Schedule 2, Paragraph 28 of the Data Protection Act 2018."
       ]
     },
@@ -105,7 +105,7 @@ export default function PrivacyPage() {
         "As an academic research platform, we follow strict guidelines for research data handling:",
         "• All research data is anonymized and aggregated before analysis",
         "• Individual users cannot be identified in research outputs",
-        "• Research data is stored securely on UCL-approved systems",
+        "• Research data is stored securely on UWE-approved systems",
         "• Data access is restricted to authorized research team members",
         "• Research findings may be published but will never include identifiable information",
         "• The research has been approved by relevant ethics committees where required"
@@ -132,7 +132,7 @@ export default function PrivacyPage() {
         "We primarily process data within the United Kingdom and European Union. When data is transferred internationally:",
         "• Transfers are made only to countries with adequate data protection laws",
         "• Appropriate safeguards such as Standard Contractual Clauses are implemented",
-        "• Research data transfers follow UCL's international data transfer policies",
+        "• Research data transfers follow UWE's international data transfer policies",
         "• You will be informed of any significant international transfers that may affect your data"
       ]
     },
@@ -374,7 +374,7 @@ export default function PrivacyPage() {
                         <span className="font-medium text-slate-300">Privacy Inquiries:</span> privacy@ecosmart.ai
                       </p>
                       <p className="text-sm text-slate-400">
-                        <span className="font-medium text-slate-300">UCL Data Protection Officer:</span> dpo@ucl.ac.uk
+                        <span className="font-medium text-slate-300">UWE Data Protection Officer:</span> dpo@uwe.ac.uk
                       </p>
                       <p className="text-sm text-slate-400">
                         <span className="font-medium text-slate-300">Research Ethics:</span> research@ecosmart.ai
@@ -395,7 +395,7 @@ export default function PrivacyPage() {
                         ico.org.uk | 0303 123 1113
                       </p>
                       <p className="text-sm text-slate-400">
-                        <span className="font-medium text-slate-300">UCL Academic Services</span><br />
+                        <span className="font-medium text-slate-300">UWE Academic Services</span><br />
                         For research-related concerns
                       </p>
                     </div>

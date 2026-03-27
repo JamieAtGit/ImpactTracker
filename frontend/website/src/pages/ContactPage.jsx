@@ -110,8 +110,8 @@ export default function ContactPage() {
                         <h3 className="font-medium text-slate-200">Address</h3>
                         <p className="text-slate-400">
                           Department of Computer Science<br />
-                          University College London<br />
-                          Gower Street, London WC1E 6BT<br />
+                          University of the West of England<br />
+                          Frenchay Campus, Bristol, BS16 1QY<br />
                           United Kingdom
                         </p>
                       </div>

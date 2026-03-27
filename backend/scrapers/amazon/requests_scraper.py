@@ -268,16 +268,23 @@ class RequestsScraper:
         
         # Get all text for analysis
         all_text = soup.get_text()
-        
-        # 1) Look for origin in technical details first (HIGHEST PRIORITY)
+
+        # 0) Structured spec table extraction — th/td key-value rows (most accurate)
+        origin_from_spec = self.extract_origin_from_spec_table(soup)
+        # 1) Full-text tech details scan (handles \u200e-separated Amazon tables)
         origin_from_tech = self.extract_origin_from_tech_details(all_text)
-        print(f"🔍 Tech details extraction result: '{origin_from_tech}'")
-        
-        if origin_from_tech != "Unknown":
+        print(f"🔍 Spec table origin: '{origin_from_spec}', tech text origin: '{origin_from_tech}'")
+
+        if origin_from_spec != "Unknown":
+            origin = origin_from_spec
+            origin_source = "technical_details"
+            origin_confidence = "high"
+            print(f"📍 ✅ Using structured spec table origin: {origin}")
+        elif origin_from_tech != "Unknown":
             origin = origin_from_tech
             origin_source = "technical_details"
             origin_confidence = "high"
-            print(f"📍 ✅ Using origin from technical details: {origin}")
+            print(f"📍 ✅ Using tech details origin: {origin}")
         else:
             # 2) Other explicit page sections
             origin_from_explicit = self.extract_origin_from_explicit_sections(soup)
@@ -325,7 +332,6 @@ class RequestsScraper:
                                 origin_source = "heuristic_brand_default"
                                 origin_confidence = "low"
                                 print(f"📍 ⚠️ Using heuristic brand fallback: {origin} (from brand: {brand})")
-            print(f"📍 NOTE: Technical details did not contain valid origin information")
         
         # Extract weight
         weight = self.extract_weight(all_text)
@@ -343,18 +349,18 @@ class RequestsScraper:
         # Smart material detection - check for protein powder first
         if any(keyword in title.lower() for keyword in ['protein', 'powder', 'mass gainer', 'supplement', 'whey', 'casein']):
             material = "Plastic"  # Protein powder containers are typically plastic
-            
+
             # For protein powder, if weight is suspiciously low, try better extraction
             if weight < 0.5:  # Protein powder should be at least 500g
                 print(f"⚠️ Protein powder weight seems low ({weight}kg), trying enhanced extraction...")
-                
+
                 # Look for common protein powder weights in title/text
                 protein_weight_patterns = [
                     r'(\d+(?:\.\d+)?)\s*kg\b',  # "1kg", "2.5kg"
                     r'(\d+(?:\.\d+)?)\s*g\b',   # "900g", "1000g"
                     r'(\d+(?:\.\d+)?)\s*lbs?\b', # "5lb", "2.2lbs"
                 ]
-                
+
                 for pattern in protein_weight_patterns:
                     matches = re.findall(pattern, title.lower())
                     if matches:
@@ -379,7 +385,13 @@ class RequestsScraper:
                         except:
                             continue
         else:
-            material = self.detect_material(title, all_text)
+            # First try spec table — explicit "Material: X" row is the most reliable source
+            spec_material = self.extract_material_from_spec_table(soup)
+            if spec_material:
+                material = spec_material
+                print(f"🧵 Using spec table material: {material}")
+            else:
+                material = self.detect_material(title, all_text)
 
         # === Price extraction ===
         price = None
@@ -789,8 +801,128 @@ class RequestsScraper:
         print(f"🔍 ❌ No origin found in technical details")
         return "Unknown"
 
+    def extract_material_from_spec_table(self, soup: BeautifulSoup) -> Optional[str]:
+        """Extract material from Amazon's structured product detail tables (highest confidence)."""
+        material_keys = [
+            'material', 'material type', 'material composition', 'fabric type',
+            'outer material', 'inner material', 'lining material', 'shell material',
+            'frame material', 'filling material', 'sole material', 'upper material',
+        ]
+
+        # Method 1: Standard th/td table rows (productDetails_techSpec, productDetails_detailBullets)
+        for table in soup.select(
+            '#productDetails_techSpec_section_1, '
+            '#productDetails_detailBullets_sections1, '
+            '#productDetails_db_sections table, '
+            'table'
+        ):
+            for row in table.select('tr'):
+                th = row.select_one('th')
+                td = row.select_one('td')
+                if not th or not td:
+                    continue
+                key = self._normalize_extraction_text(th.get_text(' ', strip=True)).lower()
+                if any(mk in key for mk in material_keys):
+                    value = self._normalize_extraction_text(td.get_text(' ', strip=True))
+                    if value and 2 < len(value) < 150:
+                        print(f"🧵 Spec table material (th/td): '{value}'")
+                        return value
+
+        # Method 2: Detail bullets — "Material ‎ : ‎ Velvet" (unicode separators)
+        for li in soup.select('#detailBullets_feature_div li, #detailBulletsWrapper_feature_div li'):
+            text = self._normalize_extraction_text(li.get_text(' ', strip=True))
+            for mk in material_keys:
+                if mk in text.lower():
+                    match = re.search(
+                        r'(?:' + re.escape(mk) + r')[\s\u200e\u200f:‎]+([^:\n‎]{2,100})',
+                        text, re.IGNORECASE
+                    )
+                    if match:
+                        value = match.group(1).strip().strip('‎').strip()
+                        if value and len(value) < 150:
+                            print(f"🧵 Detail bullets material: '{value}'")
+                            return value
+
+        # Method 3: po-attribute-list (Amazon's condensed attribute list)
+        for row in soup.select('.po-attribute-list tr, .po-attribute-list__item'):
+            label_el = row.select_one('.po-attribute-list__label, .a-span3')
+            value_el = row.select_one('.po-attribute-list__value, .a-span9')
+            if not label_el or not value_el:
+                continue
+            key = self._normalize_extraction_text(label_el.get_text(' ', strip=True)).lower()
+            if any(mk in key for mk in material_keys):
+                value = self._normalize_extraction_text(value_el.get_text(' ', strip=True))
+                if value and 2 < len(value) < 150:
+                    print(f"🧵 po-attribute material: '{value}'")
+                    return value
+
+        return None
+
+    def extract_origin_from_spec_table(self, soup: BeautifulSoup) -> str:
+        """Extract country of origin from Amazon's structured product detail tables (highest confidence)."""
+        origin_keys = [
+            'country of origin', 'country/region of origin', 'country or region of origin',
+            'manufactured in', 'made in', 'imported from', 'product of', 'origin',
+        ]
+
+        # Method 1: th/td table rows
+        for table in soup.select(
+            '#productDetails_techSpec_section_1, '
+            '#productDetails_detailBullets_sections1, '
+            '#productDetails_db_sections table, '
+            'table'
+        ):
+            for row in table.select('tr'):
+                th = row.select_one('th')
+                td = row.select_one('td')
+                if not th or not td:
+                    continue
+                key = self._normalize_extraction_text(th.get_text(' ', strip=True)).lower()
+                if any(ok in key for ok in origin_keys):
+                    value = self._normalize_extraction_text(td.get_text(' ', strip=True))
+                    normalized = normalize_country_name(value)
+                    if normalized != "Unknown":
+                        print(f"🌍 Spec table origin (th/td): '{value}' → '{normalized}'")
+                        return normalized
+
+        # Method 2: Detail bullets
+        for li in soup.select('#detailBullets_feature_div li, #detailBulletsWrapper_feature_div li'):
+            text = self._normalize_extraction_text(li.get_text(' ', strip=True))
+            for ok in origin_keys:
+                if ok in text.lower():
+                    match = re.search(
+                        r'(?:' + re.escape(ok) + r')[\s\u200e\u200f:‎]+([a-zA-Z][a-zA-Z\s\-]{1,40})',
+                        text, re.IGNORECASE
+                    )
+                    if match:
+                        candidate = match.group(1).strip().strip('‎').strip()
+                        normalized = normalize_country_name(candidate)
+                        if normalized != "Unknown":
+                            print(f"🌍 Detail bullets origin: '{candidate}' → '{normalized}'")
+                            return normalized
+
+        # Method 3: po-attribute-list
+        for row in soup.select('.po-attribute-list tr, .po-attribute-list__item'):
+            label_el = row.select_one('.po-attribute-list__label, .a-span3')
+            value_el = row.select_one('.po-attribute-list__value, .a-span9')
+            if not label_el or not value_el:
+                continue
+            key = self._normalize_extraction_text(label_el.get_text(' ', strip=True)).lower()
+            if any(ok in key for ok in origin_keys):
+                value = self._normalize_extraction_text(value_el.get_text(' ', strip=True))
+                normalized = normalize_country_name(value)
+                if normalized != "Unknown":
+                    print(f"🌍 po-attribute origin: '{value}' → '{normalized}'")
+                    return normalized
+
+        return "Unknown"
+
     def extract_origin_from_explicit_sections(self, soup: BeautifulSoup) -> str:
         """Extract from explicit sections like manufacturer address/spec rows."""
+        # Note: extract_origin_from_spec_table is already called before this method
+        # in extract_from_soup — skip it here to avoid redundant work.
+
+        # Scan section text for patterns
         selectors = [
             'table#productDetails_techSpec_section_1',
             'table#productDetails_detailBullets_sections1',

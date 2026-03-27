@@ -1,8 +1,10 @@
+import os
+import secrets
 from flask import Flask, jsonify, session
 from flask_cors import CORS
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'railway-stable-key'
+app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY') or secrets.token_hex(32)
 
 CORS(
     app,

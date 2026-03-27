@@ -202,6 +202,7 @@ def create_app(config_name='production'):
         app.config['SESSION_COOKIE_SAMESITE'] = 'None'
         app.config['SESSION_COOKIE_SECURE'] = True
         app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=12)
+        app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB upload limit
     else:
         # Development configuration
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///dev.db'
@@ -236,7 +237,17 @@ def create_app(config_name='production'):
         methods=['GET', 'POST', 'OPTIONS'],
         allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'],
     )
-    
+
+    @app.after_request
+    def add_security_headers(response):
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'DENY'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        if config_name == 'production':
+            response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        return response
+
     run_db_bootstrap = os.getenv('RUN_DB_BOOTSTRAP', '').strip().lower() in {'1', 'true', 'yes'}
 
     if config_name != 'production' or run_db_bootstrap:
@@ -548,19 +559,26 @@ def create_app(config_name='production'):
                 print(f"  {key}: {value}")
             print("🔍 END DEBUG")
             
-            # Material detection — title-based guess always runs first because the
-            # product title names what the product IS (e.g. "Velvet Footrest"),
-            # whereas the scraped spec table often names a minor component like
-            # the metal frame or wooden legs.
+            # Material detection priority:
+            # 1. Title-based guess (smart_guess_material on title) — most reliable for naming
+            #    the primary product material (e.g. "Velvet Footstool" → Velvet)
+            # 2. smart_guess_material on the spec table raw string (e.g. "100% Cotton, Polyester")
+            #    — high confidence when title has no material keywords
+            # 3. Raw scraped spec table value as-is (e.g. product details field says "Velvet")
+            # 4. Full-page detect_material fallback
             title_material = smart_guess_material(product.get("title", ""))
             scraped_material = product.get("material_type") or product.get("material") or ""
+            spec_table_material = smart_guess_material(scraped_material) if scraped_material else None
 
             if title_material:
                 material = title_material
                 print(f"🧠 Title-based material: {material}")
+            elif spec_table_material:
+                material = spec_table_material
+                print(f"🧵 Spec-table-based material: {material} (raw: '{scraped_material}')")
             elif scraped_material and scraped_material.lower() not in ["unknown", "other", "", "not found", "n/a", "mixed"]:
                 material = scraped_material
-                print(f"📋 Scraped material: {material}")
+                print(f"📋 Scraped material (raw): {material}")
             else:
                 material = "Mixed"
                 print("⚠️ No material detected — defaulting to Mixed")
@@ -2323,8 +2341,10 @@ def create_app(config_name='production'):
     
     # Authentication endpoints
     @app.route('/signup', methods=['POST'])
+    @limiter.limit("5 per minute")
     def signup():
         """User registration — saves to DB with hashed password."""
+        import re as _re
         try:
             data = request.get_json() or {}
             username = (data.get('username') or '').strip()
@@ -2337,6 +2357,10 @@ def create_app(config_name='production'):
                 return jsonify({'error': 'Username must be at least 3 characters'}), 400
             if len(password) < 8:
                 return jsonify({'error': 'Password must be at least 8 characters'}), 400
+            if not _re.search(r'[A-Z]', password) or not _re.search(r'[0-9]', password):
+                return jsonify({'error': 'Password must contain at least one uppercase letter and one number'}), 400
+            if email and not _re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', email):
+                return jsonify({'error': 'Invalid email address'}), 400
             if username.lower() == 'admin':
                 return jsonify({'error': 'Username not available'}), 400
 

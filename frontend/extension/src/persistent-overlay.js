@@ -26,9 +26,16 @@
     }
   });
 
-  // Auto-analyse product detail pages
-  if (document.querySelector('#productTitle')) {
-    autoAnalyzeProductPage();
+  // Auto-analyse product detail pages — wait for DOM if needed
+  function maybeAutoAnalyze() {
+    if (document.querySelector('#productTitle')) {
+      autoAnalyzeProductPage();
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', maybeAutoAnalyze);
+  } else {
+    maybeAutoAnalyze();
   }
   
   function toggleOverlay(url) {
@@ -680,19 +687,21 @@
       });
     }
 
-    // Settings toggles
-    document.querySelectorAll('.eco-toggle-btn').forEach(btn => {
-      const key = btn.dataset.setting;
-      // Set initial visual state
-      const isOn = ecoSettings[key] !== false;
-      btn.textContent = isOn ? 'ON' : 'OFF';
-      btn.className = 'eco-toggle-btn ' + (isOn ? 'eco-toggle-on' : 'eco-toggle-off');
+    // Settings toggles — read fresh from storage to avoid race with storage callback
+    chrome.storage.local.get(['ecoSettings'], (data) => {
+      if (data.ecoSettings) ecoSettings = { ...ecoSettings, ...data.ecoSettings };
+      document.querySelectorAll('.eco-toggle-btn').forEach(btn => {
+        const key = btn.dataset.setting;
+        const isOn = ecoSettings[key] !== false;
+        btn.textContent = isOn ? 'ON' : 'OFF';
+        btn.className = 'eco-toggle-btn ' + (isOn ? 'eco-toggle-on' : 'eco-toggle-off');
 
-      btn.addEventListener('click', () => {
-        ecoSettings[key] = !ecoSettings[key];
-        btn.textContent = ecoSettings[key] ? 'ON' : 'OFF';
-        btn.className = 'eco-toggle-btn ' + (ecoSettings[key] ? 'eco-toggle-on' : 'eco-toggle-off');
-        chrome.storage.local.set({ ecoSettings });
+        btn.addEventListener('click', () => {
+          ecoSettings[key] = !ecoSettings[key];
+          btn.textContent = ecoSettings[key] ? 'ON' : 'OFF';
+          btn.className = 'eco-toggle-btn ' + (ecoSettings[key] ? 'eco-toggle-on' : 'eco-toggle-off');
+          chrome.storage.local.set({ ecoSettings });
+        });
       });
     });
   }
