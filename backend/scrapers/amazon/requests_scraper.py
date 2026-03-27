@@ -818,7 +818,7 @@ class RequestsScraper:
         secondary_keys = {
             'outer material', 'inner material', 'lining material', 'shell material',
             'frame material', 'filling material', 'sole material', 'upper material',
-            'shade material', 'body material', 'cover material',
+            'shade material', 'body material', 'cover material', 'base material',
         }
 
         def _extract_rows(soup_obj):
@@ -888,12 +888,15 @@ class RequestsScraper:
 
     def extract_all_materials_from_spec_table(self, soup: BeautifulSoup) -> Optional[Dict]:
         """Extract ALL material fields from the spec table and return as structured data for multi-material detection."""
-        all_material_keys = {
-            'material', 'material type', 'material composition', 'fabric type',
+        # Exact primary keys (the whole product material) — highest confidence
+        primary_exact = {'material', 'material type', 'material composition', 'fabric type'}
+        # Subcomponent keys — lower confidence, treated as secondary
+        subcomponent_keys = {
             'outer material', 'inner material', 'lining material', 'shell material',
             'frame material', 'filling material', 'sole material', 'upper material',
-            'shade material', 'body material', 'cover material',
+            'shade material', 'body material', 'cover material', 'base material',
         }
+        # collected entries: (raw_value_string, is_primary_key)
         collected = []
 
         for table in soup.select(
@@ -908,19 +911,24 @@ class RequestsScraper:
                 if not th or not td:
                     continue
                 key = self._normalize_extraction_text(th.get_text(' ', strip=True)).lower()
-                if any(mk in key for mk in all_material_keys):
-                    raw = self._normalize_extraction_text(td.get_text(' ', strip=True))
-                    if raw and 1 < len(raw) < 150:
-                        collected.append(raw)
+                raw = self._normalize_extraction_text(td.get_text(' ', strip=True))
+                if not raw or not (1 < len(raw) < 150):
+                    continue
+                if key in primary_exact:
+                    collected.append((raw, True))
+                elif any(sk in key for sk in subcomponent_keys) or any(pk in key for pk in primary_exact):
+                    collected.append((raw, False))
 
         if not collected:
             return None
 
-        # Parse comma/plus/slash-separated material lists into individual names
+        # Parse comma/plus/slash-separated material lists into individual names.
+        # Primary-key entries get confidence 0.95; subcomponent entries get 0.75.
+        # Sort so primary-key materials come first, ensuring the correct primary in tier-2 detection.
         parsed = []
         seen = set()
-        for raw_val in collected:
-            # split on commas, plus signs, slashes, semicolons
+        for raw_val, is_primary in sorted(collected, key=lambda x: not x[1]):
+            confidence = 0.95 if is_primary else 0.75
             parts = re.split(r'[,+/;]', raw_val)
             for part in parts:
                 name = part.strip().strip('‎').strip()
@@ -928,13 +936,11 @@ class RequestsScraper:
                     key_lower = name.lower()
                     if key_lower not in seen:
                         seen.add(key_lower)
-                        parsed.append({'name': name, 'confidence_score': 0.85})
+                        parsed.append({'name': name, 'confidence_score': confidence})
 
         if not parsed:
             return None
 
-        # Primary gets higher confidence
-        parsed[0]['confidence_score'] = 0.95
         print(f"🧵 All spec table materials: {[m['name'] for m in parsed]}")
         return {'materials': parsed}
 
