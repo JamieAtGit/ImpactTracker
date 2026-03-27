@@ -767,42 +767,125 @@ class EnhancedMaterialsIntelligenceService:
         # Try each tier in order of preference
         result = None
         
+        title = product_data.get('title', '')
+
         # Tier 1: Try detailed extraction with percentages
         if amazon_extracted_materials and amazon_extracted_materials.get('materials'):
             result = self._tier1_detailed_with_percentages(amazon_extracted_materials)
             if result:
                 result['tier'] = 1
                 result['tier_name'] = 'Detailed with percentages'
+                result = self._supplement_secondary_from_title(result, title)
                 return self._apply_intelligence_boosts(result, product_data)
-        
+
         # Tier 2: Try detailed extraction without percentages
         if amazon_extracted_materials and amazon_extracted_materials.get('materials'):
             result = self._tier2_detailed_no_percentages(amazon_extracted_materials)
             if result:
                 result['tier'] = 2
                 result['tier_name'] = 'Detailed materials'
+                result = self._supplement_secondary_from_title(result, title)
                 return self._apply_intelligence_boosts(result, product_data)
-        
+
         # Tier 4: Enhanced category-based intelligent guessing (CHECK BEFORE TIER 3)
         result = self._tier4_enhanced_category_based(product_data)
         if result:
             result['tier'] = 4
             result['tier_name'] = 'Enhanced category prediction'
+            result = self._supplement_secondary_from_title(result, title)
             return self._apply_intelligence_boosts(result, product_data)
-        
+
         # Tier 3: Enhanced single material detection
         result = self._tier3_enhanced_single_material(product_data)
         if result and result['primary_material'] not in ['Mixed', 'Unknown']:
             result['tier'] = 3
             result['tier_name'] = 'Enhanced keyword detection'
+            result = self._supplement_secondary_from_title(result, title)
             return self._apply_intelligence_boosts(result, product_data)
-        
+
         # Tier 5: Fallback defaults
         result = self._tier5_fallback()
         result['tier'] = 5
         result['tier_name'] = 'Fallback default'
         return result
     
+    def _supplement_secondary_from_title(self, result: Dict, title: str) -> Dict:
+        """Add secondary materials from the product title when none were detected from the spec table.
+
+        Uses the same compound-first ordering as the scraper's title scanner. Any material
+        found in the title that isn't already the primary is appended as a secondary with
+        confidence 0.65. This fills the gap when Amazon provides only a single spec-table
+        row or when the scraper was blocked.
+        """
+        if not title or result.get('secondary_materials'):
+            return result  # Already has secondaries — nothing to do
+
+        title_lower = title.lower()
+        primary_lower = (result.get('primary_material') or '').lower()
+
+        material_patterns = [
+            (['stainless steel', 'stainless-steel'],              'Stainless Steel'),
+            (['cast iron'],                                        'Cast Iron'),
+            (['carbon steel'],                                     'Carbon Steel'),
+            (['galvanised steel', 'galvanized steel'],             'Galvanised Steel'),
+            (['aluminium alloy', 'aluminum alloy'],                'Aluminium'),
+            (['aluminium', 'aluminum'],                            'Aluminium'),
+            (['titanium'],                                         'Titanium'),
+            (['copper'],                                           'Copper'),
+            (['brass'],                                            'Brass'),
+            (['steel'],                                            'Steel'),
+            (['iron'],                                             'Iron'),
+            (['borosilicate glass', 'tempered glass'],             'Glass'),
+            (['glass'],                                            'Glass'),
+            (['polycarbonate', 'pc plastic'],                      'Polycarbonate'),
+            (['polypropylene', 'pp plastic'],                      'Polypropylene'),
+            (['abs plastic', 'abs shell'],                         'ABS Plastic'),
+            (['acrylic', 'perspex', 'plexiglass'],                 'Acrylic'),
+            (['silicone'],                                         'Silicone'),
+            (['neoprene'],                                         'Neoprene'),
+            (['plastic', 'pvc', 'polymer'],                        'Plastic'),
+            (['bamboo'],                                           'Bamboo'),
+            (['solid wood', 'hardwood', 'mdf board', 'plywood'],   'Wood'),
+            (['wood', 'wooden', 'timber', 'oak', 'pine', 'teak', 'walnut', 'birch'], 'Wood'),
+            (['cork'],                                             'Cork'),
+            (['rattan', 'wicker'],                                 'Rattan'),
+            (['marble'],                                           'Marble'),
+            (['granite'],                                          'Granite'),
+            (['leather', 'genuine leather'],                       'Leather'),
+            (['faux leather', 'pu leather', 'vegan leather'],      'Faux Leather'),
+            (['cotton'],                                           'Cotton'),
+            (['polyester'],                                        'Polyester'),
+            (['nylon'],                                            'Nylon'),
+            (['wool', 'woollen', 'cashmere'],                      'Wool'),
+            (['canvas'],                                           'Canvas'),
+            (['microfibre', 'microfiber'],                         'Microfibre'),
+            (['ceramic', 'porcelain'],                             'Ceramic'),
+            (['rubber', 'latex'],                                  'Rubber'),
+            (['foam', 'memory foam', 'eva foam'],                  'Foam'),
+            (['paper', 'cardboard', 'kraft'],                      'Paper'),
+        ]
+
+        seen = {primary_lower}
+        secondaries = []
+        for keywords, material_name in material_patterns:
+            if any(kw in title_lower for kw in keywords):
+                key = material_name.lower()
+                if key not in seen:
+                    seen.add(key)
+                    secondaries.append({'name': material_name, 'percentage': None})
+
+        if secondaries:
+            result['secondary_materials'] = secondaries
+            # Extend all_materials list too so the UI can display everything
+            existing_names = {m['name'].lower() for m in result.get('all_materials', [])}
+            for s in secondaries:
+                if s['name'].lower() not in existing_names:
+                    result.setdefault('all_materials', []).append(
+                        {'name': s['name'], 'confidence_score': 0.65}
+                    )
+
+        return result
+
     def _apply_intelligence_boosts(self, result: Dict, product_data: Dict) -> Dict:
         """Apply brand and price tier intelligence to boost accuracy"""
         title = product_data.get('title', '').lower()

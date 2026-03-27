@@ -396,6 +396,20 @@ class RequestsScraper:
         # Extract ALL material fields for multi-material pipeline
         amazon_materials_extracted = self.extract_all_materials_from_spec_table(soup)
 
+        # Supplement with title-based multi-material detection to fill secondary/tertiary gaps
+        title_materials = self._detect_all_materials_from_title(title)
+        if title_materials:
+            if amazon_materials_extracted is None:
+                amazon_materials_extracted = title_materials
+            else:
+                existing_names = {m['name'].lower() for m in amazon_materials_extracted['materials']}
+                for m in title_materials['materials']:
+                    if m['name'].lower() not in existing_names:
+                        amazon_materials_extracted['materials'].append(
+                            {'name': m['name'], 'confidence_score': 0.65}
+                        )
+                        existing_names.add(m['name'].lower())
+
         # === Price extraction ===
         price = None
         price_selectors = [
@@ -885,6 +899,79 @@ class RequestsScraper:
 
         result = primary_hit or secondary_hit
         return result
+
+    def _detect_all_materials_from_title(self, title: str) -> Optional[Dict]:
+        """Detect multiple materials from the product title using keyword matching.
+
+        More specific compound terms (e.g. 'stainless steel') are checked before
+        generic ones ('steel') so they take precedence. All matching materials are
+        returned; duplicates are deduplicated. Returns None if nothing is found.
+        """
+        title_lower = title.lower()
+
+        # Each entry: ([keywords], canonical_name, confidence)
+        # Ordered so compound/specific terms appear before generic ones.
+        material_patterns = [
+            # Metals — compound first
+            (['stainless steel', 'stainless-steel'],          'Stainless Steel',    0.90),
+            (['cast iron'],                                    'Cast Iron',          0.90),
+            (['carbon steel'],                                 'Carbon Steel',       0.88),
+            (['galvanised steel', 'galvanized steel'],         'Galvanised Steel',   0.88),
+            (['aluminium alloy', 'aluminum alloy'],            'Aluminium',          0.88),
+            (['aluminium', 'aluminum'],                        'Aluminium',          0.82),
+            (['titanium'],                                     'Titanium',           0.82),
+            (['copper'],                                       'Copper',             0.78),
+            (['brass'],                                        'Brass',              0.78),
+            (['steel'],                                        'Steel',              0.75),
+            (['iron'],                                         'Iron',               0.70),
+            # Glass
+            (['borosilicate glass', 'tempered glass'],         'Glass',              0.90),
+            (['glass'],                                        'Glass',              0.80),
+            # Plastics / composites
+            (['polycarbonate', 'pc plastic'],                  'Polycarbonate',      0.85),
+            (['polypropylene', 'pp plastic'],                  'Polypropylene',      0.85),
+            (['abs plastic', 'abs shell'],                     'ABS Plastic',        0.85),
+            (['acrylic', 'perspex', 'plexiglass'],             'Acrylic',            0.82),
+            (['silicone'],                                     'Silicone',           0.82),
+            (['neoprene'],                                     'Neoprene',           0.80),
+            (['plastic', 'pvc', 'polymer'],                    'Plastic',            0.70),
+            # Wood / natural
+            (['bamboo'],                                       'Bamboo',             0.85),
+            (['solid wood', 'hardwood', 'mdf board', 'plywood'], 'Wood',            0.85),
+            (['wood', 'wooden', 'timber', 'oak', 'pine', 'teak', 'walnut', 'birch'], 'Wood', 0.78),
+            (['cork'],                                         'Cork',               0.82),
+            (['rattan', 'wicker'],                             'Rattan',             0.82),
+            (['marble'],                                       'Marble',             0.82),
+            (['granite'],                                      'Granite',            0.82),
+            # Fabric / textiles
+            (['leather', 'genuine leather', 'full-grain'],     'Leather',            0.85),
+            (['faux leather', 'pu leather', 'vegan leather'],  'Faux Leather',       0.85),
+            (['cotton'],                                       'Cotton',             0.82),
+            (['polyester'],                                    'Polyester',          0.80),
+            (['nylon'],                                        'Nylon',              0.80),
+            (['wool', 'woollen', 'cashmere'],                  'Wool',               0.80),
+            (['canvas'],                                       'Canvas',             0.78),
+            (['microfibre', 'microfiber'],                     'Microfibre',         0.78),
+            # Other
+            (['ceramic', 'porcelain'],                         'Ceramic',            0.82),
+            (['rubber', 'latex'],                              'Rubber',             0.78),
+            (['foam', 'memory foam', 'eva foam'],              'Foam',               0.72),
+            (['paper', 'cardboard', 'kraft'],                  'Paper',              0.72),
+        ]
+
+        found = []
+        seen: set = set()
+        for keywords, material_name, confidence in material_patterns:
+            if any(kw in title_lower for kw in keywords):
+                key = material_name.lower()
+                if key not in seen:
+                    seen.add(key)
+                    found.append({'name': material_name, 'confidence_score': confidence})
+
+        if not found:
+            return None
+        print(f"🧵 Title-detected materials: {[m['name'] for m in found]}")
+        return {'materials': found}
 
     def extract_all_materials_from_spec_table(self, soup: BeautifulSoup) -> Optional[Dict]:
         """Extract ALL material fields from the spec table and return as structured data for multi-material detection."""
