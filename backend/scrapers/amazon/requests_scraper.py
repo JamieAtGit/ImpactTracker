@@ -447,6 +447,29 @@ class RequestsScraper:
         if _cpf_el:
             climate_pledge_friendly = True
 
+        # === Product image URL ===
+        image_url = None
+        # Amazon main image is stored in a JSON blob inside #landingImage or #imgTagWrapperId
+        _img_el = soup.select_one('#landingImage, #imgTagWrapperId img, #main-image, .a-dynamic-image')
+        if _img_el:
+            # Prefer data-old-hires (highest res) then src
+            image_url = (_img_el.get('data-old-hires') or
+                         _img_el.get('data-a-hires') or
+                         _img_el.get('src') or None)
+            # Strip low-res suffixes like ._AC_SL1500_ → try to get clean URL
+            if image_url and '._' in image_url:
+                _clean = re.sub(r'\._[A-Z0-9_,]+_\.', '.', image_url)
+                if _clean.startswith('http'):
+                    image_url = _clean
+        # Fallback: find any amazon image URL in page source
+        if not image_url:
+            _img_match = re.search(
+                r'https://m\.media-amazon\.com/images/I/[A-Za-z0-9%+\-_]+\.(?:jpg|jpeg|png|webp)',
+                str(soup)
+            )
+            if _img_match:
+                image_url = _img_match.group(0)
+
         # === Sold by / Dispatched from ===
         sold_by = None
         dispatched_from = None
@@ -487,6 +510,7 @@ class RequestsScraper:
             "climate_pledge_friendly": climate_pledge_friendly,
             "sold_by": sold_by,
             "dispatched_from": dispatched_from,
+            "image_url": image_url,
         }
         
         print(f"📡 Requests extracted: {title[:50]}...")

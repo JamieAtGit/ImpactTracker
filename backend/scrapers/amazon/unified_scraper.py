@@ -144,6 +144,9 @@ class ScrapingResult:
 
     # Multi-material data from spec table (passed through to app_production)
     amazon_materials_extracted: Optional[Dict] = None
+
+    # Product image URL (used by AI visual material analysis)
+    image_url: Optional[str] = None
     
     def __post_init__(self):
         """Initialize default values"""
@@ -230,6 +233,7 @@ class RequestsStrategy(ScrapingStrategyBase):
                         "weight": "technical_details" if raw_result.get("weight_kg", 1.0) != 1.0 else "default"
                     },
                     amazon_materials_extracted=raw_result.get("amazon_materials_extracted"),
+                    image_url=raw_result.get("image_url"),
                 )
                 
                 logger.info(f"✅ Requests strategy successful - Quality: {result.quality_score}%")
@@ -584,6 +588,8 @@ def scrape_amazon_product_page(amazon_url: str, fallback: bool = False) -> Dict[
         "extraction_time_ms": result.extraction_time_ms,
         # Multi-material spec table data for detect_materials pipeline
         "amazon_materials_extracted": result.amazon_materials_extracted,
+        # Product image for AI visual analysis
+        "image_url": result.image_url,
     }
 
 if __name__ == "__main__":
