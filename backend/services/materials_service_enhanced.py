@@ -865,30 +865,69 @@ class EnhancedMaterialsIntelligenceService:
             (['paper', 'cardboard', 'kraft'],                      'Paper'),
         ]
 
-        # Generic parent names to suppress when a specific subtype is already the primary.
-        # E.g. primary=Polyethylene → don't add "Plastic" as secondary.
+        # Generic parent names to suppress when a specific subtype is already the primary or
+        # already listed as a secondary. E.g. primary=Polyethylene → don't add "Plastic".
         _PARENTS = {
-            'polyethylene':    {'plastic'},
-            'polypropylene':   {'plastic'},
-            'polycarbonate':   {'plastic'},
-            'abs plastic':     {'plastic'},
-            'pvc':             {'plastic'},
-            'polystyrene':     {'plastic'},
-            'hdpe':            {'plastic'},
-            'ldpe':            {'plastic'},
-            'acrylic':         {'plastic'},
-            'stainless steel': {'steel', 'metal', 'iron'},
-            'cast iron':       {'iron', 'metal'},
-            'carbon steel':    {'steel', 'metal'},
-            'galvanised steel':{'steel', 'metal'},
-            'aluminium':       {'metal'},
-            'copper':          {'metal'},
-            'brass':           {'metal'},
-            'titanium':        {'metal'},
-            'solid wood':      {'wood'},
-            'bamboo':          {'wood'},
-            'rattan':          {'wood'},
+            # Plastic subtypes
+            'polyethylene':       {'plastic'},
+            'polypropylene':      {'plastic'},
+            'polycarbonate':      {'plastic'},
+            'abs plastic':        {'plastic'},
+            'pvc':                {'plastic'},
+            'polystyrene':        {'plastic'},
+            'hdpe':               {'plastic'},
+            'ldpe':               {'plastic'},
+            'pet':                {'plastic'},
+            'tpe':                {'plastic'},
+            'tpu':                {'plastic'},
+            'acrylic':            {'plastic'},
+            'silicone':           {'rubber', 'plastic'},
+            'neoprene':           {'rubber'},
+            # Metal subtypes
+            'stainless steel':    {'steel', 'metal', 'iron'},
+            'cast iron':          {'iron', 'metal'},
+            'carbon steel':       {'steel', 'metal'},
+            'galvanised steel':   {'steel', 'metal'},
+            'aluminium':          {'metal'},
+            'aluminum':           {'metal'},
+            'copper':             {'metal'},
+            'brass':              {'metal'},
+            'bronze':             {'metal', 'brass'},
+            'titanium':           {'metal'},
+            'zinc':               {'metal'},
+            # Wood subtypes
+            'solid wood':         {'wood', 'timber'},
+            'engineered wood':    {'wood', 'timber'},
+            'mdf':                {'wood', 'timber'},
+            'bamboo':             {'wood'},
+            'rattan':             {'wood'},
+            'cork':               {'wood'},
+            'plywood':            {'wood', 'timber'},
+            # Fabric subtypes
+            'cotton':             {'fabric'},
+            'polyester':          {'fabric'},
+            'nylon':              {'fabric'},
+            'wool':               {'fabric'},
+            'linen':              {'fabric'},
+            'silk':               {'fabric'},
+            'canvas':             {'fabric'},
+            'microfibre':         {'fabric'},
+            'microfiber':         {'fabric'},
+            'velvet':             {'fabric'},
+            'fleece':             {'fabric'},
+            # Leather subtypes
+            'genuine leather':    {'leather'},
+            'suede':              {'leather'},
+            'faux leather':       {'leather', 'plastic'},
+            # Glass subtypes
+            'borosilicate glass': {'glass'},
+            'tempered glass':     {'glass'},
+            'toughened glass':    {'glass'},
+            # Foam subtypes
+            'memory foam':        {'foam'},
+            'eva foam':           {'foam'},
         }
+        # Suppress anything that is a generic parent of the primary OR of any found secondary
         suppressed = _PARENTS.get(primary_lower, set())
 
         seen = {primary_lower}
@@ -899,6 +938,8 @@ class EnhancedMaterialsIntelligenceService:
                 if key not in seen and key not in suppressed:
                     seen.add(key)
                     secondaries.append({'name': material_name, 'percentage': None})
+                    # Dynamically expand suppression as each secondary is added
+                    suppressed |= _PARENTS.get(key, set())
 
         if secondaries:
             result['secondary_materials'] = secondaries

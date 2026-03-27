@@ -961,6 +961,46 @@ class RequestsScraper:
             (['paper', 'cardboard', 'kraft'],                  'Paper',              0.72),
         ]
 
+        # Maps specific material → generic parents that become redundant
+        _TITLE_PARENTS = {
+            'polyethylene':      {'plastic'},
+            'polypropylene':     {'plastic'},
+            'polycarbonate':     {'plastic'},
+            'abs plastic':       {'plastic'},
+            'pvc':               {'plastic'},
+            'polystyrene':       {'plastic'},
+            'hdpe':              {'plastic'},
+            'ldpe':              {'plastic'},
+            'acrylic':           {'plastic'},
+            'silicone':          {'rubber', 'plastic'},
+            'neoprene':          {'rubber'},
+            'stainless steel':   {'steel', 'metal', 'iron'},
+            'cast iron':         {'iron', 'metal'},
+            'carbon steel':      {'steel', 'metal'},
+            'galvanised steel':  {'steel', 'metal'},
+            'aluminium':         {'metal'},
+            'copper':            {'metal'},
+            'brass':             {'metal'},
+            'titanium':          {'metal'},
+            'solid wood':        {'wood', 'timber'},
+            'bamboo':            {'wood'},
+            'rattan':            {'wood'},
+            'cork':              {'wood'},
+            'cotton':            {'fabric'},
+            'polyester':         {'fabric'},
+            'nylon':             {'fabric'},
+            'wool':              {'fabric'},
+            'canvas':            {'fabric'},
+            'microfibre':        {'fabric'},
+            'leather':           {'fabric'},
+            'faux leather':      {'leather', 'fabric'},
+            'genuine leather':   {'leather', 'fabric'},
+            'borosilicate glass':{'glass'},
+            'tempered glass':    {'glass'},
+            'memory foam':       {'foam'},
+            'eva foam':          {'foam'},
+        }
+
         found = []
         seen: set = set()
         for keywords, material_name, confidence in material_patterns:
@@ -969,6 +1009,16 @@ class RequestsScraper:
                 if key not in seen:
                     seen.add(key)
                     found.append({'name': material_name, 'confidence_score': confidence})
+
+        if not found:
+            return None
+
+        # Semantic dedup: drop generic parents when a specific subtype is present
+        all_found_lower = {m['name'].lower() for m in found}
+        suppress: set = set()
+        for name_lower in all_found_lower:
+            suppress |= _TITLE_PARENTS.get(name_lower, set())
+        found = [m for m in found if m['name'].lower() not in suppress]
 
         if not found:
             return None
@@ -1013,49 +1063,108 @@ class RequestsScraper:
 
         # Common single/multi-letter abbreviations that Amazon uses in spec tables.
         _ABBREV = {
-            'pe':   'Polyethylene',
-            'pp':   'Polypropylene',
-            'pc':   'Polycarbonate',
-            'abs':  'ABS Plastic',
-            'pvc':  'PVC',
-            'ps':   'Polystyrene',
-            'hdpe': 'HDPE',
-            'ldpe': 'LDPE',
-            'pet':  'PET',
-            'tpe':  'TPE',
-            'tpu':  'TPU',
-            'eva':  'EVA Foam',
-            'pu':   'PU',
-            'ss':   'Stainless Steel',
+            # Plastics
+            'pe':    'Polyethylene',
+            'pp':    'Polypropylene',
+            'pc':    'Polycarbonate',
+            'abs':   'ABS Plastic',
+            'pvc':   'PVC',
+            'ps':    'Polystyrene',
+            'hdpe':  'HDPE',
+            'ldpe':  'LDPE',
+            'pet':   'PET',
+            'tpe':   'TPE',
+            'tpu':   'TPU',
+            'eva':   'EVA Foam',
+            'pu':    'PU',
+            'eps':   'Polystyrene',
+            'pmma':  'Acrylic',
+            # Metals
+            'ss':    'Stainless Steel',
+            'al':    'Aluminium',
+            'cu':    'Copper',
+            'zn':    'Zinc',
+            # Rubber / elastomers
+            'nr':    'Natural Rubber',
+            'nbr':   'Rubber',
+            'sbr':   'Rubber',
+            'epdm':  'Rubber',
+            # Textiles / fibres
+            'pu leather': 'Faux Leather',
+            'mdf':   'MDF',
+            'hdf':   'MDF',
         }
 
         # If a specific subtype is present, its generic parent is redundant.
         # Maps canonical_lower → set of parent canonical_lowers to suppress.
         _PARENTS = {
-            'polyethylene':   {'plastic'},
-            'polypropylene':  {'plastic'},
-            'polycarbonate':  {'plastic'},
-            'abs plastic':    {'plastic'},
-            'pvc':            {'plastic'},
-            'polystyrene':    {'plastic'},
-            'hdpe':           {'plastic'},
-            'ldpe':           {'plastic'},
-            'pet':            {'plastic'},
-            'tpe':            {'plastic'},
-            'tpu':            {'plastic'},
-            'acrylic':        {'plastic'},
-            'stainless steel':{'steel', 'metal', 'iron'},
-            'cast iron':      {'iron', 'metal'},
-            'carbon steel':   {'steel', 'metal'},
-            'galvanised steel':{'steel', 'metal'},
-            'aluminium':      {'metal'},
-            'aluminum':       {'metal'},
-            'copper':         {'metal'},
-            'brass':          {'metal'},
-            'titanium':       {'metal'},
-            'solid wood':     {'wood'},
-            'bamboo':         {'wood'},
-            'rattan':         {'wood'},
+            # Plastic subtypes → suppress 'Plastic'
+            'polyethylene':      {'plastic'},
+            'polypropylene':     {'plastic'},
+            'polycarbonate':     {'plastic'},
+            'abs plastic':       {'plastic'},
+            'pvc':               {'plastic'},
+            'polystyrene':       {'plastic'},
+            'hdpe':              {'plastic'},
+            'ldpe':              {'plastic'},
+            'pet':               {'plastic'},
+            'tpe':               {'plastic'},
+            'tpu':               {'plastic'},
+            'acrylic':           {'plastic'},
+            'pu':                {'plastic'},
+            'pmma':              {'plastic', 'acrylic'},
+            # Metal subtypes → suppress 'Metal', 'Steel', 'Iron'
+            'stainless steel':   {'steel', 'metal', 'iron'},
+            'cast iron':         {'iron', 'metal'},
+            'carbon steel':      {'steel', 'metal'},
+            'galvanised steel':  {'steel', 'metal'},
+            'aluminium':         {'metal'},
+            'aluminum':          {'metal'},
+            'copper':            {'metal'},
+            'brass':             {'metal'},
+            'bronze':            {'metal', 'brass'},
+            'titanium':          {'metal'},
+            'zinc':              {'metal'},
+            'nickel':            {'metal'},
+            'chrome':            {'metal'},
+            # Wood subtypes → suppress 'Wood', 'Timber'
+            'solid wood':        {'wood', 'timber'},
+            'engineered wood':   {'wood', 'timber'},
+            'mdf':               {'wood', 'timber'},
+            'bamboo':            {'wood'},
+            'rattan':            {'wood'},
+            'cork':              {'wood'},
+            'plywood':           {'wood', 'timber'},
+            # Fabric subtypes → suppress 'Fabric'
+            'cotton':            {'fabric'},
+            'polyester':         {'fabric'},
+            'nylon':             {'fabric'},
+            'wool':              {'fabric'},
+            'linen':             {'fabric'},
+            'silk':              {'fabric'},
+            'canvas':            {'fabric'},
+            'microfibre':        {'fabric'},
+            'microfiber':        {'fabric'},
+            'velvet':            {'fabric'},
+            'fleece':            {'fabric'},
+            'denim':             {'fabric'},
+            # Leather subtypes → suppress 'Leather'
+            'genuine leather':   {'leather'},
+            'suede':             {'leather'},
+            'faux leather':      {'leather'},
+            'pu leather':        {'leather', 'plastic'},
+            # Rubber subtypes → suppress 'Rubber'
+            'silicone':          {'rubber', 'plastic'},
+            'neoprene':          {'rubber'},
+            'natural rubber':    {'rubber'},
+            'latex':             {'rubber'},
+            # Glass subtypes → suppress 'Glass'
+            'borosilicate glass':{'glass'},
+            'tempered glass':    {'glass'},
+            'toughened glass':   {'glass'},
+            # Foam subtypes → suppress 'Foam'
+            'memory foam':       {'foam'},
+            'eva foam':          {'foam', 'plastic'},
         }
 
         # Parse comma/plus/slash-separated material lists into individual names.
