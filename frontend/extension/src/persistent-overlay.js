@@ -6,7 +6,8 @@
   let lastAnalysisData = null;
   let savedPostcode = '';
   let activeOverlayTab = 'calculator'; // 'calculator' | 'history'
-  
+  let ecoSettings = { showBadges: true, showTooltips: true, showAutoCard: true };
+
   // Listen for messages from background script
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'TOGGLE_OVERLAY') {
@@ -16,13 +17,10 @@
   });
   
   // Load saved state
-  chrome.storage.local.get(['lastAnalysisData', 'savedPostcode', 'overlayVisible'], (data) => {
-    if (data.lastAnalysisData) {
-      lastAnalysisData = data.lastAnalysisData;
-    }
-    if (data.savedPostcode) {
-      savedPostcode = data.savedPostcode;
-    }
+  chrome.storage.local.get(['lastAnalysisData', 'savedPostcode', 'overlayVisible', 'ecoSettings'], (data) => {
+    if (data.lastAnalysisData) lastAnalysisData = data.lastAnalysisData;
+    if (data.savedPostcode) savedPostcode = data.savedPostcode;
+    if (data.ecoSettings) ecoSettings = { ...ecoSettings, ...data.ecoSettings };
     if (data.overlayVisible) {
       showOverlay(data.lastAnalysisData?.url || window.location.href);
     }
@@ -56,7 +54,27 @@
       <div class="eco-overlay-container">
         <div class="eco-overlay-header">
           <h3 class="eco-overlay-title">🌱 Eco Emissions</h3>
-          <button class="eco-close-btn" title="Close">×</button>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <button class="eco-settings-btn" id="ecoSettingsBtn" title="Settings">⚙️</button>
+            <button class="eco-close-btn" title="Close">×</button>
+          </div>
+        </div>
+
+        <!-- Settings panel (hidden by default) -->
+        <div id="eco-settings-panel" style="display:none;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);">
+          <div style="font-size:12px;font-weight:700;color:#94a3b8;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;">Settings</div>
+          <div class="eco-setting-row" id="ecoSettingBadges">
+            <span class="eco-setting-label">Show eco badges on products</span>
+            <button class="eco-toggle-btn" data-setting="showBadges">ON</button>
+          </div>
+          <div class="eco-setting-row" id="ecoSettingTooltips">
+            <span class="eco-setting-label">Show material tooltip on hover</span>
+            <button class="eco-toggle-btn" data-setting="showTooltips">ON</button>
+          </div>
+          <div class="eco-setting-row" id="ecoSettingAutoCard">
+            <span class="eco-setting-label">Auto-analyse product pages</span>
+            <button class="eco-toggle-btn" data-setting="showAutoCard">ON</button>
+          </div>
         </div>
 
         <div class="eco-tab-bar">
@@ -498,6 +516,114 @@
       .eco-banner-value { font-weight: 600; color: #e2e8f0; }
       .eco-banner-carbon { color: #00d4ff; font-size: 18px; font-weight: 800; }
       .eco-banner-loading { color: #94a3b8; font-size: 12px; text-align: center; padding: 8px 0; }
+
+      .eco-settings-btn {
+        background: rgba(255,255,255,0.08) !important;
+        border: 1px solid rgba(255,255,255,0.15) !important;
+        color: #94a3b8 !important;
+        width: 30px !important; height: 30px !important;
+        border-radius: 8px !important;
+        font-size: 14px !important; cursor: pointer !important;
+        transition: all 0.2s !important;
+        display: flex !important; align-items: center !important; justify-content: center !important;
+      }
+      .eco-settings-btn:hover { background: rgba(255,255,255,0.15) !important; color: #e2e8f0 !important; }
+
+      .eco-setting-row {
+        display: flex !important; justify-content: space-between !important;
+        align-items: center !important; padding: 7px 0 !important;
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+      }
+      .eco-setting-row:last-child { border-bottom: none !important; }
+      .eco-setting-label { font-size: 12px !important; color: #cbd5e1 !important; }
+      .eco-toggle-btn {
+        padding: 3px 10px !important; border-radius: 9999px !important;
+        font-size: 11px !important; font-weight: 700 !important;
+        cursor: pointer !important; border: none !important;
+        transition: all 0.2s !important; min-width: 38px !important;
+      }
+      .eco-toggle-on  { background: #10b981 !important; color: #fff !important; }
+      .eco-toggle-off { background: rgba(255,255,255,0.1) !important; color: #64748b !important; }
+
+      /* Cart summary */
+      #eco-cart-summary {
+        margin-top: 10px !important;
+        padding: 10px 12px !important;
+        background: rgba(0,212,255,0.06) !important;
+        border: 1px solid rgba(0,212,255,0.15) !important;
+        border-radius: 10px !important;
+        font-size: 12px !important; color: #94a3b8 !important;
+        display: flex !important; justify-content: space-between !important; align-items: center !important;
+      }
+      #eco-cart-summary .eco-cart-total { color: #00d4ff !important; font-weight: 700 !important; }
+      #eco-cart-clear {
+        padding: 2px 8px !important; border-radius: 6px !important;
+        background: rgba(239,68,68,0.15) !important;
+        border: 1px solid rgba(239,68,68,0.3) !important;
+        color: #ef4444 !important; font-size: 10px !important;
+        cursor: pointer !important; font-weight: 600 !important;
+      }
+
+      /* Export CSV button */
+      #eco-export-csv {
+        display: block !important; width: 100% !important;
+        padding: 9px !important; margin-top: 12px !important;
+        background: rgba(255,255,255,0.05) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 8px !important; color: #94a3b8 !important;
+        font-size: 12px !important; font-weight: 600 !important;
+        cursor: pointer !important; transition: all 0.2s !important;
+        text-align: center !important;
+      }
+      #eco-export-csv:hover { background: rgba(255,255,255,0.1) !important; color: #e2e8f0 !important; }
+
+      /* In-page eco card (injected into Amazon product page) */
+      #eco-inline-card {
+        background: linear-gradient(135deg, rgba(15,15,35,0.95), rgba(22,33,62,0.95)) !important;
+        border: 1px solid rgba(0,212,255,0.25) !important;
+        border-radius: 12px !important;
+        padding: 14px 16px !important;
+        margin-bottom: 14px !important;
+        font-family: 'Inter',-apple-system,BlinkMacSystemFont,sans-serif !important;
+        font-size: 13px !important; color: #e2e8f0 !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.25) !important;
+        position: relative !important; z-index: 100 !important;
+      }
+      .eco-card-header {
+        display: flex !important; justify-content: space-between !important;
+        align-items: center !important;
+        padding-bottom: 10px !important;
+        border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+        margin-bottom: 10px !important;
+      }
+      .eco-card-title { font-size: 13px !important; font-weight: 700 !important; color: #00d4ff !important; }
+      .eco-card-score {
+        font-size: 13px !important; font-weight: 800 !important;
+        padding: 2px 10px !important; border-radius: 6px !important;
+      }
+      .eco-card-row {
+        display: flex !important; justify-content: space-between !important;
+        align-items: center !important; padding: 5px 0 !important;
+        border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+        font-size: 12px !important;
+      }
+      .eco-card-row:last-child { border-bottom: none !important; }
+      .eco-card-key { color: #64748b !important; font-weight: 500 !important; }
+      .eco-card-val { color: #e2e8f0 !important; font-weight: 600 !important; text-align: right !important; }
+      .eco-card-carbon { color: #00d4ff !important; font-size: 15px !important; font-weight: 800 !important; }
+      .eco-card-footer {
+        margin-top: 10px !important; padding-top: 8px !important;
+        border-top: 1px solid rgba(255,255,255,0.06) !important;
+        display: flex !important; justify-content: space-between !important; align-items: center !important;
+      }
+      .eco-card-equiv { font-size: 11px !important; color: #10b981 !important; font-weight: 500 !important; }
+      .eco-card-open-btn {
+        font-size: 11px !important; color: #00d4ff !important;
+        background: none !important; border: none !important;
+        cursor: pointer !important; font-weight: 600 !important;
+        padding: 0 !important;
+      }
+      .eco-card-open-btn:hover { text-decoration: underline !important; }
     `;
     
     document.head.appendChild(style);
@@ -514,6 +640,7 @@
     if (lastAnalysisData) {
       displayResults(lastAnalysisData);
     }
+    renderCartSummary();
   }
   
   function hideOverlay() {
@@ -542,6 +669,31 @@
     postcodeInput.addEventListener('input', () => {
       const postcode = postcodeInput.value.trim();
       chrome.storage.local.set({ savedPostcode: postcode });
+    });
+
+    // Settings panel toggle
+    const settingsBtn = document.getElementById('ecoSettingsBtn');
+    if (settingsBtn) {
+      settingsBtn.addEventListener('click', () => {
+        const panel = document.getElementById('eco-settings-panel');
+        if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+      });
+    }
+
+    // Settings toggles
+    document.querySelectorAll('.eco-toggle-btn').forEach(btn => {
+      const key = btn.dataset.setting;
+      // Set initial visual state
+      const isOn = ecoSettings[key] !== false;
+      btn.textContent = isOn ? 'ON' : 'OFF';
+      btn.className = 'eco-toggle-btn ' + (isOn ? 'eco-toggle-on' : 'eco-toggle-off');
+
+      btn.addEventListener('click', () => {
+        ecoSettings[key] = !ecoSettings[key];
+        btn.textContent = ecoSettings[key] ? 'ON' : 'OFF';
+        btn.className = 'eco-toggle-btn ' + (ecoSettings[key] ? 'eco-toggle-on' : 'eco-toggle-off');
+        chrome.storage.local.set({ ecoSettings });
+      });
     });
   }
   
@@ -751,6 +903,7 @@
       histPane.style.display = 'none';
       calcBtn.classList.add('eco-tab-active');
       histBtn.classList.remove('eco-tab-active');
+      renderCartSummary();
     } else {
       calcPane.style.display = 'none';
       histPane.style.display = 'block';
@@ -779,6 +932,62 @@
     });
   }
 
+  // ── Cart carbon tracker ────────────────────────────────────────────────────
+  function renderCartSummary() {
+    const container = document.getElementById('eco-cart-summary');
+    chrome.storage.local.get(['cartItems'], (data) => {
+      const items = (data.cartItems || []).filter(i => i.carbonKg != null);
+      if (items.length === 0) {
+        if (container) container.style.display = 'none';
+        return;
+      }
+      const total = items.reduce((s, i) => s + parseFloat(i.carbonKg || 0), 0);
+      // Inject cart summary div if it doesn't exist
+      let el = document.getElementById('eco-cart-summary');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'eco-cart-summary';
+        const pane = document.getElementById('ecoTabPaneCalculator');
+        if (pane) pane.appendChild(el);
+      }
+      el.style.display = 'flex';
+      el.innerHTML = `
+        <span>🛒 Cart: <span class="eco-cart-total">${total.toFixed(2)} kg CO₂</span> &nbsp;(${items.length} item${items.length > 1 ? 's' : ''})</span>
+        <button id="eco-cart-clear">Clear</button>
+      `;
+      document.getElementById('eco-cart-clear')?.addEventListener('click', () => {
+        chrome.storage.local.remove('cartItems');
+        el.style.display = 'none';
+      });
+    });
+  }
+
+  // ── Export history as CSV ──────────────────────────────────────────────────
+  function exportHistoryCSV() {
+    chrome.storage.local.get(['analysisHistory'], (data) => {
+      const history = data.analysisHistory || [];
+      if (history.length === 0) return;
+      const headers = ['Title', 'Carbon kg CO2', 'ML Score', 'Date', 'URL'];
+      const rows = history.map(h => [
+        '"' + (h.title || '').replace(/"/g, '""').substring(0, 100) + '"',
+        h.carbonKg != null ? h.carbonKg : '',
+        h.mlScore || '',
+        new Date(h.timestamp).toLocaleString('en-GB'),
+        '"' + (h.url || '') + '"',
+      ]);
+      const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `eco-impact-${new Date().toISOString().slice(0,10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  }
+
   function renderHistory() {
     const container = document.getElementById('ecoHistoryList');
     if (!container) return;
@@ -786,6 +995,7 @@
       const history = data.analysisHistory || [];
       if (history.length === 0) {
         container.innerHTML = '<div class="eco-history-empty">No analyses yet.<br>Calculate emissions for a product to see history here.</div>';
+        renderCartSummary();
         return;
       }
       container.innerHTML = history.map((item, i) => {
@@ -803,6 +1013,15 @@
       container.querySelectorAll('.eco-history-item').forEach((item, i) => {
         item.addEventListener('click', () => loadHistoryItem(i));
       });
+
+      // Export CSV button
+      const exportBtn = document.createElement('button');
+      exportBtn.id = 'eco-export-csv';
+      exportBtn.textContent = '📥 Export History as CSV';
+      container.appendChild(exportBtn);
+      exportBtn.addEventListener('click', exportHistoryCSV);
+
+      renderCartSummary();
     });
   }
 
@@ -819,25 +1038,105 @@
 
   // ── Auto-analyse on product detail pages ──────────────────────────────────
   function autoAnalyzeProductPage() {
-    // Don't show if overlay is already open
-    if (document.getElementById('eco-persistent-overlay')) return;
+    if (document.getElementById('eco-persistent-overlay')) return; // overlay already open
+    if (!ecoSettings.showAutoCard) return;
 
     const url = window.location.href;
     const asinMatch = url.match(/\/dp\/([A-Z0-9]{10})/);
     if (!asinMatch) return;
     const asin = asinMatch[1];
 
-    // Show loading banner immediately
-    const banner = createAutoBanner();
-    banner.querySelector('#eco-banner-body').innerHTML = '<div class="eco-banner-loading">🔍 Analysing product emissions…</div>';
+    // ── Detect material from title immediately (no API needed) ─────────────
+    const titleEl = document.querySelector('#productTitle');
+    const productTitle = titleEl?.textContent?.trim() || '';
 
+    // ── Inject inline eco card into the product page buy-box area ──────────
+    const rightCol = document.querySelector('#rightCol') || document.querySelector('#desktop_buybox') || document.querySelector('#buybox');
+    let inlineCard = null;
+
+    if (rightCol) {
+      inlineCard = document.createElement('div');
+      inlineCard.id = 'eco-inline-card';
+      inlineCard.innerHTML = `
+        <div class="eco-card-header">
+          <span class="eco-card-title">🌱 Eco Impact</span>
+          <span class="eco-card-score" id="eco-card-score-badge" style="background:rgba(100,116,139,0.2);color:#64748b;">Calculating…</span>
+        </div>
+        <div id="eco-card-rows">
+          <div class="eco-card-row"><span class="eco-card-key">Carbon footprint</span><span class="eco-card-val eco-card-carbon" id="eco-card-carbon">—</span></div>
+          <div class="eco-card-row"><span class="eco-card-key">Material</span><span class="eco-card-val" id="eco-card-material">Detecting…</span></div>
+          <div class="eco-card-row"><span class="eco-card-key">Origin</span><span class="eco-card-val" id="eco-card-origin">—</span></div>
+          <div class="eco-card-row"><span class="eco-card-key">Transport</span><span class="eco-card-val" id="eco-card-transport">—</span></div>
+        </div>
+        <div class="eco-card-footer">
+          <span class="eco-card-equiv" id="eco-card-equiv"></span>
+          <button class="eco-card-open-btn" id="eco-card-open-btn">Full analysis →</button>
+        </div>
+      `;
+      rightCol.insertBefore(inlineCard, rightCol.firstChild);
+
+      // "Full analysis" opens the main overlay
+      document.getElementById('eco-card-open-btn')?.addEventListener('click', () => {
+        if (!document.getElementById('eco-persistent-overlay')) {
+          showOverlay(url);
+        }
+      });
+    }
+
+    // ── Inject minimal CSS for inline card (if not already in page) ─────────
+    if (!document.getElementById('eco-inline-card-style')) {
+      const s = document.createElement('style');
+      s.id = 'eco-inline-card-style';
+      s.textContent = `
+        #eco-inline-card { background:linear-gradient(135deg,rgba(15,15,35,0.95),rgba(22,33,62,0.95)) !important; border:1px solid rgba(0,212,255,0.25) !important; border-radius:12px !important; padding:14px 16px !important; margin-bottom:14px !important; font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif !important; font-size:13px !important; color:#e2e8f0 !important; box-shadow:0 4px 20px rgba(0,0,0,0.25) !important; }
+        .eco-card-header { display:flex !important; justify-content:space-between !important; align-items:center !important; padding-bottom:10px !important; border-bottom:1px solid rgba(255,255,255,0.08) !important; margin-bottom:10px !important; }
+        .eco-card-title { font-size:13px !important; font-weight:700 !important; color:#00d4ff !important; }
+        .eco-card-score { font-size:12px !important; font-weight:800 !important; padding:2px 10px !important; border-radius:6px !important; }
+        .eco-card-row { display:flex !important; justify-content:space-between !important; align-items:center !important; padding:5px 0 !important; border-bottom:1px solid rgba(255,255,255,0.04) !important; font-size:12px !important; }
+        .eco-card-row:last-child { border-bottom:none !important; }
+        .eco-card-key { color:#64748b !important; font-weight:500 !important; }
+        .eco-card-val { color:#e2e8f0 !important; font-weight:600 !important; text-align:right !important; }
+        .eco-card-carbon { color:#00d4ff !important; font-size:15px !important; font-weight:800 !important; }
+        .eco-card-footer { margin-top:10px !important; padding-top:8px !important; border-top:1px solid rgba(255,255,255,0.06) !important; display:flex !important; justify-content:space-between !important; align-items:center !important; }
+        .eco-card-equiv { font-size:11px !important; color:#10b981 !important; font-weight:500 !important; }
+        .eco-card-open-btn { font-size:11px !important; color:#00d4ff !important; background:none !important; border:none !important; cursor:pointer !important; font-weight:600 !important; padding:0 !important; }
+      `;
+      document.head.appendChild(s);
+    }
+
+    // ── Cart tracker: listen for add-to-cart click ────────────────────────
+    let pendingCarbon = null;
+    const cartBtn = document.getElementById('add-to-cart-button');
+    if (cartBtn && !cartBtn.dataset.ecoCartListenerAttached) {
+      cartBtn.dataset.ecoCartListenerAttached = 'true';
+      cartBtn.addEventListener('click', () => {
+        const entry = {
+          asin,
+          title: productTitle.substring(0, 80),
+          carbonKg: pendingCarbon,
+          timestamp: Date.now(),
+        };
+        chrome.storage.local.get(['cartItems'], (d) => {
+          let items = d.cartItems || [];
+          items = items.filter(i => i.asin !== asin); // deduplicate
+          items.unshift(entry);
+          items = items.slice(0, 10);
+          chrome.storage.local.set({ cartItems: items });
+        });
+      });
+    }
+
+    // ── Fetch full emissions data ─────────────────────────────────────────
     chrome.storage.local.get(['analysisHistory', 'savedPostcode'], async (data) => {
       const pc = data.savedPostcode || 'SW1A 1AA';
-      // Check cache — reuse if analysed within 6 hours
+
+      // Check cache first (6 hour window)
       const history = data.analysisHistory || [];
       const cached = history.find(h => h.url && h.url.includes(asin) && Date.now() - h.timestamp < 21600000);
+
       if (cached) {
-        showBannerResult(banner, cached.title, cached.carbonKg, cached.mlScore, true);
+        updateInlineCard(inlineCard, cached.title, cached.carbonKg, cached.mlScore, cached.material, null, null, true);
+        pendingCarbon = cached.carbonKg;
         return;
       }
 
@@ -851,64 +1150,69 @@
         const json = await res.json();
         if (json?.data?.attributes) {
           const attr = json.data.attributes;
-          showBannerResult(banner, json.title, attr.carbon_kg, attr.eco_score_ml, false);
+          pendingCarbon = attr.carbon_kg;
+          updateInlineCard(
+            inlineCard,
+            json.title,
+            attr.carbon_kg,
+            attr.eco_score_ml,
+            attr.material_type,
+            attr.country_of_origin || attr.origin,
+            attr.transport_mode,
+            false
+          );
           saveToHistory({ url, title: json.title, data: json.data, timestamp: Date.now() });
-        } else {
-          banner.remove();
         }
       } catch {
-        banner.remove();
+        if (inlineCard) {
+          const carbonEl = document.getElementById('eco-card-carbon');
+          if (carbonEl) carbonEl.textContent = 'Unavailable';
+        }
       }
     });
   }
 
-  function createAutoBanner() {
-    const existing = document.getElementById('eco-auto-banner');
-    if (existing) existing.remove();
-    const el = document.createElement('div');
-    el.id = 'eco-auto-banner';
-    el.innerHTML = `
-      <div class="eco-banner-header">
-        <span class="eco-banner-title">🌱 Eco Impact</span>
-        <button class="eco-banner-close" id="ecoBannerCloseBtn">×</button>
-      </div>
-      <div id="eco-banner-body"></div>
-    `;
-    document.body.appendChild(el);
-    el.querySelector('#ecoBannerCloseBtn').addEventListener('click', () => el.remove());
-    return el;
-  }
+  function updateInlineCard(card, title, carbonKg, mlScore, material, origin, transport, fromCache) {
+    if (!card) return;
 
-  function showBannerResult(banner, title, carbonKg, mlScore, fromCache) {
-    const scoreEmoji = { 'A+':'🌍','A':'🌿','B':'🍃','C':'🌱','D':'⚠️','E':'❌','F':'💀' }[mlScore] || '🔍';
-    const treesExact = carbonKg ? carbonKg / 21 : 0;
-    const treesLine = treesExact < 1
-      ? `${Math.round(treesExact * 365)} days of tree absorption`
-      : `${Math.ceil(treesExact)} tree${Math.ceil(treesExact) > 1 ? 's' : ''} to offset`;
+    const scoreColors = { 'A+':'#10b981','A':'#10b981','B':'#84cc16','C':'#f59e0b','D':'#f97316','E':'#ef4444','F':'#dc2626' };
+    const scoreColor = scoreColors[mlScore] || '#6b7280';
 
-    banner.querySelector('#eco-banner-body').innerHTML = `
-      <div class="eco-banner-row" style="margin-bottom:8px;">
-        <span style="font-size:12px;color:#94a3b8;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:280px;">${(title||'').substring(0,60)}${(title||'').length>60?'…':''}</span>
-      </div>
-      <div class="eco-banner-row">
-        <span class="eco-banner-label">Carbon footprint</span>
-        <span class="eco-banner-carbon">${carbonKg ? carbonKg + ' kg CO₂' : 'N/A'}</span>
-      </div>
-      <div class="eco-banner-row">
-        <span class="eco-banner-label">Eco score</span>
-        <span class="eco-banner-value">${scoreEmoji} ${mlScore || 'N/A'}</span>
-      </div>
-      <div class="eco-banner-row">
-        <span class="eco-banner-label">Offset</span>
-        <span class="eco-banner-value" style="color:#10b981;">🌳 ${treesLine}</span>
-      </div>
-      ${fromCache ? '<div style="text-align:right;font-size:10px;color:#475569;margin-top:4px;">cached result</div>' : ''}
-    `;
-    // Auto-dismiss after 12 seconds
-    setTimeout(() => {
-      const el = document.getElementById('eco-auto-banner');
-      if (el) el.style.opacity = '0', el.style.transition = 'opacity 0.5s', setTimeout(() => el?.remove(), 500);
-    }, 12000);
+    const scoreBadge = document.getElementById('eco-card-score-badge');
+    if (scoreBadge) {
+      scoreBadge.textContent = mlScore || '?';
+      scoreBadge.style.background = scoreColor + '33';
+      scoreBadge.style.color = scoreColor;
+    }
+
+    const carbonEl = document.getElementById('eco-card-carbon');
+    if (carbonEl) carbonEl.textContent = carbonKg != null ? `${carbonKg} kg CO₂e` : '—';
+
+    const matEl = document.getElementById('eco-card-material');
+    if (matEl) matEl.textContent = material || '—';
+
+    const origEl = document.getElementById('eco-card-origin');
+    if (origEl) origEl.textContent = origin || '—';
+
+    const transEl = document.getElementById('eco-card-transport');
+    if (transEl) transEl.textContent = transport || '—';
+
+    // Equivalence line
+    const equivEl = document.getElementById('eco-card-equiv');
+    if (equivEl && carbonKg) {
+      const kg = parseFloat(carbonKg);
+      const trees = kg / 21;
+      equivEl.textContent = trees < 1
+        ? `≈ ${Math.round(trees * 365)} days of tree absorption`
+        : `≈ ${Math.ceil(trees)} tree${Math.ceil(trees) > 1 ? 's' : ''} to offset`;
+    }
+
+    if (fromCache && card) {
+      const cacheNote = document.createElement('div');
+      cacheNote.style.cssText = 'font-size:10px;color:#475569;text-align:right;margin-top:4px;';
+      cacheNote.textContent = 'cached result';
+      card.appendChild(cacheNote);
+    }
   }
 
   // Local function for new analysis

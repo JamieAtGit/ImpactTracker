@@ -1,3 +1,12 @@
+// ── Extension settings (loaded from storage, gating badge + tooltip display) ─
+let ecoSettings = { showBadges: true, showTooltips: true };
+chrome.storage.local.get(['ecoSettings'], (data) => {
+  if (data.ecoSettings) ecoSettings = { ...ecoSettings, ...data.ecoSettings };
+});
+
+// Active filter state persists across enhanceTooltips re-runs
+let activeEcoFilter = 'all'; // 'all' | 'Low' | 'Low-Moderate' | 'Moderate' | 'High'
+
 // Smart cleanup function - only cleans up broken/orphaned tooltips
 function cleanupBrokenTooltips() {
   console.log("🧹 Cleaning up broken tooltips");
@@ -752,6 +761,7 @@ function getLcaBreakdown(info) {
 }
 
 function showTooltipFor(target, info, secondaryMaterial) {
+  if (!ecoSettings.showTooltips) return;
   if (!info || typeof info !== "object" || !info.name || info.name === "unknown") {
     console.warn("⚠️ Skipping tooltip — no valid info provided.");
     return;
@@ -1139,13 +1149,17 @@ async function enhanceTooltips() {
       if (!badgeInfo || !badgeInfo.impact || badgeInfo.impact === 'Unknown') {
         const estimatedImpact = estimateImpactFromTitle(materialHint || titlePrimary, title);
         if (estimatedImpact) {
-          badgeInfo = { impact: estimatedImpact, name: materialHint || titlePrimary || 'unknown' };
+          badgeInfo = { impact: estimatedImpact, name: materialHint || titlePrimary || 'unknown', estimated: true };
         }
       }
 
       showTooltipFor(tile, info, secondary);   // tooltip uses real lookup (may be null → no tooltip)
       addImpactBadge(tile, badgeInfo);          // badge uses best available info
     }
+
+    // Update summary bar and filter buttons after processing all tiles
+    injectOrUpdateSummaryBar();
+    injectOrUpdateFilterBar();
   }
 }
 
@@ -1180,8 +1194,9 @@ function estimateImpactFromTitle(materialHint, title) {
 }
 
 // Inject a small coloured impact badge inline after the product title text
-function addImpactBadge(target, info) {
-  if (!info || !info.impact || info.impact === "Unknown") return;
+function addImpactBadge(target, badgeInfo) {
+  if (!ecoSettings.showBadges) return;
+  if (!badgeInfo || !badgeInfo.impact || badgeInfo.impact === "Unknown") return;
   if (target.dataset.ecoBadgeAdded) return;
   target.dataset.ecoBadgeAdded = "true";
 
@@ -1191,7 +1206,10 @@ function addImpactBadge(target, info) {
     "Moderate":     { bg: "#f59e0b", text: "⚠️ Med" },
     "High":         { bg: "#ef4444", text: "🔥 High" },
   };
-  const style = colorMap[info.impact] || { bg: "#6b7280", text: "❓ Unknown" };
+  const style = colorMap[badgeInfo.impact] || { bg: "#6b7280", text: "❓" };
+
+  // ~ prefix when impact was estimated from title keywords, not from material_insights.json
+  const prefix = badgeInfo.estimated === true ? '~' : '';
 
   const badge = document.createElement("span");
   badge.className = "eco-impact-badge";
@@ -1209,8 +1227,9 @@ function addImpactBadge(target, info) {
     "white-space:nowrap",
     "pointer-events:none",
     "font-family:system-ui,-apple-system,sans-serif",
+    "opacity:0.95",
   ].join(";");
-  badge.textContent = style.text;
+  badge.textContent = prefix + style.text;
 
   // Insert after the target span, or append inside it if no next sibling
   if (target.nextSibling) {
@@ -1218,6 +1237,159 @@ function addImpactBadge(target, info) {
   } else {
     target.parentNode?.appendChild(badge);
   }
+
+  // Mark the nearest [data-asin] container for eco filter targeting
+  const container = target.closest('[data-asin]');
+  if (container) {
+    container.dataset.ecoImpact = badgeInfo.impact;
+  }
+}
+
+// ── Eco summary bar: shows count of products analysed by impact level ─────────
+function injectOrUpdateSummaryBar() {
+  // Only on listing/search pages, not product detail
+  if (document.querySelector('#productTitle')) return;
+
+  const counts = { Low: 0, 'Low-Moderate': 0, Moderate: 0, High: 0 };
+  let total = 0;
+  document.querySelectorAll('[data-asin][data-eco-impact]').forEach(el => {
+    const impact = el.dataset.ecoImpact;
+    if (counts[impact] !== undefined) { counts[impact]++; total++; }
+  });
+  if (total === 0) return;
+
+  // Find the results container
+  const anchor =
+    document.querySelector('.s-main-slot') ||
+    document.querySelector('[data-component-type="s-search-result"]')?.parentElement ||
+    document.querySelector('#search');
+  if (!anchor) return;
+
+  let bar = document.getElementById('eco-summary-bar');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'eco-summary-bar';
+    bar.style.cssText = [
+      'width:100%','box-sizing:border-box',
+      'padding:8px 16px','margin-bottom:8px',
+      'background:linear-gradient(135deg,rgba(15,15,35,0.92),rgba(22,33,62,0.92))',
+      'border:1px solid rgba(0,212,255,0.2)','border-radius:10px',
+      'font-family:system-ui,-apple-system,sans-serif',
+      'font-size:13px','color:#e2e8f0',
+      'display:flex','align-items:center','gap:14px','flex-wrap:wrap',
+      'position:relative','z-index:9000',
+    ].join(';');
+    anchor.insertBefore(bar, anchor.firstChild);
+  }
+
+  bar.innerHTML = `
+    <span style="font-weight:700;color:#00d4ff;white-space:nowrap;">🌍 Eco: ${total} analysed</span>
+    ${counts['Low']        ? `<span style="color:#10b981;font-weight:600;">🌱 Low: ${counts['Low']}</span>` : ''}
+    ${counts['Low-Moderate'] ? `<span style="color:#84cc16;font-weight:600;">🌿 Low-Med: ${counts['Low-Moderate']}</span>` : ''}
+    ${counts['Moderate']   ? `<span style="color:#f59e0b;font-weight:600;">⚠️ Med: ${counts['Moderate']}</span>` : ''}
+    ${counts['High']       ? `<span style="color:#ef4444;font-weight:600;">🔥 High: ${counts['High']}</span>` : ''}
+    <span style="margin-left:auto;font-size:11px;color:#475569;">Scroll for more →</span>
+  `;
+}
+
+// ── Eco filter buttons: hide/show result tiles by impact level ────────────────
+function injectOrUpdateFilterBar() {
+  if (document.querySelector('#productTitle')) return;
+  if (document.querySelectorAll('[data-asin][data-eco-impact]').length === 0) return;
+
+  const anchor =
+    document.querySelector('.s-main-slot') ||
+    document.querySelector('[data-component-type="s-search-result"]')?.parentElement ||
+    document.querySelector('#search');
+  if (!anchor) return;
+
+  let filterBar = document.getElementById('eco-filter-bar');
+  if (!filterBar) {
+    filterBar = document.createElement('div');
+    filterBar.id = 'eco-filter-bar';
+    filterBar.style.cssText = [
+      'width:100%','box-sizing:border-box',
+      'padding:6px 16px','margin-bottom:10px',
+      'display:flex','align-items:center','gap:8px','flex-wrap:wrap',
+      'font-family:system-ui,-apple-system,sans-serif',
+    ].join(';');
+
+    const summaryBar = document.getElementById('eco-summary-bar');
+    if (summaryBar) {
+      anchor.insertBefore(filterBar, summaryBar.nextSibling);
+    } else {
+      anchor.insertBefore(filterBar, anchor.firstChild);
+    }
+
+    // Build filter button set
+    const filters = [
+      { key: 'all',          label: '🔍 All',        active_col: '#00d4ff', border: 'rgba(0,212,255,0.4)' },
+      { key: 'Low',          label: '🌱 Low',         active_col: '#10b981', border: 'rgba(16,185,129,0.4)' },
+      { key: 'Low-Moderate', label: '🌿 Low-Med',     active_col: '#84cc16', border: 'rgba(132,204,22,0.4)'  },
+      { key: 'Moderate',     label: '⚠️ Med',         active_col: '#f59e0b', border: 'rgba(245,158,11,0.4)'  },
+      { key: 'High',         label: '🔥 High',        active_col: '#ef4444', border: 'rgba(239,68,68,0.4)'   },
+    ];
+
+    const label = document.createElement('span');
+    label.style.cssText = 'font-size:12px;font-weight:600;color:#94a3b8;margin-right:4px;';
+    label.textContent = 'Eco Filter:';
+    filterBar.appendChild(label);
+
+    filters.forEach(f => {
+      const btn = document.createElement('button');
+      btn.dataset.ecoFilterKey = f.key;
+      btn.style.cssText = [
+        'padding:3px 10px','border-radius:9999px',
+        'border:1px solid rgba(255,255,255,0.15)',
+        'background:rgba(255,255,255,0.06)',
+        'color:#94a3b8','font-size:11px','font-weight:600',
+        'cursor:pointer','transition:all 0.15s',
+        'font-family:system-ui,-apple-system,sans-serif',
+        'white-space:nowrap',
+      ].join(';');
+      btn.textContent = f.label;
+      btn.addEventListener('click', () => {
+        activeEcoFilter = f.key;
+        // Update button styles
+        filterBar.querySelectorAll('button[data-eco-filter-key]').forEach(b => {
+          const bf = filters.find(x => x.key === b.dataset.ecoFilterKey);
+          if (b.dataset.ecoFilterKey === activeEcoFilter) {
+            b.style.background = bf ? bf.active_col + '33' : 'rgba(0,212,255,0.15)';
+            b.style.borderColor = bf ? bf.border : 'rgba(0,212,255,0.4)';
+            b.style.color = bf ? bf.active_col : '#00d4ff';
+          } else {
+            b.style.background = 'rgba(255,255,255,0.06)';
+            b.style.borderColor = 'rgba(255,255,255,0.15)';
+            b.style.color = '#94a3b8';
+          }
+        });
+        applyEcoFilter();
+      });
+      filterBar.appendChild(btn);
+    });
+  }
+
+  // Re-apply current filter whenever new products have loaded
+  applyEcoFilter();
+  // Highlight active filter button
+  filterBar.querySelectorAll('button[data-eco-filter-key]').forEach(btn => {
+    const isActive = btn.dataset.ecoFilterKey === activeEcoFilter;
+    btn.style.background = isActive ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.06)';
+    btn.style.borderColor = isActive ? 'rgba(0,212,255,0.4)' : 'rgba(255,255,255,0.15)';
+    btn.style.color = isActive ? '#00d4ff' : '#94a3b8';
+  });
+}
+
+function applyEcoFilter() {
+  document.querySelectorAll('[data-asin]').forEach(container => {
+    if (activeEcoFilter === 'all') {
+      container.style.display = '';
+    } else {
+      const impact = container.dataset.ecoImpact;
+      // Hide if unanalysed OR wrong category
+      container.style.display = (impact === activeEcoFilter) ? '' : 'none';
+    }
+  });
 }
 
 
@@ -1331,3 +1503,6 @@ setInterval(() => {
     setTimeout(debouncedEnhanceTooltips, 500);
   }
 }, 1000);
+
+// Also trigger on scroll to catch lazy-loaded products
+window.addEventListener('scroll', debouncedEnhanceTooltips, { passive: true });
