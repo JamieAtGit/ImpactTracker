@@ -865,12 +865,38 @@ class EnhancedMaterialsIntelligenceService:
             (['paper', 'cardboard', 'kraft'],                      'Paper'),
         ]
 
+        # Generic parent names to suppress when a specific subtype is already the primary.
+        # E.g. primary=Polyethylene → don't add "Plastic" as secondary.
+        _PARENTS = {
+            'polyethylene':    {'plastic'},
+            'polypropylene':   {'plastic'},
+            'polycarbonate':   {'plastic'},
+            'abs plastic':     {'plastic'},
+            'pvc':             {'plastic'},
+            'polystyrene':     {'plastic'},
+            'hdpe':            {'plastic'},
+            'ldpe':            {'plastic'},
+            'acrylic':         {'plastic'},
+            'stainless steel': {'steel', 'metal', 'iron'},
+            'cast iron':       {'iron', 'metal'},
+            'carbon steel':    {'steel', 'metal'},
+            'galvanised steel':{'steel', 'metal'},
+            'aluminium':       {'metal'},
+            'copper':          {'metal'},
+            'brass':           {'metal'},
+            'titanium':        {'metal'},
+            'solid wood':      {'wood'},
+            'bamboo':          {'wood'},
+            'rattan':          {'wood'},
+        }
+        suppressed = _PARENTS.get(primary_lower, set())
+
         seen = {primary_lower}
         secondaries = []
         for keywords, material_name in material_patterns:
             if any(kw in title_lower for kw in keywords):
                 key = material_name.lower()
-                if key not in seen:
+                if key not in seen and key not in suppressed:
                     seen.add(key)
                     secondaries.append({'name': material_name, 'percentage': None})
 

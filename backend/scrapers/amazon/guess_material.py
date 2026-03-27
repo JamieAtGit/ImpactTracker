@@ -83,11 +83,16 @@ def smart_guess_material(title: str) -> str | None:
         (["porcelain", "stoneware", "earthenware"],     "Ceramic"),
         (["ceramic"],                                   "Ceramic"),
 
-        # ── Plastics ──────────────────────────────────────────────────────────
+        # ── Plastics — specific subtypes before generic ───────────────────────
         (["recycled plastic", "recycled pp"],           "Recycled Plastic"),
-        (["polycarbonate", "abs plastic", "pvc",
-          "polypropylene", "polyethylene", "acrylic",
-          "plastic"],                                   "Plastic"),
+        (["polycarbonate"],                             "Polycarbonate"),
+        (["polypropylene"],                             "Polypropylene"),
+        (["polyethylene", "hdpe", "ldpe"],              "Polyethylene"),
+        (["abs plastic", "abs"],                        "ABS Plastic"),
+        (["pvc", "polyvinyl chloride"],                 "PVC"),
+        (["polystyrene", "eps foam"],                   "Polystyrene"),
+        (["acrylic", "perspex", "plexiglass"],          "Acrylic"),
+        (["plastic"],                                   "Plastic"),
 
         # ── Other ─────────────────────────────────────────────────────────────
         (["microfibre", "microfiber", "microfleece"],   "Microfibre"),

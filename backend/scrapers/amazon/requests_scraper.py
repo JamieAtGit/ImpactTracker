@@ -927,10 +927,12 @@ class RequestsScraper:
             # Glass
             (['borosilicate glass', 'tempered glass'],         'Glass',              0.90),
             (['glass'],                                        'Glass',              0.80),
-            # Plastics / composites
+            # Plastics / composites — specific before generic
             (['polycarbonate', 'pc plastic'],                  'Polycarbonate',      0.85),
             (['polypropylene', 'pp plastic'],                  'Polypropylene',      0.85),
+            (['polyethylene', 'hdpe', 'ldpe'],                 'Polyethylene',       0.85),
             (['abs plastic', 'abs shell'],                     'ABS Plastic',        0.85),
+            (['polystyrene', 'eps foam'],                      'Polystyrene',        0.83),
             (['acrylic', 'perspex', 'plexiglass'],             'Acrylic',            0.82),
             (['silicone'],                                     'Silicone',           0.82),
             (['neoprene'],                                     'Neoprene',           0.80),
@@ -1009,9 +1011,56 @@ class RequestsScraper:
         if not collected:
             return None
 
+        # Common single/multi-letter abbreviations that Amazon uses in spec tables.
+        _ABBREV = {
+            'pe':   'Polyethylene',
+            'pp':   'Polypropylene',
+            'pc':   'Polycarbonate',
+            'abs':  'ABS Plastic',
+            'pvc':  'PVC',
+            'ps':   'Polystyrene',
+            'hdpe': 'HDPE',
+            'ldpe': 'LDPE',
+            'pet':  'PET',
+            'tpe':  'TPE',
+            'tpu':  'TPU',
+            'eva':  'EVA Foam',
+            'pu':   'PU',
+            'ss':   'Stainless Steel',
+        }
+
+        # If a specific subtype is present, its generic parent is redundant.
+        # Maps canonical_lower → set of parent canonical_lowers to suppress.
+        _PARENTS = {
+            'polyethylene':   {'plastic'},
+            'polypropylene':  {'plastic'},
+            'polycarbonate':  {'plastic'},
+            'abs plastic':    {'plastic'},
+            'pvc':            {'plastic'},
+            'polystyrene':    {'plastic'},
+            'hdpe':           {'plastic'},
+            'ldpe':           {'plastic'},
+            'pet':            {'plastic'},
+            'tpe':            {'plastic'},
+            'tpu':            {'plastic'},
+            'acrylic':        {'plastic'},
+            'stainless steel':{'steel', 'metal', 'iron'},
+            'cast iron':      {'iron', 'metal'},
+            'carbon steel':   {'steel', 'metal'},
+            'galvanised steel':{'steel', 'metal'},
+            'aluminium':      {'metal'},
+            'aluminum':       {'metal'},
+            'copper':         {'metal'},
+            'brass':          {'metal'},
+            'titanium':       {'metal'},
+            'solid wood':     {'wood'},
+            'bamboo':         {'wood'},
+            'rattan':         {'wood'},
+        }
+
         # Parse comma/plus/slash-separated material lists into individual names.
         # Primary-key entries get confidence 0.95; subcomponent entries get 0.75.
-        # Sort so primary-key materials come first, ensuring the correct primary in tier-2 detection.
+        # Sort so primary-key materials come first.
         parsed = []
         seen = set()
         for raw_val, is_primary in sorted(collected, key=lambda x: not x[1]):
@@ -1019,11 +1068,28 @@ class RequestsScraper:
             parts = re.split(r'[,+/;]', raw_val)
             for part in parts:
                 name = part.strip().strip('‎').strip()
-                if name and 1 < len(name) < 60:
-                    key_lower = name.lower()
-                    if key_lower not in seen:
-                        seen.add(key_lower)
-                        parsed.append({'name': name, 'confidence_score': confidence})
+                if not name:
+                    continue
+                # Normalise abbreviations (exact lowercase match only)
+                name_lower = name.lower()
+                if name_lower in _ABBREV:
+                    name = _ABBREV[name_lower]
+                    name_lower = name.lower()
+                if len(name) < 2 or len(name) > 60:
+                    continue
+                if name_lower not in seen:
+                    seen.add(name_lower)
+                    parsed.append({'name': name, 'confidence_score': confidence})
+
+        if not parsed:
+            return None
+
+        # Semantic deduplication: remove generic parents when a specific subtype is present.
+        specific_names = {m['name'].lower() for m in parsed}
+        parents_to_suppress: set = set()
+        for name_lower in specific_names:
+            parents_to_suppress |= _PARENTS.get(name_lower, set())
+        parsed = [m for m in parsed if m['name'].lower() not in parents_to_suppress]
 
         if not parsed:
             return None
