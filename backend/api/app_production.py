@@ -2806,6 +2806,8 @@ def create_app(config_name='production'):
 
             user_prompt = f"""PRODUCT TITLE: {product_title}
 {category_block}
+IMPORTANT: The image may contain backgrounds, packaging boxes, Amazon badges (Prime, Climate Pledge), certification logos, or lifestyle props. Analyse ONLY the physical product itself — ignore everything else in the frame.
+
 TASK: Analyse the product image and produce a precise material composition breakdown.
 
 REASONING METHOD — work through these steps:

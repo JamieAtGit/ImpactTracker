@@ -448,27 +448,61 @@ class RequestsScraper:
             climate_pledge_friendly = True
 
         # === Product image URL ===
+        # Strategy 1: #landingImage is Amazon's dedicated main product image element
         image_url = None
-        # Amazon main image is stored in a JSON blob inside #landingImage or #imgTagWrapperId
-        _img_el = soup.select_one('#landingImage, #imgTagWrapperId img, #main-image, .a-dynamic-image')
-        if _img_el:
-            # Prefer data-old-hires (highest res) then src
-            image_url = (_img_el.get('data-old-hires') or
-                         _img_el.get('data-a-hires') or
-                         _img_el.get('src') or None)
-            # Strip low-res suffixes like ._AC_SL1500_ → try to get clean URL
-            if image_url and '._' in image_url:
-                _clean = re.sub(r'\._[A-Z0-9_,]+_\.', '.', image_url)
-                if _clean.startswith('http'):
-                    image_url = _clean
-        # Fallback: find any amazon image URL in page source
+        _landing = soup.select_one('#landingImage')
+        if _landing:
+            # data-old-hires is the highest resolution available
+            image_url = _landing.get('data-old-hires') or _landing.get('data-a-hires')
+            # data-a-dynamic-image is a JSON dict {url: [width, height]} — pick largest
+            if not image_url:
+                _dyn_raw = _landing.get('data-a-dynamic-image', '')
+                if _dyn_raw:
+                    try:
+                        import json as _json
+                        _dyn_map = _json.loads(_dyn_raw)
+                        if _dyn_map:
+                            image_url = max(
+                                _dyn_map.keys(),
+                                key=lambda u: _dyn_map[u][0] * _dyn_map[u][1]
+                            )
+                    except Exception:
+                        pass
+            if not image_url:
+                _src = _landing.get('src', '')
+                if _src and _src.startswith('http') and 'media-amazon' in _src:
+                    image_url = _src
+
+        # Strategy 2: main image block container (never .a-dynamic-image globally — too broad)
         if not image_url:
-            _img_match = re.search(
-                r'https://m\.media-amazon\.com/images/I/[A-Za-z0-9%+\-_]+\.(?:jpg|jpeg|png|webp)',
+            _wrap = soup.select_one('#imgTagWrapperId img, #imageBlock #main-image')
+            if _wrap:
+                image_url = (_wrap.get('data-old-hires') or
+                             _wrap.get('data-a-hires') or
+                             _wrap.get('src') or None)
+
+        # Strategy 3: Amazon embeds full image data in a JS "colorImages" variable
+        if not image_url:
+            _hi = re.search(r'"hiRes"\s*:\s*"(https://[^"]+\.(?:jpg|jpeg|png|webp))"', str(soup))
+            if _hi:
+                image_url = _hi.group(1)
+
+        # Strategy 4: Regex — only match large product images (SL≥500 size code)
+        # This deliberately skips small icons, Prime logos, and badges
+        if not image_url:
+            _large = re.search(
+                r'https://m\.media-amazon\.com/images/I/[A-Za-z0-9+\-]+\.'
+                r'_[A-Z_0-9,]*SL(?:500|750|1000|1200|1500|2000)[A-Z_0-9,]*_\.\w+',
                 str(soup)
             )
-            if _img_match:
-                image_url = _img_match.group(0)
+            if _large:
+                image_url = _large.group(0)
+
+        # Strip Amazon's size-suffix codes (._AC_SL1500_.) to get the base high-res URL
+        if image_url and '._' in image_url:
+            _clean = re.sub(r'\._[A-Z0-9_,]+_\.', '.', image_url)
+            if _clean.startswith('http'):
+                image_url = _clean
 
         # === Sold by / Dispatched from ===
         sold_by = None
