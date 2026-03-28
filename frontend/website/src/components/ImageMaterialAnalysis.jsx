@@ -220,6 +220,9 @@ export default function ImageMaterialAnalysis({ imageUrl, title }) {
                     transition={{ delay: i * 0.07 + 0.18, duration: 0.55, ease: "easeOut" }}
                   />
                 </div>
+                {c.reasoning && (
+                  <p className="text-slate-600 text-xs italic pl-0.5">{c.reasoning}</p>
+                )}
               </motion.div>
             ))}
 

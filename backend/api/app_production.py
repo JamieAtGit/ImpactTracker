@@ -2588,9 +2588,172 @@ def create_app(config_name='production'):
         print(f"⚠️  Enterprise blueprint not loaded: {_e}")
 
     # ── AI Visual Material Analysis ───────────────────────────────────────────
+    # ── Category hints injected into the vision prompt ───────────────────────
+    _IMAGE_CATEGORY_HINTS = {
+        'guitar': (
+            "GUITAR — typical composition by WEIGHT:\n"
+            "• Body (alder/mahogany/ash/basswood solid wood): 45–55%\n"
+            "• Neck (maple or mahogany): 12–18%\n"
+            "• Fretboard (rosewood/ebony/maple): 5–8%\n"
+            "• Hardware — bridge, tuning pegs, strap buttons (zinc alloy or steel): 8–14%\n"
+            "• Strings (steel/nickel wound): 1–2%\n"
+            "• Electronics — pickups, pots, switch (copper coil + ABS plastic): 3–6%\n"
+            "• Polyester finish/lacquer: 2–4%\n"
+            "Acoustic guitars have no electronics; identify body wood from grain/colour if possible."
+        ),
+        'bass guitar': (
+            "BASS GUITAR — similar to electric guitar but heavier hardware and thicker neck.\n"
+            "• Body (alder/ash): 40–50%  • Neck (maple): 14–20%  • Fretboard: 5–8%\n"
+            "• Heavy bridge + tuning machines (zinc/steel): 12–18%  • Electronics: 4–7%"
+        ),
+        'acoustic guitar': (
+            "ACOUSTIC GUITAR — no pickups/electronics:\n"
+            "• Top (spruce or cedar): 12–18%  • Back & sides (mahogany/rosewood/maple): 28–38%\n"
+            "• Neck (mahogany/maple): 12–16%  • Fretboard (rosewood/ebony): 5–8%\n"
+            "• Bridge + tuning machines (rosewood + nickel/chrome): 8–12%\n"
+            "• Bracing + linings (spruce/basswood): 8–12%"
+        ),
+        'laptop': (
+            "LAPTOP — typical composition by WEIGHT:\n"
+            "• Battery pack (lithium-ion cells + aluminium casing): 22–30%\n"
+            "• Display assembly (aluminosilicate glass + LCD + aluminium frame): 18–25%\n"
+            "• Chassis lid + base (aluminium alloy or ABS plastic): 20–28%\n"
+            "• Motherboard (FR4 fibreglass PCB + copper + silicon): 10–15%\n"
+            "• Keyboard assembly (ABS plastic keys + steel plate): 6–10%\n"
+            "• Thermal system (copper heat pipes + aluminium heatsink + fan): 4–8%\n"
+            "Premium models use aluminium throughout; budget models use ABS plastic chassis."
+        ),
+        'smartphone': (
+            "SMARTPHONE — typical composition by WEIGHT:\n"
+            "• Battery (lithium-ion polymer): 25–35%\n"
+            "• PCB + SoC + memory chips (FR4 + copper + silicon + solder): 15–22%\n"
+            "• Aluminium or stainless steel frame: 15–22%\n"
+            "• Front glass (Gorilla Glass or ceramic): 10–15%\n"
+            "• Rear glass or polycarbonate back: 8–14%\n"
+            "• Camera module (glass lenses + copper actuator + plastic): 3–6%\n"
+            "• Display panel (OLED/LCD layers): 4–7%"
+        ),
+        'office chair': (
+            "OFFICE / GAMING CHAIR — IMPORTANT: metal is much denser than foam.\n"
+            "• Steel frame + recline mechanism: 35–50%\n"
+            "• Polyurethane foam padding (VERY low density ~0.04 g/cm³ — large but light): 8–16%\n"
+            "• Fabric/mesh/leather upholstery: 8–14%\n"
+            "• Nylon or ABS plastic seat shell, back shell, armrests: 14–22%\n"
+            "• Aluminium or steel gas-lift cylinder: 6–10%\n"
+            "• Nylon star base + polyurethane castor wheels: 5–9%"
+        ),
+        'dining chair': (
+            "DINING CHAIR:\n"
+            "• Solid wood or steel frame legs: 50–65%\n"
+            "• Seat & back padding (foam): 8–15%\n"
+            "• Upholstery (fabric/leather/velvet): 10–18%\n"
+            "• Hardware (screws, brackets — steel): 3–6%"
+        ),
+        'sofa': (
+            "SOFA / COUCH:\n"
+            "• Steel frame + spring system: 35–48%\n"
+            "• Polyurethane foam cushioning (bulky but light): 10–18%\n"
+            "• Fabric/leather/velvet upholstery: 12–20%\n"
+            "• Solid wood or engineered wood base/legs: 12–18%\n"
+            "• Sinuous spring wire (steel): 5–8%"
+        ),
+        'desk': (
+            "DESK / TABLE:\n"
+            "• Tabletop (MDF, solid wood, or particle board): 50–65%\n"
+            "• Legs/frame (steel tube, solid wood, or powder-coated steel): 28–42%\n"
+            "• Hardware (brackets, bolts, levelling feet — steel): 4–8%\n"
+            "• Veneer or laminate surface coating (if visible): 2–5%"
+        ),
+        'water bottle': (
+            "INSULATED WATER BOTTLE / FLASK:\n"
+            "• Main body double-wall (stainless steel 18/8): 78–86%\n"
+            "• Lid / cap (polypropylene plastic): 10–16%\n"
+            "• Silicone seal ring + base bumper: 3–6%"
+        ),
+        'cookware': (
+            "COOKWARE (pan/pot/wok) — density dominates weight estimate:\n"
+            "• Cast iron body: ~7.2 g/cm³ — very heavy for size → 80–90% if cast iron\n"
+            "• Stainless steel body: ~8.0 g/cm³ → 72–82%\n"
+            "• Aluminium body: ~2.7 g/cm³ → 65–75%\n"
+            "• Phenolic/bakelite handle: 12–20%\n"
+            "• PTFE or ceramic non-stick coating: 1–3%\n"
+            "• Steel rivets: 1–2%"
+        ),
+        'backpack': (
+            "BACKPACK / BAG:\n"
+            "• Main body fabric (nylon 420D/600D or polyester): 40–52%\n"
+            "• Zippers + pulls (nylon coil + zinc alloy): 8–14%\n"
+            "• Webbing straps (nylon/polyester): 10–15%\n"
+            "• Polypropylene or ABS frame/stiffener: 8–12%\n"
+            "• EVA foam back-panel + shoulder-pad padding: 5–10%\n"
+            "• Acetal or aluminium buckles: 3–6%"
+        ),
+        'jacket': (
+            "JACKET / COAT:\n"
+            "• Outer shell (polyester, nylon, or cotton): 32–44%\n"
+            "• Insulation (down feathers, polyester fiberfill, or fleece): 22–35%\n"
+            "• Lining (polyester or nylon): 14–22%\n"
+            "• Zips (nylon coil + metal pulls): 4–7%\n"
+            "• Buttons/snaps (plastic or metal): 1–3%"
+        ),
+        'shoe': (
+            "FOOTWEAR / TRAINER / BOOT:\n"
+            "• Upper (leather, suede, mesh, or synthetic): 32–45%\n"
+            "• EVA foam midsole: 20–32%\n"
+            "• Carbon rubber outsole: 16–24%\n"
+            "• Polyurethane foam insole: 5–10%\n"
+            "• Polyester laces: 1–3%"
+        ),
+        'headphones': (
+            "HEADPHONES / EARPHONES:\n"
+            "• ABS plastic headband + ear-cup housings: 28–38%\n"
+            "• Driver units (copper voice coil + neodymium magnet + plastic housing): 16–24%\n"
+            "• Polyurethane + protein-leather ear pads: 10–18%\n"
+            "• Steel headband spring: 8–14%\n"
+            "• PCB + battery (if wireless): 8–14%\n"
+            "• Copper cable or charging cable + PVC sheath: 6–12%"
+        ),
+        'bicycle': (
+            "BICYCLE:\n"
+            "• Frame (aluminium alloy 6061 or carbon fibre or steel): 28–40%\n"
+            "• Wheels — rims + spokes + tyres (aluminium + steel + rubber): 25–35%\n"
+            "• Drivetrain — chain, cassette, cranks (steel + aluminium): 12–18%\n"
+            "• Brakes + cables (aluminium + steel): 5–9%\n"
+            "• Handlebar + stem (aluminium): 5–8%\n"
+            "• Saddle (steel rails + foam + synthetic leather): 3–6%"
+        ),
+    }
+
+    def _get_category_hint(title: str) -> str:
+        """Match product title to a category and return composition hint."""
+        t = title.lower()
+        # Order matters — more specific first
+        checks = [
+            (['acoustic guitar'],                   'acoustic guitar'),
+            (['bass guitar'],                        'bass guitar'),
+            (['electric guitar', 'guitar'],          'guitar'),
+            (['laptop', 'macbook', 'notebook'],      'laptop'),
+            (['iphone', 'samsung galaxy', 'pixel phone', 'smartphone'], 'smartphone'),
+            (['office chair', 'gaming chair', 'desk chair', 'task chair'], 'office chair'),
+            (['dining chair', 'kitchen chair'],      'dining chair'),
+            (['sofa', 'couch', 'settee', 'loveseat'], 'sofa'),
+            (['desk', 'standing desk', 'workstation', 'coffee table', 'side table', 'dining table'], 'desk'),
+            (['water bottle', 'flask', 'tumbler', 'thermos', 'insulated bottle'], 'water bottle'),
+            (['frying pan', 'saucepan', 'wok', 'skillet', 'cookware', 'casserole'], 'cookware'),
+            (['backpack', 'rucksack', 'bag', 'satchel', 'tote'],  'backpack'),
+            (['jacket', 'coat', 'hoodie', 'gilet', 'puffer'],     'jacket'),
+            (['shoe', 'trainer', 'sneaker', 'boot', 'sandal'],    'shoe'),
+            (['headphone', 'earphone', 'earbud', 'airpod', 'headset'], 'headphones'),
+            (['bicycle', 'bike', 'mountain bike', 'road bike'],   'bicycle'),
+        ]
+        for keywords, key in checks:
+            if any(kw in t for kw in keywords):
+                return _IMAGE_CATEGORY_HINTS.get(key, '')
+        return ''
+
     @app.route('/api/analyse-image', methods=['POST', 'OPTIONS'])
     def analyse_image():
-        """Use Claude vision to identify materials and percentages from a product image."""
+        """Use Claude vision + category-aware reasoning to identify materials from a product image."""
         if request.method == 'OPTIONS':
             return '', 204
 
@@ -2609,9 +2772,8 @@ def create_app(config_name='production'):
             import anthropic as _anthropic
             import base64
 
-            # Fetch the image bytes
             img_resp = __import__('requests').get(
-                image_url, timeout=12,
+                image_url, timeout=15,
                 headers={'User-Agent': 'Mozilla/5.0 (compatible; ImpactTracker/1.0)'}
             )
             img_resp.raise_for_status()
@@ -2627,31 +2789,58 @@ def create_app(config_name='production'):
                 media_type = 'image/jpeg'
 
             img_b64 = base64.standard_b64encode(img_resp.content).decode('utf-8')
-
             client = _anthropic.Anthropic(api_key=api_key)
 
-            prompt = (
-                f"You are a materials scientist analysing a consumer product image.\n"
-                f"Product title: {product_title}\n\n"
-                "Carefully examine the image and identify each distinct visible component.\n"
-                "For each component provide:\n"
-                "  1. part  – descriptive name (e.g. 'frame', 'seat cushion', 'screen', 'outer casing')\n"
-                "  2. material – specific material name (e.g. 'Stainless Steel', 'ABS Plastic', 'Tempered Glass', 'Cotton Fabric')\n"
-                "  3. percentage – estimated share of the total product weight as an integer (all must sum to 100)\n\n"
-                "Return ONLY valid JSON in this exact format (no markdown, no extra text):\n"
-                '{"components":[{"part":"...","material":"...","percentage":45}],'
-                '"confidence":"high","notes":"brief comment"}\n\n'
-                "Rules:\n"
-                "- Percentages must be integers summing to exactly 100\n"
-                "- Use specific material names, not generic ones\n"
-                "- Include 2–6 components only\n"
-                "- confidence must be \"high\", \"medium\", or \"low\"\n"
-                "- Return only the JSON object"
+            category_hint = _get_category_hint(product_title)
+            category_block = (
+                f"\nCATEGORY-SPECIFIC GUIDE:\n{category_hint}\n"
+                if category_hint else ""
             )
+
+            system_prompt = (
+                "You are a senior materials scientist specialising in consumer product composition analysis. "
+                "You combine visual evidence from product images with deep knowledge of manufacturing conventions "
+                "to produce accurate material breakdowns with weight-percentage estimates. "
+                "You never guess generically — you reason from what you can see and what you know about how products are made."
+            )
+
+            user_prompt = f"""PRODUCT TITLE: {product_title}
+{category_block}
+TASK: Analyse the product image and produce a precise material composition breakdown.
+
+REASONING METHOD — work through these steps:
+1. Identify the product type and each distinct visible component (and any implied hidden components you know exist in this product type).
+2. Assign the most specific material name to each component using both visual cues (colour, texture, sheen, transparency, grain) and manufacturing knowledge.
+3. Estimate weight percentage using MATERIAL DENSITY — a small metal part can outweigh a large foam cushion:
+
+   DENSITY REFERENCE (g/cm³):
+   Steel / Cast Iron: 7.6–8.1 | Stainless Steel: 7.9–8.1 | Copper: 8.9 | Zinc alloy: 6.5
+   Aluminium: 2.7 | Glass (soda-lime): 2.5 | Tempered Glass: 2.5 | Ceramic: 2.4
+   ABS Plastic: 1.04 | Polypropylene: 0.91 | Polycarbonate: 1.2 | Nylon: 1.15 | PVC: 1.4
+   Solid Wood (hardwood): 0.65–0.85 | MDF: 0.75 | Plywood: 0.55 | Bamboo: 0.7
+   Natural Rubber: 0.93 | Silicone: 1.1 | Neoprene: 1.25 | EVA Foam: 0.05–0.15
+   Polyurethane Foam: 0.03–0.06 ← VERY LIGHT, do not over-weight foam components
+   Cotton Fabric: 0.15 | Leather: 0.86 | Down insulation: 0.03
+   Lithium-Ion Battery: 2.8 (dense — batteries are heavy)
+   FR4 PCB (fibreglass + copper): 1.9 | Carbon Fibre composite: 1.55
+
+4. For multi-part products (instruments, furniture, electronics), include ALL major components — don't collapse them into one entry.
+
+OUTPUT FORMAT — return ONLY this JSON, no markdown, no other text:
+{{"components":[{{"part":"component name","material":"Specific Material Name","percentage":45,"reasoning":"1-sentence explanation of material choice and weight estimate"}}],"confidence":"high","category_detected":"{product_title[:30]}","notes":"any caveats"}}
+
+RULES:
+- 3–8 components (use more for complex products like guitars, laptops, bicycles)
+- Percentages must be integers summing to exactly 100
+- Use SPECIFIC material names: "Stainless Steel 18/8" not "Metal"; "ABS Plastic" not "Plastic"; "EVA Foam" not "Foam"
+- Include hidden/internal components you know exist (battery in a phone, mechanism in a chair)
+- confidence: "high" if materials clearly identifiable, "medium" if some uncertainty, "low" if heavily packaged/obscured
+- reasoning field: brief justification combining visual evidence + density logic"""
 
             message = client.messages.create(
                 model="claude-sonnet-4-6",
-                max_tokens=512,
+                max_tokens=1024,
+                system=system_prompt,
                 messages=[{
                     "role": "user",
                     "content": [
@@ -2663,31 +2852,36 @@ def create_app(config_name='production'):
                                 "data": img_b64,
                             },
                         },
-                        {"type": "text", "text": prompt},
+                        {"type": "text", "text": user_prompt},
                     ],
                 }],
             )
 
             response_text = message.content[0].text.strip()
-            # Strip markdown code fences if present
             if '```' in response_text:
                 response_text = re.sub(r'```(?:json)?\s*|\s*```', '', response_text).strip()
 
             result = json.loads(response_text)
-
             components = result.get('components', [])
             if not components:
                 return jsonify({'error': 'No components detected in image'}), 422
 
-            # Normalise percentages to sum to 100
+            # Normalise percentages to sum to exactly 100
             total = sum(c.get('percentage', 0) for c in components)
             if total > 0 and total != 100:
+                # Adjust largest component to absorb rounding error
                 for c in components:
                     c['percentage'] = round(c.get('percentage', 0) * 100 / total)
+                diff = 100 - sum(c['percentage'] for c in components)
+                if diff != 0:
+                    largest = max(components, key=lambda c: c['percentage'])
+                    largest['percentage'] += diff
 
+            print(f"🔬 Image analysis: {len(components)} components detected for '{product_title[:40]}'")
             return jsonify({
                 'components': components,
                 'confidence': result.get('confidence', 'medium'),
+                'category_detected': result.get('category_detected', ''),
                 'notes': result.get('notes', ''),
             })
 

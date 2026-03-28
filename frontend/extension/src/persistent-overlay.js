@@ -1,12 +1,54 @@
 // Persistent overlay that stays on page until manually closed
 (function() {
   'use strict';
-  
+
   let overlayVisible = false;
   let lastAnalysisData = null;
   let savedPostcode = '';
   let activeOverlayTab = 'calculator'; // 'calculator' | 'history'
   let ecoSettings = { showBadges: true, showTooltips: true, showAutoCard: true };
+
+  // ── Product image highlight ─────────────────────────────────────────────────
+  // Applies a red (searching) or green (found) glow-border to the main product
+  // image on Amazon product detail pages without affecting page layout.
+  function _ensureEcoAnimStyles() {
+    if (document.getElementById('eco-img-anim-styles')) return;
+    const s = document.createElement('style');
+    s.id = 'eco-img-anim-styles';
+    s.textContent = `
+      @keyframes ecoRedPulse {
+        0%,100% { box-shadow: 0 0 0 3px rgba(239,68,68,0.88), 0 0 16px rgba(239,68,68,0.28); }
+        50%      { box-shadow: 0 0 0 3px rgba(239,68,68,0.36), 0 0 28px rgba(239,68,68,0.10); }
+      }
+    `;
+    document.head.appendChild(s);
+  }
+
+  function setProductImageHighlight(state) {
+    const img =
+      document.querySelector('#landingImage') ||
+      document.querySelector('#imgTagWrapperId img') ||
+      document.querySelector('#main-image') ||
+      document.querySelector('.a-dynamic-image[data-old-hires]');
+    if (!img) return;
+
+    _ensureEcoAnimStyles();
+    img.style.transition    = 'box-shadow 0.35s ease, border-radius 0.25s ease';
+    img.style.borderRadius  = '8px';
+
+    if (state === 'searching') {
+      img.style.animation  = 'ecoRedPulse 1.4s ease-in-out infinite';
+      img.style.boxShadow  = '0 0 0 3px rgba(239,68,68,0.88), 0 0 16px rgba(239,68,68,0.28)';
+    } else if (state === 'found') {
+      img.style.animation  = 'none';
+      img.style.boxShadow  = '0 0 0 3px rgba(16,185,129,0.92), 0 0 22px rgba(16,185,129,0.38)';
+    } else {
+      img.style.animation     = 'none';
+      img.style.boxShadow     = '';
+      img.style.borderRadius  = '';
+      img.style.transition    = '';
+    }
+  }
 
   // Listen for messages from background script
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -726,9 +768,10 @@
     spinner.style.display = 'block';
     analyzeButton.disabled = true;
     output.innerHTML = '<div class="eco-loading-message">Analyzing product... This may take a few seconds.</div>';
-    
+    setProductImageHighlight('searching');
+
     const BASE_URL = 'https://impacttracker-production.up.railway.app';
-    
+
     try {
       const res = await fetch(`${BASE_URL}/estimate_emissions`, {
         method: 'POST',
@@ -739,13 +782,13 @@
           include_packaging: true
         })
       });
-      
+
       const json = await res.json();
-      
+
       if (!res.ok) {
         throw new Error(json.error || 'Failed to analyze product');
       }
-      
+
       if (json?.data) {
         const analysisData = {
           ...json,
@@ -753,20 +796,22 @@
           postcode: postcode || 'SW1A 1AA',
           timestamp: Date.now()
         };
-        
+
         lastAnalysisData = analysisData;
         chrome.storage.local.set({
           lastAnalysisData: analysisData,
           savedPostcode: postcode || 'SW1A 1AA'
         });
         saveToHistory(analysisData);
-
+        setProductImageHighlight('found');
         displayResults(analysisData);
       } else {
+        setProductImageHighlight('idle');
         showError('No data received from the server.');
       }
     } catch (err) {
       console.error('Fetch error:', err);
+      setProductImageHighlight('idle');
       showError('Error contacting API. Please try again.');
     } finally {
       buttonText.style.display = 'inline';
@@ -1150,6 +1195,7 @@
       }
 
       const BASE_URL = 'https://impacttracker-production.up.railway.app';
+      setProductImageHighlight('searching');
       try {
         const res = await fetch(`${BASE_URL}/estimate_emissions`, {
           method: 'POST',
@@ -1160,6 +1206,7 @@
         if (json?.data?.attributes) {
           const attr = json.data.attributes;
           pendingCarbon = attr.carbon_kg;
+          setProductImageHighlight('found');
           updateInlineCard(
             inlineCard,
             json.title,
@@ -1171,8 +1218,11 @@
             false
           );
           saveToHistory({ url, title: json.title, data: json.data, timestamp: Date.now() });
+        } else {
+          setProductImageHighlight('idle');
         }
       } catch {
+        setProductImageHighlight('idle');
         if (inlineCard) {
           const carbonEl = document.getElementById('eco-card-carbon');
           if (carbonEl) carbonEl.textContent = 'Unavailable';
