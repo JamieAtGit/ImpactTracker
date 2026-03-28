@@ -818,19 +818,19 @@ class EnhancedMaterialsIntelligenceService:
                 result = self._supplement_secondary_from_title(result, title)
                 return self._apply_intelligence_boosts(result, product_data)
 
-        # Tier 4: Enhanced category-based intelligent guessing (CHECK BEFORE TIER 3)
-        result = self._tier4_enhanced_category_based(product_data)
-        if result:
-            result['tier'] = 4
-            result['tier_name'] = 'Enhanced category prediction'
-            result = self._supplement_secondary_from_title(result, title)
-            return self._apply_intelligence_boosts(result, product_data)
-
-        # Tier 3: Enhanced single material detection
+        # Tier 3: Title/keyword-based material detection (before category guessing)
         result = self._tier3_enhanced_single_material(product_data)
         if result and result['primary_material'] not in ['Mixed', 'Unknown']:
             result['tier'] = 3
             result['tier_name'] = 'Enhanced keyword detection'
+            result = self._supplement_secondary_from_title(result, title)
+            return self._apply_intelligence_boosts(result, product_data)
+
+        # Tier 4: Category-based intelligent guessing (last resort before fallback)
+        result = self._tier4_enhanced_category_based(product_data)
+        if result:
+            result['tier'] = 4
+            result['tier_name'] = 'Enhanced category prediction'
             result = self._supplement_secondary_from_title(result, title)
             return self._apply_intelligence_boosts(result, product_data)
 

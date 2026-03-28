@@ -510,7 +510,7 @@ def create_app(config_name='production'):
                     "brand":        cached_product.brand,
                     "price":        float(cached_product.price) if cached_product.price else None,
                     "asin":         cached_product.asin,
-                    "image_url":    "Not found",
+                    "image_url":    None,
                     "manufacturer": "Not found",
                     "category":     "Not found",
                     "dimensions_cm": "Not found",
