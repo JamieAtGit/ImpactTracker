@@ -1152,6 +1152,7 @@ def create_app(config_name='production'):
                 "price": product.get("price"),
                 "asin": product.get("asin"),
                 "image_url": product.get("image_url"),
+                "gallery_images": product.get("gallery_images") or [],
                 "manufacturer": product.get("manufacturer"),
                 "category": product.get("category"),
                 "climate_pledge_friendly": product.get("climate_pledge_friendly", False),
@@ -2760,6 +2761,8 @@ def create_app(config_name='production'):
         data = request.get_json() or {}
         image_url = (data.get('image_url') or '').strip()
         product_title = (data.get('title') or '')
+        gallery_images = [u for u in (data.get('gallery_images') or []) if u and u != image_url]
+        spec_materials = data.get('spec_materials') or {}
 
         if not image_url:
             return jsonify({'error': 'image_url required'}), 400
@@ -2772,30 +2775,60 @@ def create_app(config_name='production'):
             import anthropic as _anthropic
             import base64
 
-            img_resp = __import__('requests').get(
-                image_url, timeout=15,
-                headers={'User-Agent': 'Mozilla/5.0 (compatible; ImpactTracker/1.0)'}
-            )
-            img_resp.raise_for_status()
+            _http = __import__('requests')
+            _headers = {'User-Agent': 'Mozilla/5.0 (compatible; ImpactTracker/1.0)'}
 
-            content_type = img_resp.headers.get('content-type', 'image/jpeg')
-            if 'png' in content_type:
-                media_type = 'image/png'
-            elif 'webp' in content_type:
-                media_type = 'image/webp'
-            elif 'gif' in content_type:
-                media_type = 'image/gif'
-            else:
-                media_type = 'image/jpeg'
+            def _fetch_image(url):
+                """Fetch image and return (base64_str, media_type) or None on failure."""
+                try:
+                    r = _http.get(url, timeout=12, headers=_headers)
+                    r.raise_for_status()
+                    ct = r.headers.get('content-type', 'image/jpeg')
+                    if 'png' in ct:   mt = 'image/png'
+                    elif 'webp' in ct: mt = 'image/webp'
+                    elif 'gif' in ct:  mt = 'image/gif'
+                    else:              mt = 'image/jpeg'
+                    return base64.standard_b64encode(r.content).decode('utf-8'), mt
+                except Exception:
+                    return None
 
-            img_b64 = base64.standard_b64encode(img_resp.content).decode('utf-8')
+            # Collect up to 3 images: main + up to 2 gallery angles
+            images_to_send = []
+            main = _fetch_image(image_url)
+            if main:
+                images_to_send.append(main)
+            for gurl in gallery_images[:4]:   # try up to 4, take first 2 that load
+                if len(images_to_send) >= 3:
+                    break
+                img = _fetch_image(gurl)
+                if img:
+                    images_to_send.append(img)
+
+            if not images_to_send:
+                return jsonify({'error': 'Could not fetch product image'}), 502
+
             client = _anthropic.Anthropic(api_key=api_key)
 
+            # Build spec-table hint if we already know the materials
+            spec_hint = ''
+            if spec_materials:
+                _sp = (spec_materials.get('primary_material') or '').strip()
+                _ss = [m.get('name', '') for m in (spec_materials.get('secondary_materials') or []) if m.get('name')]
+                if _sp and _sp.lower() not in ('unknown', 'mixed', ''):
+                    spec_hint = (
+                        f"\nSPEC TABLE EVIDENCE: Amazon's spec table identifies the primary material as "
+                        f"'{_sp}'"
+                        + (f" with secondary: {', '.join(_ss)}" if _ss else "")
+                        + ". Treat this as strong prior evidence — confirm visually or explain any discrepancy.\n"
+                    )
+
             category_hint = _get_category_hint(product_title)
-            category_block = (
-                f"\nCATEGORY-SPECIFIC GUIDE:\n{category_hint}\n"
-                if category_hint else ""
-            )
+            category_block = f"\nCATEGORY-SPECIFIC GUIDE:\n{category_hint}\n" if category_hint else ""
+            n_images = len(images_to_send)
+            multi_note = (
+                f"\nYou have been provided with {n_images} product images showing different angles. "
+                "Use ALL images together for the most accurate assessment — different angles reveal different components.\n"
+            ) if n_images > 1 else ""
 
             system_prompt = (
                 "You are a senior materials scientist specialising in consumer product composition analysis. "
@@ -2805,58 +2838,52 @@ def create_app(config_name='production'):
             )
 
             user_prompt = f"""PRODUCT TITLE: {product_title}
-{category_block}
-IMPORTANT: The image may contain backgrounds, packaging boxes, Amazon badges (Prime, Climate Pledge), certification logos, or lifestyle props. Analyse ONLY the physical product itself — ignore everything else in the frame.
+{multi_note}{spec_hint}{category_block}
+IMPORTANT: Images may contain backgrounds, packaging, Amazon badges (Prime, Climate Pledge), certification logos, or lifestyle props. Analyse ONLY the physical product itself.
 
-TASK: Analyse the product image and produce a precise material composition breakdown.
+TASK: Produce a precise material composition breakdown by weight.
 
-REASONING METHOD — work through these steps:
-1. Identify the product type and each distinct visible component (and any implied hidden components you know exist in this product type).
-2. Assign the most specific material name to each component using both visual cues (colour, texture, sheen, transparency, grain) and manufacturing knowledge.
-3. Estimate weight percentage using MATERIAL DENSITY — a small metal part can outweigh a large foam cushion:
+REASONING METHOD:
+1. Identify the product type and every distinct component — visible AND implied/hidden (e.g. battery inside a phone, steel mechanism inside a chair).
+2. Assign the most specific material name using visual cues (colour, texture, sheen, transparency, grain) and manufacturing knowledge.
+3. Estimate weight % using MATERIAL DENSITY — a small metal part outweighs a large foam cushion:
 
-   DENSITY REFERENCE (g/cm³):
-   Steel / Cast Iron: 7.6–8.1 | Stainless Steel: 7.9–8.1 | Copper: 8.9 | Zinc alloy: 6.5
-   Aluminium: 2.7 | Glass (soda-lime): 2.5 | Tempered Glass: 2.5 | Ceramic: 2.4
+   DENSITY (g/cm³):
+   Steel/Cast Iron: 7.6–8.1 | Stainless Steel: 7.9–8.1 | Copper: 8.9 | Zinc alloy: 6.5
+   Aluminium: 2.7 | Glass: 2.5 | Ceramic: 2.4
    ABS Plastic: 1.04 | Polypropylene: 0.91 | Polycarbonate: 1.2 | Nylon: 1.15 | PVC: 1.4
-   Solid Wood (hardwood): 0.65–0.85 | MDF: 0.75 | Plywood: 0.55 | Bamboo: 0.7
-   Natural Rubber: 0.93 | Silicone: 1.1 | Neoprene: 1.25 | EVA Foam: 0.05–0.15
-   Polyurethane Foam: 0.03–0.06 ← VERY LIGHT, do not over-weight foam components
-   Cotton Fabric: 0.15 | Leather: 0.86 | Down insulation: 0.03
-   Lithium-Ion Battery: 2.8 (dense — batteries are heavy)
-   FR4 PCB (fibreglass + copper): 1.9 | Carbon Fibre composite: 1.55
+   Solid Wood: 0.65–0.85 | MDF: 0.75 | Bamboo: 0.7
+   Silicone: 1.1 | Natural Rubber: 0.93 | Neoprene: 1.25
+   EVA Foam: 0.05–0.15 | Polyurethane Foam: 0.03–0.06 ← VERY LIGHT
+   Cotton: 0.15 | Leather: 0.86 | Down: 0.03
+   Lithium-Ion Battery: 2.8 | FR4 PCB: 1.9 | Carbon Fibre: 1.55
 
-4. For multi-part products (instruments, furniture, electronics), include ALL major components — don't collapse them into one entry.
+4. Multi-part products (instruments, furniture, electronics): list ALL major components separately.
 
-OUTPUT FORMAT — return ONLY this JSON, no markdown, no other text:
-{{"components":[{{"part":"component name","material":"Specific Material Name","percentage":45,"reasoning":"1-sentence explanation of material choice and weight estimate"}}],"confidence":"high","category_detected":"{product_title[:30]}","notes":"any caveats"}}
+OUTPUT — return ONLY this JSON, no markdown:
+{{"components":[{{"part":"name","material":"Specific Name","percentage":45,"reasoning":"visual evidence + density logic"}}],"confidence":"high","notes":"caveats if any"}}
 
 RULES:
-- 3–8 components (use more for complex products like guitars, laptops, bicycles)
-- Percentages must be integers summing to exactly 100
-- Use SPECIFIC material names: "Stainless Steel 18/8" not "Metal"; "ABS Plastic" not "Plastic"; "EVA Foam" not "Foam"
-- Include hidden/internal components you know exist (battery in a phone, mechanism in a chair)
-- confidence: "high" if materials clearly identifiable, "medium" if some uncertainty, "low" if heavily packaged/obscured
-- reasoning field: brief justification combining visual evidence + density logic"""
+- 3–8 components (more for guitars, laptops, bicycles)
+- Percentages = integers summing to exactly 100
+- Specific names: "Stainless Steel 18/8" not "Metal"; "ABS Plastic" not "Plastic"; "EVA Foam" not "Foam"
+- confidence: "high"=clearly visible, "medium"=some uncertainty, "low"=obscured/packaged"""
+
+            # Build multi-image content block
+            content = []
+            for b64, mt in images_to_send:
+                content.append({
+                    "type": "image",
+                    "source": {"type": "base64", "media_type": mt, "data": b64},
+                })
+            content.append({"type": "text", "text": user_prompt})
 
             message = client.messages.create(
                 model="claude-sonnet-4-6",
                 max_tokens=1024,
+                temperature=0,
                 system=system_prompt,
-                messages=[{
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "image",
-                            "source": {
-                                "type": "base64",
-                                "media_type": media_type,
-                                "data": img_b64,
-                            },
-                        },
-                        {"type": "text", "text": user_prompt},
-                    ],
-                }],
+                messages=[{"role": "user", "content": content}],
             )
 
             response_text = message.content[0].text.strip()

@@ -504,6 +504,24 @@ class RequestsScraper:
             if _clean.startswith('http'):
                 image_url = _clean
 
+        # === Gallery images (all product angles) ===
+        # Amazon embeds all gallery image URLs inside a JS colorImages variable.
+        # The "hiRes" key per entry is the full-resolution version.
+        gallery_images = []
+        _page_src = str(soup)
+        for _m in re.finditer(
+            r'"hiRes"\s*:\s*"(https://m\.media-amazon\.com/images/I/[^"]+)"',
+            _page_src
+        ):
+            _gurl = _m.group(1)
+            # Strip size suffix to get base URL, deduplicate, cap at 5
+            if '._' in _gurl:
+                _gurl = re.sub(r'\._[A-Z0-9_,]+_\.', '.', _gurl)
+            if _gurl not in gallery_images and _gurl != image_url:
+                gallery_images.append(_gurl)
+            if len(gallery_images) >= 5:
+                break
+
         # === Sold by / Dispatched from ===
         sold_by = None
         dispatched_from = None
@@ -545,6 +563,7 @@ class RequestsScraper:
             "sold_by": sold_by,
             "dispatched_from": dispatched_from,
             "image_url": image_url,
+            "gallery_images": gallery_images,
         }
         
         print(f"📡 Requests extracted: {title[:50]}...")

@@ -147,6 +147,9 @@ class ScrapingResult:
 
     # Product image URL (used by AI visual material analysis)
     image_url: Optional[str] = None
+
+    # Additional gallery images for multi-angle AI analysis
+    gallery_images: Optional[List[str]] = None
     
     def __post_init__(self):
         """Initialize default values"""
@@ -234,6 +237,7 @@ class RequestsStrategy(ScrapingStrategyBase):
                     },
                     amazon_materials_extracted=raw_result.get("amazon_materials_extracted"),
                     image_url=raw_result.get("image_url"),
+                    gallery_images=raw_result.get("gallery_images"),
                 )
                 
                 logger.info(f"✅ Requests strategy successful - Quality: {result.quality_score}%")
@@ -590,6 +594,7 @@ def scrape_amazon_product_page(amazon_url: str, fallback: bool = False) -> Dict[
         "amazon_materials_extracted": result.amazon_materials_extracted,
         # Product image for AI visual analysis
         "image_url": result.image_url,
+        "gallery_images": result.gallery_images or [],
     }
 
 if __name__ == "__main__":

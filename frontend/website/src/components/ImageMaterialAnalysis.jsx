@@ -44,7 +44,7 @@ function getColor(material, index) {
   return MATERIAL_COLORS[index % MATERIAL_COLORS.length];
 }
 
-export default function ImageMaterialAnalysis({ imageUrl, title }) {
+export default function ImageMaterialAnalysis({ imageUrl, title, galleryImages, specMaterials }) {
   const [status, setStatus] = useState("idle"); // idle | loading | done | error
   const [result, setResult] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
@@ -59,7 +59,12 @@ export default function ImageMaterialAnalysis({ imageUrl, title }) {
       const res = await fetch(`${BASE_URL}/api/analyse-image`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image_url: imageUrl, title }),
+        body: JSON.stringify({
+          image_url: imageUrl,
+          title,
+          gallery_images: galleryImages || [],
+          spec_materials: specMaterials || {},
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Analysis failed");

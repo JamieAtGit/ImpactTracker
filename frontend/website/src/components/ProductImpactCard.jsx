@@ -274,7 +274,12 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
 
               {/* AI Image Material Analysis */}
               {attr.image_url && attr.image_url !== "Not found" && (
-                <ImageMaterialAnalysis imageUrl={attr.image_url} title={result.title} />
+                <ImageMaterialAnalysis
+                  imageUrl={attr.image_url}
+                  title={result.title}
+                  galleryImages={attr.gallery_images}
+                  specMaterials={attr.materials}
+                />
               )}
 
               {/* Recyclability */}
