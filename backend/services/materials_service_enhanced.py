@@ -1102,15 +1102,46 @@ class EnhancedMaterialsIntelligenceService:
         WITHOUT scanning the product title, which prevents product-type words
         (e.g. 'glasses', 'guitar') from being mis-read as material names.
         """
-        # Proprietary / abbreviated material code → standard class
+        # Proprietary / abbreviated material code → standard class.
+        # IMPORTANT: compound phrases (multi-word) MUST live here so they are
+        # matched as a whole BEFORE the single-word keyword pass can
+        # match a substring (e.g. 'faux leather' must win over 'leather').
         CODE_MAP = {
-            # Eyewear frames
+            # ── Compound leather types ────────────────────────────────────────
+            'faux leather': 'Faux Leather',
+            'pu leather': 'Faux Leather',
+            'vegan leather': 'Faux Leather',
+            'synthetic leather': 'Faux Leather',
+            'genuine leather': 'Leather',
+            'full grain leather': 'Leather',
+            'top grain leather': 'Leather',
+            # ── Compound glass types ──────────────────────────────────────────
+            'tempered glass': 'Glass',
+            'toughened glass': 'Glass',
+            'borosilicate glass': 'Glass',
+            # ── Foam / EVA types ──────────────────────────────────────────────
+            'eva foam': 'Foam',
+            'memory foam': 'Foam',
+            'polyurethane foam': 'Foam',
+            'ethylene vinyl acetate': 'Plastic',  # EVA — shoe soles
+            # ── Compound wood types ───────────────────────────────────────────
+            'solid wood': 'Wood',
+            'engineered wood': 'Wood',
+            # ── Compound rubber / fabric ──────────────────────────────────────
+            'natural rubber': 'Rubber',
+            'synthetic rubber': 'Rubber',
+            # ── Recycled materials ────────────────────────────────────────────
+            'recycled plastic': 'Plastic',
+            'recycled polyester': 'Polyester',
+            'recycled nylon': 'Nylon',
+            'recycled cotton': 'Cotton',
+            # ── Eyewear frames ────────────────────────────────────────────────
             'tr90': 'Nylon', 'tr-90': 'Nylon',
             'acetate': 'Plastic',       # Cellulose acetate — classic glasses
             'zyl': 'Plastic',           # Zylonite = cellulose acetate
             'ultem': 'Plastic',         # Polyetherimide — high-end glasses
             'monel': 'Metal',           # Nickel-copper alloy — glasses bridges
-            # General plastics / polymers
+            # ── General plastics / polymers ───────────────────────────────────
             'tpu': 'Plastic', 'tpe': 'Plastic', 'eva': 'Plastic',
             'pa': 'Nylon', 'pa6': 'Nylon', 'pa66': 'Nylon',
             'ptfe': 'Plastic', 'teflon': 'Plastic',
@@ -1122,11 +1153,11 @@ class EnhancedMaterialsIntelligenceService:
             'pet': 'Plastic',
             'pc': 'Polycarbonate',      # safe here — we only read material_type field
             'lexan': 'Polycarbonate',
-            # Steel grades
+            # ── Steel grades ──────────────────────────────────────────────────
             'ss304': 'Stainless Steel', 'ss316': 'Stainless Steel',
             '304ss': 'Stainless Steel', '316ss': 'Stainless Steel',
             '18/8': 'Stainless Steel',  '18/10': 'Stainless Steel',
-            # Misc
+            # ── Misc ──────────────────────────────────────────────────────────
             'gore-tex': 'Nylon', 'goretex': 'Nylon',
             'kevlar': 'Carbon Fiber',
         }
@@ -1141,16 +1172,25 @@ class EnhancedMaterialsIntelligenceService:
 
         def _map_token(token: str) -> Optional[str]:
             tok_lower = token.lower()
-            # 1. Direct code map
+            # 1. Direct code map (exact whole-token lookup — highest priority)
             if tok_lower in CODE_MAP:
                 return CODE_MAP[tok_lower]
-            # 2. Keyword list — exact match or word-boundary substring for keywords >4 chars
-            for material_name, keywords in self.material_keywords.items():
-                for kw in keywords:
-                    if kw == tok_lower:
-                        return material_name
-                    if len(kw) > 4 and re.search(r'\b' + re.escape(kw) + r'\b', tok_lower):
-                        return material_name
+            # 2. Keyword list — two passes: multi-word first (most specific),
+            #    then single-word.  This prevents 'leather' matching inside
+            #    'faux leather' before a more specific keyword like
+            #    'genuine leather' gets a chance.
+            for pass_num in (0, 1):   # 0 = multi-word pass, 1 = single-word pass
+                for material_name, keywords in self.material_keywords.items():
+                    for kw in keywords:
+                        kw_is_multi = ' ' in kw
+                        if pass_num == 0 and not kw_is_multi:
+                            continue   # skip single-word on first pass
+                        if pass_num == 1 and kw_is_multi:
+                            continue   # skip multi-word on second pass
+                        if kw == tok_lower:
+                            return material_name
+                        if len(kw) > 4 and re.search(r'\b' + re.escape(kw) + r'\b', tok_lower):
+                            return material_name
             return None
 
         mapped = []
