@@ -669,7 +669,7 @@ class EnhancedMaterialsIntelligenceService:
             'Stainless Steel': ['stainless steel', 'stainless', 'ss304', 'ss316', '18/8 stainless', '18/10 stainless'],
             'Aluminum': ['aluminum', 'aluminium', 'anodized aluminum'],  # Removed 'alloy' - too broad
             'Titanium': ['titanium', 'grade 5 titanium', 'ti6al4v'],
-            'Copper': ['copper', 'cu', 'copper alloy'],
+            'Copper': ['copper', 'copper alloy', 'copper wire'],
             'Brass': ['brass', 'bronze'],
             'Iron': ['iron', 'cast iron', 'wrought iron'],
             'Metal': ['metal', 'metallic', 'steel', 'alloy'],  # Generic metal terms
@@ -689,7 +689,7 @@ class EnhancedMaterialsIntelligenceService:
             'Silicon': ['silicon', 'silicone polymer'],
             
             # Natural Materials (Enhanced)
-            'Wood': ['wood', 'wooden', 'timber', 'oak', 'pine', 'maple', 'cherry', 'walnut', 'mahogany', 'teak', 'birch', 'ash'],
+            'Wood': ['wood', 'wooden', 'timber', 'oak', 'pine', 'maple', 'cherry', 'walnut', 'mahogany', 'teak', 'birch', 'ash', 'spruce', 'rosewood', 'ebony', 'alder', 'cedar', 'poplar', 'basswood', 'nato'],
             'Bamboo': ['bamboo', 'bamboo fiber', 'bamboo wood'],
             'Cork': ['cork', 'cork board'],
             'Leather': ['leather', 'genuine leather', 'full grain leather', 'top grain leather', 'suede'],
@@ -877,7 +877,7 @@ class EnhancedMaterialsIntelligenceService:
             (['plastic', 'pvc', 'polymer'],                        'Plastic'),
             (['bamboo'],                                           'Bamboo'),
             (['solid wood', 'hardwood', 'mdf board', 'plywood'],   'Wood'),
-            (['wood', 'wooden', 'timber', 'oak', 'pine', 'teak', 'walnut', 'birch'], 'Wood'),
+            (['wood', 'wooden', 'timber', 'oak', 'pine', 'teak', 'walnut', 'birch', 'mahogany', 'spruce', 'maple', 'cherry', 'ash', 'rosewood', 'ebony', 'alder', 'cedar', 'nato', 'basswood'], 'Wood'),
             (['cork'],                                             'Cork'),
             (['rattan', 'wicker'],                                 'Rattan'),
             (['marble'],                                           'Marble'),
@@ -1081,7 +1081,8 @@ class EnhancedMaterialsIntelligenceService:
         """Enhanced Tier 3: Single material detection with improved keyword matching"""
         title = product_data.get('title', '').lower()
         description = product_data.get('description', '').lower()
-        text = f"{title} {description}"
+        material_hint = product_data.get('material_type', '').lower()
+        text = f"{title} {description} {material_hint}"
         
         # Enhanced keyword matching with confidence scoring
         material_scores = {}

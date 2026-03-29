@@ -528,6 +528,9 @@ def create_app(config_name='production'):
                     _cached_materials = deps['materials_service'].detect_materials({
                         'title': cached_product.title or '',
                         'material_type': cached_material or 'Unknown',
+                        # Include stored material as description so Tier 3 keyword matching
+                        # can use it (e.g. "AAA African Spruce" → Wood) even without spec data
+                        'description': cached_material or '',
                         'category': '',
                         'price': float(cached_product.price) if cached_product.price else None,
                         'brand': cached_product.brand or '',
