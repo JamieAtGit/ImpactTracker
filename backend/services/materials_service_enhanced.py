@@ -681,7 +681,7 @@ class EnhancedMaterialsIntelligenceService:
             'ABS Plastic': ['abs plastic', 'abs', 'acrylonitrile'],
             'Polycarbonate': ['polycarbonate', 'pc plastic', 'lexan'],
             'PVC': ['pvc', 'vinyl chloride', 'polyvinyl chloride'],
-            'Nylon': ['nylon', 'polyamide', 'pa6', 'pa66'],
+            'Nylon': ['nylon', 'polyamide', 'pa6', 'pa66', 'tr90', 'tr-90'],
             'Carbon Fiber': ['carbon fiber', 'carbon fibre', 'carbon composite', 'cf'],
             'Fiberglass': ['fiberglass', 'glass fiber', 'glass fibre', 'gfrp'],
             'Resin': ['resin', 'epoxy resin', 'polyester resin'],
@@ -818,25 +818,35 @@ class EnhancedMaterialsIntelligenceService:
                 result = self._supplement_secondary_from_title(result, title)
                 return self._apply_intelligence_boosts(result, product_data)
 
-        # Tier 3: Title/keyword-based material detection (before category guessing)
+        # Tier 3: Direct material_type field parsing (proprietary codes + spec table values)
+        # Parses Amazon's raw 'Material' row without touching the product title,
+        # preventing product-type nouns ('glasses', 'guitar') from polluting detection.
+        result = self._tier2_5_direct_material_type(product_data)
+        if result:
+            result['tier'] = 3
+            result['tier_name'] = 'Direct spec table value'
+            result = self._supplement_secondary_from_title(result, title)
+            return self._apply_intelligence_boosts(result, product_data)
+
+        # Tier 4: Title/keyword-based material detection
         result = self._tier3_enhanced_single_material(product_data)
         if result and result['primary_material'] not in ['Mixed', 'Unknown']:
-            result['tier'] = 3
+            result['tier'] = 4
             result['tier_name'] = 'Enhanced keyword detection'
             result = self._supplement_secondary_from_title(result, title)
             return self._apply_intelligence_boosts(result, product_data)
 
-        # Tier 4: Category-based intelligent guessing (last resort before fallback)
+        # Tier 5: Category-based intelligent guessing (last resort before fallback)
         result = self._tier4_enhanced_category_based(product_data)
         if result:
-            result['tier'] = 4
+            result['tier'] = 5
             result['tier_name'] = 'Enhanced category prediction'
             result = self._supplement_secondary_from_title(result, title)
             return self._apply_intelligence_boosts(result, product_data)
 
-        # Tier 5: Fallback defaults
+        # Tier 6: Fallback defaults
         result = self._tier5_fallback()
-        result['tier'] = 5
+        result['tier'] = 6
         result['tier_name'] = 'Fallback default'
         return result
     
@@ -961,10 +971,15 @@ class EnhancedMaterialsIntelligenceService:
         # Suppress anything that is a generic parent of the primary OR of any found secondary
         suppressed = _PARENTS.get(primary_lower, set())
 
+        def _kw_in_title(kw: str, t: str) -> bool:
+            if ' ' not in kw:
+                return bool(re.search(r'\b' + re.escape(kw) + r'\b', t))
+            return kw in t
+
         seen = {primary_lower}
         secondaries = []
         for keywords, material_name in material_patterns:
-            if any(kw in title_lower for kw in keywords):
+            if any(_kw_in_title(kw, title_lower) for kw in keywords):
                 key = material_name.lower()
                 if key not in seen and key not in suppressed:
                     seen.add(key)
@@ -1077,6 +1092,99 @@ class EnhancedMaterialsIntelligenceService:
             'has_percentages': False
         }
     
+    def _tier2_5_direct_material_type(self, product_data: Dict) -> Optional[Dict]:
+        """
+        Tier 2.5: Parse Amazon's raw 'Material' spec-table field directly.
+
+        This sits between structured extraction (Tier 1/2) and keyword scanning
+        (Tier 3).  It normalises proprietary codes (TR90, ABS, PC …) and
+        descriptive strings ('AAA African Spruce') into standard material names
+        WITHOUT scanning the product title, which prevents product-type words
+        (e.g. 'glasses', 'guitar') from being mis-read as material names.
+        """
+        # Proprietary / abbreviated material code → standard class
+        CODE_MAP = {
+            # Eyewear frames
+            'tr90': 'Nylon', 'tr-90': 'Nylon',
+            'acetate': 'Plastic',       # Cellulose acetate — classic glasses
+            'zyl': 'Plastic',           # Zylonite = cellulose acetate
+            'ultem': 'Plastic',         # Polyetherimide — high-end glasses
+            'monel': 'Metal',           # Nickel-copper alloy — glasses bridges
+            # General plastics / polymers
+            'tpu': 'Plastic', 'tpe': 'Plastic', 'eva': 'Plastic',
+            'pa': 'Nylon', 'pa6': 'Nylon', 'pa66': 'Nylon',
+            'ptfe': 'Plastic', 'teflon': 'Plastic',
+            'delrin': 'Plastic', 'peek': 'Plastic', 'pbt': 'Plastic', 'pei': 'Plastic',
+            'abs': 'ABS Plastic',
+            'pvc': 'PVC',
+            'pp': 'Polypropylene',
+            'pe': 'Polyethylene', 'hdpe': 'Polyethylene', 'ldpe': 'Polyethylene',
+            'pet': 'Plastic',
+            'pc': 'Polycarbonate',      # safe here — we only read material_type field
+            'lexan': 'Polycarbonate',
+            # Steel grades
+            'ss304': 'Stainless Steel', 'ss316': 'Stainless Steel',
+            '304ss': 'Stainless Steel', '316ss': 'Stainless Steel',
+            '18/8': 'Stainless Steel',  '18/10': 'Stainless Steel',
+            # Misc
+            'gore-tex': 'Nylon', 'goretex': 'Nylon',
+            'kevlar': 'Carbon Fiber',
+        }
+
+        raw = (product_data.get('material_type') or '').strip()
+        if not raw or raw.lower() in ('unknown', 'not found', '', 'n/a', 'mixed', 'material type', 'other'):
+            return None
+
+        tokens = [t.strip() for t in re.split(r'[,;/\+&]', raw) if t.strip()]
+        if not tokens:
+            return None
+
+        def _map_token(token: str) -> Optional[str]:
+            tok_lower = token.lower()
+            # 1. Direct code map
+            if tok_lower in CODE_MAP:
+                return CODE_MAP[tok_lower]
+            # 2. Keyword list — exact match or word-boundary substring for keywords >4 chars
+            for material_name, keywords in self.material_keywords.items():
+                for kw in keywords:
+                    if kw == tok_lower:
+                        return material_name
+                    if len(kw) > 4 and re.search(r'\b' + re.escape(kw) + r'\b', tok_lower):
+                        return material_name
+            return None
+
+        mapped = []
+        unmapped_names = []
+        for token in tokens:
+            name = _map_token(token)
+            if name:
+                if name not in mapped:
+                    mapped.append(name)
+            else:
+                # Preserve as-is (e.g. proprietary brand material) in title case
+                pretty = token.title()
+                if pretty not in unmapped_names:
+                    unmapped_names.append(pretty)
+
+        if not mapped:
+            return None  # Nothing identifiable — fall through to keyword tier
+
+        primary = mapped[0]
+        secondary_names = mapped[1:] + unmapped_names
+        secondary = [{'name': m, 'percentage': None} for m in secondary_names]
+        all_mats = [{'name': m, 'confidence_score': 0.82} for m in [primary] + secondary_names]
+        env_impact = self.material_co2_map.get(primary.lower(), 2.5)
+
+        return {
+            'primary_material': primary,
+            'primary_percentage': None,
+            'secondary_materials': secondary,
+            'all_materials': all_mats,
+            'confidence': 0.82,
+            'environmental_impact_score': env_impact,
+            'has_percentages': False,
+        }
+
     def _tier3_enhanced_single_material(self, product_data: Dict) -> Dict:
         """Enhanced Tier 3: Single material detection with improved keyword matching"""
         title = product_data.get('title', '').lower()
@@ -1084,17 +1192,24 @@ class EnhancedMaterialsIntelligenceService:
         material_hint = product_data.get('material_type', '').lower()
         text = f"{title} {description} {material_hint}"
         
-        # Enhanced keyword matching with confidence scoring
+        # Enhanced keyword matching with confidence scoring.
+        # Use whole-word (regex boundary) matching for single-word keywords to prevent
+        # false positives like 'glass' matching inside 'glasses', 'eyeglasses', etc.
         material_scores = {}
-        
+
+        def _kw_in_text(kw: str, t: str) -> bool:
+            if ' ' not in kw:
+                return bool(re.search(r'\b' + re.escape(kw) + r'\b', t))
+            return kw in t
+
         for material, keywords in self.material_keywords.items():
             score = 0
             for keyword in keywords:
-                if keyword in text:
+                if _kw_in_text(keyword, text):
                     # Weight longer, more specific keywords higher
                     keyword_weight = len(keyword.split()) * 0.2 + 0.3
                     score += keyword_weight
-            
+
             if score > 0:
                 material_scores[material] = score
         
