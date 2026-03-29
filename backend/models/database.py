@@ -97,6 +97,10 @@ class ScrapedProduct(db.Model):
     confidence_score = db.Column(db.Numeric(3, 2))
     scraping_status = db.Column(db.Enum('success', 'partial', 'failed', name='scraping_status'), default='success')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    # Full structured multi-material data from Amazon spec table (JSON string).
+    # Populated on fresh scrapes; used to restore Tier 1/2 detection on cache hits
+    # so multi-material products (shoes, clothing…) retain all materials.
+    materials_json = db.Column(db.Text, nullable=True)
     
     # Relationships
     emissions = db.relationship('EmissionCalculation', backref='scraped_product', lazy=True)
@@ -213,7 +217,8 @@ def save_scraped_product(product_data, user_id=None):
         brand=product_data.get('brand'),
         origin_country=product_data.get('origin_country'),
         confidence_score=product_data.get('confidence_score'),
-        scraping_status=product_data.get('scraping_status', 'success')
+        scraping_status=product_data.get('scraping_status', 'success'),
+        materials_json=product_data.get('materials_json'),
     )
     
     db.session.add(scraped_product)
@@ -271,6 +276,9 @@ def get_or_create_scraped_product(product_data, user_id=None):
         existing.origin_country = product_data.get('origin_country') or existing.origin_country
         existing.confidence_score = product_data.get('confidence_score') if product_data.get('confidence_score') is not None else existing.confidence_score
         existing.scraping_status = product_data.get('scraping_status', existing.scraping_status)
+        # Always overwrite materials_json when a fresh scrape provides it
+        if product_data.get('materials_json') is not None:
+            existing.materials_json = product_data.get('materials_json')
         if amazon_url:
             existing.amazon_url = amazon_url
         if asin:

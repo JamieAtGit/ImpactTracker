@@ -262,6 +262,7 @@ def create_app(config_name='production'):
                     ("ALTER TABLE emission_calculations ADD COLUMN eco_grade_ml VARCHAR(5)", "emission_calculations.eco_grade_ml"),
                     ("ALTER TABLE emission_calculations ADD COLUMN ml_confidence DECIMAL(5,2)", "emission_calculations.ml_confidence"),
                     ("ALTER TABLE admin_reviews ADD COLUMN corrected_grade VARCHAR(5)", "admin_reviews.corrected_grade"),
+                    ("ALTER TABLE scraped_products ADD COLUMN materials_json TEXT", "scraped_products.materials_json"),
                 ]
                 for sql, col in _migrations:
                     try:
@@ -522,19 +523,29 @@ def create_app(config_name='production'):
                     "image_url", "manufacturer", "category",
                 ])
 
-                # Run multi-material detection even for cache hits so the UI
-                # always receives a populated `materials` dict with secondaries.
+                # Restore full structured material data if available (saved on
+                # the original scrape), so Tier 1/2 detection runs on cache hits
+                # just as it would for a fresh scrape — critical for multi-material
+                # products (shoes, clothing) where each component has its own row.
+                _cached_amazon_mats = None
+                if cached_product.materials_json:
+                    try:
+                        _cached_amazon_mats = json.loads(cached_product.materials_json)
+                    except Exception:
+                        pass
+
                 try:
-                    _cached_materials = deps['materials_service'].detect_materials({
-                        'title': cached_product.title or '',
-                        'material_type': cached_material or 'Unknown',
-                        # Include stored material as description so Tier 3 keyword matching
-                        # can use it (e.g. "AAA African Spruce" → Wood) even without spec data
-                        'description': cached_material or '',
-                        'category': '',
-                        'price': float(cached_product.price) if cached_product.price else None,
-                        'brand': cached_product.brand or '',
-                    })
+                    _cached_materials = deps['materials_service'].detect_materials(
+                        {
+                            'title': cached_product.title or '',
+                            'material_type': cached_material or 'Unknown',
+                            'description': cached_material or '',
+                            'category': '',
+                            'price': float(cached_product.price) if cached_product.price else None,
+                            'brand': cached_product.brand or '',
+                        },
+                        amazon_extracted_materials=_cached_amazon_mats,
+                    )
                 except Exception:
                     _cached_materials = None
 
@@ -1209,6 +1220,11 @@ def create_app(config_name='production'):
                 confidence_score = confidence_to_score.get(confidence_label, 0.7)
 
                 _session_user_id = session.get('user', {}).get('id')
+                # Serialise full multi-material spec data so cache hits can
+                # restore Tier 1/2 detection without re-scraping.
+                _amazon_mats = product.get('amazon_materials_extracted')
+                _materials_json = json.dumps(_amazon_mats) if _amazon_mats else None
+
                 scraped_product = get_or_create_scraped_product({
                     'amazon_url': url,
                     'asin': product.get('asin') or asin_key,
@@ -1219,7 +1235,8 @@ def create_app(config_name='production'):
                     'brand': product.get('brand'),
                     'origin_country': origin_country,
                     'confidence_score': product.get('confidence_score', 0.85),
-                    'scraping_status': 'success'
+                    'scraping_status': 'success',
+                    'materials_json': _materials_json,
                 }, user_id=_session_user_id)
                 
                 save_emission_calculation({
