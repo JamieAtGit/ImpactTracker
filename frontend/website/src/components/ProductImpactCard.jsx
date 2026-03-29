@@ -210,31 +210,43 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
                 <Row label="UK hub distance" value={`${ukKm.toFixed(0)} km`} />
               </div>
 
-              {/* Materials — primary + secondary + all detected */}
+              {/* Materials */}
               <div className="glass-card rounded-xl p-4">
                 <h4 className="text-slate-300 font-semibold text-sm mb-3">🧱 Materials</h4>
 
-                {/* Primary */}
-                <Row label="Primary material" value={primaryMaterial} badge badgeVariant="info" />
-                {materialTier && (
-                  <Row label="Detection tier" value={`Tier ${materialTier}: ${attr.materials?.tier_name || ""}`} />
-                )}
-                {materialConf && (
-                  <Row label="Detection confidence" value={`${((materialConf || 0) * 100).toFixed(0)}%`} />
-                )}
-                {attr.materials?.primary_percentage && !isNaN(parseFloat(attr.materials.primary_percentage)) && (
-                  <Row label="Primary material share" value={`${attr.materials.primary_percentage}%`} />
-                )}
-                {attr.materials?.environmental_impact_score && (
-                  <Row label="Material impact score" value={`${attr.materials.environmental_impact_score} kg CO₂/kg`} />
+                {/* Primary material */}
+                <Row
+                  label="Primary material"
+                  value={
+                    attr.materials?.primary_percentage && !isNaN(parseFloat(attr.materials.primary_percentage))
+                      ? `${primaryMaterial} · ${attr.materials.primary_percentage}%`
+                      : primaryMaterial
+                  }
+                  badge
+                  badgeVariant="info"
+                />
+
+                {/* Secondary material — first secondary only */}
+                {attr.materials?.secondary_materials?.length > 0 && (
+                  <Row
+                    label="Secondary material"
+                    value={
+                      attr.materials.secondary_materials[0].percentage &&
+                      !isNaN(parseFloat(attr.materials.secondary_materials[0].percentage))
+                        ? `${attr.materials.secondary_materials[0].name} · ${attr.materials.secondary_materials[0].percentage}%`
+                        : attr.materials.secondary_materials[0].name
+                    }
+                    badge
+                    badgeVariant="default"
+                  />
                 )}
 
-                {/* Secondary materials */}
-                {attr.materials?.secondary_materials?.length > 0 && (
-                  <div className="pt-3 mt-1 border-t border-slate-700/40">
-                    <p className="text-slate-400 text-xs font-medium mb-2">Secondary materials</p>
+                {/* Tertiary materials — remaining secondaries, if any */}
+                {attr.materials?.secondary_materials?.length > 1 && (
+                  <div className="pt-2 pb-1">
+                    <p className="text-slate-500 text-xs mb-1.5">Tertiary materials</p>
                     <div className="flex flex-wrap gap-1.5">
-                      {attr.materials.secondary_materials.map((m, i) => (
+                      {attr.materials.secondary_materials.slice(1).map((m, i) => (
                         <span key={i} className="px-2 py-1 text-xs bg-slate-800 text-slate-300 rounded-md border border-slate-600">
                           {m.name}{m.percentage && !isNaN(parseFloat(m.percentage)) ? ` · ${m.percentage}%` : ""}
                         </span>
@@ -270,6 +282,19 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
                     </div>
                   </div>
                 )}
+
+                {/* Detection metadata — moved to bottom */}
+                <div className="pt-3 mt-1 border-t border-slate-700/40 space-y-0">
+                  {materialTier && (
+                    <Row label="Detection tier" value={`Tier ${materialTier}: ${attr.materials?.tier_name || ""}`} />
+                  )}
+                  {materialConf && (
+                    <Row label="Detection confidence" value={`${((materialConf || 0) * 100).toFixed(0)}%`} />
+                  )}
+                  {attr.materials?.environmental_impact_score && (
+                    <Row label="Material impact score" value={`${attr.materials.environmental_impact_score} kg CO₂/kg`} />
+                  )}
+                </div>
               </div>
 
               {/* AI Image Material Analysis */}

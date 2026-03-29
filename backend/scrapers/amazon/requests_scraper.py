@@ -1078,10 +1078,18 @@ class RequestsScraper:
             'eva foam':          {'foam'},
         }
 
+        import re as _re
+
+        def _kw_match(kw: str, t: str) -> bool:
+            """Whole-word match for single-word keywords; substring for multi-word."""
+            if ' ' not in kw:
+                return bool(_re.search(r'\b' + _re.escape(kw) + r'\b', t))
+            return kw in t
+
         found = []
         seen: set = set()
         for keywords, material_name, confidence in material_patterns:
-            if any(kw in title_lower for kw in keywords):
+            if any(_kw_match(kw, title_lower) for kw in keywords):
                 key = material_name.lower()
                 if key not in seen:
                     seen.add(key)
