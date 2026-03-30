@@ -227,9 +227,11 @@ def save_scraped_product(product_data, user_id=None):
 
 def save_emission_calculation(calculation_data):
     """Save emission calculation to database"""
+    raw_postcode = calculation_data.get('user_postcode') or ''
+    normalised_postcode = raw_postcode.replace(" ", "").upper() if raw_postcode else raw_postcode
     emission = EmissionCalculation(
         scraped_product_id=calculation_data.get('scraped_product_id'),
-        user_postcode=calculation_data.get('user_postcode'),
+        user_postcode=normalised_postcode,
         transport_distance=calculation_data.get('transport_distance'),
         transport_mode=calculation_data.get('transport_mode'),
         ml_prediction=calculation_data.get('ml_prediction'),
@@ -294,6 +296,7 @@ def find_cached_emission_calculation(asin=None, amazon_url=None, postcode=None):
     query = EmissionCalculation.query.join(ScrapedProduct)
 
     if postcode:
+        postcode = postcode.replace(" ", "").upper()
         query = query.filter(EmissionCalculation.user_postcode == postcode)
 
     has_lookup = False
