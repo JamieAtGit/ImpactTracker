@@ -36,185 +36,184 @@ const AdminStatCard = ({ title, value, subtitle, icon, color = "blue" }) => {
   );
 };
 
-const TooltipHeader = ({ label, tip }) => (
-  <div className="group relative inline-flex items-center gap-1 cursor-help">
-    <span>{label}</span>
-    <span className="text-slate-500 text-xs">ⓘ</span>
-    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 px-3 py-2 bg-slate-800 border border-slate-600 text-slate-200 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none shadow-xl">
-      {tip}
-      <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-800" />
-    </div>
-  </div>
-);
+const GRADE_VARIANT = g =>
+  g === 'A+' || g === 'A' ? 'success' : g === 'B' || g === 'C' ? 'warning' : 'error';
 
-const PredictionManagement = ({ submissions, selected, updatedLabel, setUpdatedLabel, handleEdit, handleSave, setSelected, handleBulkApprove }) => (
-  <ModernCard solid>
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-display text-slate-200">
-          Review & Validate Predictions
-        </h3>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleBulkApprove}
-            className="group relative inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm font-medium hover:bg-emerald-500/20 hover:border-emerald-400/50 transition-all duration-200"
-          >
-            <span className="w-2 h-2 rounded-full bg-emerald-400 group-hover:animate-ping" />
-            Auto-approve matching grades
-          </button>
-          <ModernBadge variant="info" size="sm">
-            {submissions.length} items
-          </ModernBadge>
+// Returns the suggested true label and reasoning for a submission
+const suggest = (item) => {
+  const conf = parseFloat(item.confidence) || 0;
+  if (item.predicted_label && item.rule_based_label && item.predicted_label === item.rule_based_label)
+    return { grade: item.predicted_label, reason: 'Both methods agree' };
+  if (conf >= 80 && item.predicted_label)
+    return { grade: item.predicted_label, reason: `ML confidence ${conf.toFixed(0)}% — trust ML` };
+  if (conf < 60 && item.rule_based_label)
+    return { grade: item.rule_based_label, reason: `ML confidence low (${conf.toFixed(0)}%) — prefer rule` };
+  if (item.rule_based_label)
+    return { grade: item.rule_based_label, reason: 'Uncertain — rule grade suggested' };
+  if (item.predicted_label)
+    return { grade: item.predicted_label, reason: 'Rule unavailable — using ML' };
+  return { grade: '', reason: 'No suggestion available' };
+};
+
+function PredictionManagement({ submissions, selected, updatedLabel, setUpdatedLabel, handleEdit, handleSave, setSelected, handleBulkApprove }) {
+  const [showDisagreementsOnly, setShowDisagreementsOnly] = React.useState(false);
+
+  const displayed = showDisagreementsOnly
+    ? submissions.filter(s => s.predicted_label && s.rule_based_label && s.predicted_label !== s.rule_based_label && !s.true_label)
+    : submissions;
+
+  const disagreementCount = submissions.filter(
+    s => s.predicted_label && s.rule_based_label && s.predicted_label !== s.rule_based_label && !s.true_label
+  ).length;
+
+  return (
+    <ModernCard solid>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <h3 className="text-lg font-display text-slate-200">Review & Validate Predictions</h3>
+          <div className="flex items-center gap-3 flex-wrap">
+            <button
+              onClick={() => setShowDisagreementsOnly(v => !v)}
+              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 ${
+                showDisagreementsOnly
+                  ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
+                  : 'bg-slate-700/50 border-slate-600 text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              ⚠ Disagreements only
+              {disagreementCount > 0 && (
+                <span className="bg-amber-500/30 text-amber-300 rounded-full px-1.5">{disagreementCount}</span>
+              )}
+            </button>
+            <button
+              onClick={handleBulkApprove}
+              className="group inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm font-medium hover:bg-emerald-500/20 hover:border-emerald-400/50 transition-all duration-200"
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-400 group-hover:animate-ping" />
+              Auto-approve matching grades
+            </button>
+            <ModernBadge variant="info" size="sm">{displayed.length} items</ModernBadge>
+          </div>
+        </div>
+
+        {/* Guidance panel */}
+        <div className="rounded-xl border border-slate-700 bg-slate-800/40 px-4 py-3 text-xs text-slate-400 space-y-1">
+          <p><span className="text-slate-300 font-medium">Confidence</span> — ML model certainty. &gt;80%: trust ML grade. &lt;60%: prefer Rule grade (deterministic maths).</p>
+          <p><span className="text-slate-300 font-medium">⚠ Grades disagree</span> — click <span className="text-slate-300">Label</span> and the input is pre-filled with the best suggestion. Edit if you disagree.</p>
+          <p><span className="text-slate-300 font-medium">CO₂ sense-check</span> — A+ ≈ &lt;0.5 kg · A ≈ 0.5–2 kg · B–C ≈ 2–8 kg · D ≈ 8–15 kg · E–F &gt;15 kg.</p>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-600">
+                <th className="text-left p-3 text-slate-300 font-medium">Product Title</th>
+                <th className="text-left p-3 text-slate-300 font-medium">Origin</th>
+                <th className="text-left p-3 text-slate-300 font-medium">ML Grade</th>
+                <th className="text-left p-3 text-slate-300 font-medium">Rule Grade</th>
+                <th className="text-left p-3 text-slate-300 font-medium">Confidence</th>
+                <th className="text-left p-3 text-slate-300 font-medium">CO₂ (kg)</th>
+                <th className="text-left p-3 text-slate-300 font-medium">Suggestion</th>
+                <th className="text-left p-3 text-slate-300 font-medium">True Label</th>
+                <th className="text-left p-3 text-slate-300 font-medium">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {displayed.length > 0 ? (
+                displayed.map((item, index) => {
+                  const realIndex = submissions.indexOf(item);
+                  const { grade: suggestedGrade, reason: suggestedReason } = suggest(item);
+                  const disagrees = item.predicted_label && item.rule_based_label && item.predicted_label !== item.rule_based_label;
+                  return (
+                    <motion.tr
+                      key={item.id ?? index}
+                      className={`border-b border-slate-700/50 hover:bg-slate-800/30 ${disagrees && !item.true_label ? 'bg-amber-900/5' : ''}`}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: Math.min(index * 0.03, 0.3) }}
+                    >
+                      <td className="p-3 text-slate-300">
+                        <div className="max-w-[180px] truncate" title={item.title}>{item.title}</div>
+                        {item.material && <div className="text-slate-500 text-xs mt-0.5">{item.material}</div>}
+                      </td>
+                      <td className="p-3 text-slate-400 text-sm">{item.origin || '—'}</td>
+                      <td className="p-3">
+                        {item.predicted_label ? (
+                          <div className="flex items-center gap-1.5">
+                            <ModernBadge variant={GRADE_VARIANT(item.predicted_label)} size="sm">
+                              {item.predicted_label}
+                            </ModernBadge>
+                            {disagrees && <span className="text-amber-400 text-xs">⚠</span>}
+                          </div>
+                        ) : <span className="text-slate-600 text-xs">—</span>}
+                      </td>
+                      <td className="p-3">
+                        {item.rule_based_label
+                          ? <ModernBadge variant={GRADE_VARIANT(item.rule_based_label)} size="sm">{item.rule_based_label}</ModernBadge>
+                          : <span className="text-slate-600 text-xs">—</span>}
+                      </td>
+                      <td className="p-3 text-slate-400 text-sm">
+                        {item.confidence || <span className="text-slate-600">—</span>}
+                      </td>
+                      <td className="p-3 text-slate-400 text-sm font-mono">
+                        {item.co2_kg != null ? item.co2_kg.toFixed(2) : <span className="text-slate-600">—</span>}
+                      </td>
+                      <td className="p-3">
+                        {suggestedGrade ? (
+                          <div className="flex flex-col gap-0.5">
+                            <ModernBadge variant={GRADE_VARIANT(suggestedGrade)} size="sm">{suggestedGrade}</ModernBadge>
+                            <span className="text-slate-500 text-xs leading-tight">{suggestedReason}</span>
+                          </div>
+                        ) : <span className="text-slate-600 text-xs">—</span>}
+                      </td>
+                      <td className="p-3">
+                        {realIndex === selected ? (
+                          <ModernInput
+                            type="text"
+                            value={updatedLabel}
+                            onChange={(e) => setUpdatedLabel(e.target.value.toUpperCase())}
+                            placeholder="A+, A, B…"
+                            className="w-20"
+                          />
+                        ) : (
+                          <span className={item.true_label ? "text-emerald-400 font-medium" : "text-slate-500"}>
+                            {item.true_label || '—'}
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-3">
+                        {realIndex === selected ? (
+                          <div className="flex gap-2">
+                            <ModernButton variant="success" size="sm" onClick={handleSave}>Save</ModernButton>
+                            <ModernButton variant="secondary" size="sm" onClick={() => setSelected(null)}>Cancel</ModernButton>
+                          </div>
+                        ) : (
+                          <ModernButton variant="secondary" size="sm" onClick={() => handleEdit(realIndex, suggestedGrade)}>
+                            Label
+                          </ModernButton>
+                        )}
+                      </td>
+                    </motion.tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan="9" className="text-center p-8 text-slate-400">
+                    <div className="space-y-2">
+                      <div className="text-3xl">{showDisagreementsOnly ? '✅' : '📭'}</div>
+                      <p>{showDisagreementsOnly ? 'No unresolved disagreements — all matching grades auto-approved.' : 'No submissions found or access denied.'}</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
-
-      {/* Guidance panel */}
-      <div className="rounded-xl border border-slate-700 bg-slate-800/40 px-4 py-3 text-xs text-slate-400 space-y-1">
-        <p><span className="text-slate-300 font-medium">Confidence</span> — how certain the ML model is in its own grade. High (&gt;80%) means trust ML. Low (&lt;60%) means the rule-based grade is more reliable.</p>
-        <p><span className="text-slate-300 font-medium">⚠ Grades disagree</span> — use the CO₂ value as a sense-check. A+ should be &lt;0.5 kg, F is typically &gt;10 kg. If ML confidence is high, prefer ML grade. Otherwise prefer Rule grade.</p>
-        <p><span className="text-slate-300 font-medium">Auto-approve</span> — sets true label automatically for all products where ML and rule grades agree. Only reviews where they differ need manual attention.</p>
-      </div>
-
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-slate-600">
-              <th className="text-left p-3 text-slate-300 font-medium">Product Title</th>
-              <th className="text-left p-3 text-slate-300 font-medium">Origin</th>
-              <th className="text-left p-3 text-slate-300 font-medium">
-                <TooltipHeader label="ML Grade" tip="XGBoost model prediction based on material, weight, origin and transport patterns learned from training data." />
-              </th>
-              <th className="text-left p-3 text-slate-300 font-medium">
-                <TooltipHeader label="Rule Grade" tip="Deterministic calculation: material CO₂/kg × weight + transport emissions. No ML involved — explicit maths." />
-              </th>
-              <th className="text-left p-3 text-slate-300 font-medium">
-                <TooltipHeader label="Confidence" tip="ML model's confidence in its own grade (0–100%). Above 80%: trust ML. Below 60%: prefer Rule grade." />
-              </th>
-              <th className="text-left p-3 text-slate-300 font-medium">CO₂ (kg)</th>
-              <th className="text-left p-3 text-slate-300 font-medium">
-                <TooltipHeader label="True Label" tip="Your verified ground truth. Click Label to set. Use ML grade if high confidence, Rule grade if low confidence, or your own judgement for ⚠ disagreements." />
-              </th>
-              <th className="text-left p-3 text-slate-300 font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Array.isArray(submissions) && submissions.length > 0 ? (
-              submissions.map((item, index) => (
-                <motion.tr
-                  key={index}
-                  className="border-b border-slate-700/50 hover:bg-slate-800/30"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                >
-                  <td className="p-3 text-slate-300">
-                    <div className="max-w-[200px] truncate" title={item.title}>{item.title}</div>
-                    {item.material && <div className="text-slate-500 text-xs mt-0.5">{item.material}</div>}
-                  </td>
-                  <td className="p-3 text-slate-400 text-sm">{item.origin || '—'}</td>
-                  <td className="p-3">
-                    {item.predicted_label ? (
-                      <div className="flex items-center gap-1.5">
-                        <ModernBadge
-                          variant={
-                            item.predicted_label === 'A+' || item.predicted_label === 'A' ? 'success' :
-                            item.predicted_label === 'B' || item.predicted_label === 'C' ? 'warning' : 'error'
-                          }
-                          size="sm"
-                        >
-                          {item.predicted_label}
-                        </ModernBadge>
-                        {item.rule_based_label && item.predicted_label !== item.rule_based_label && (
-                          <span title="ML and rule-based grades disagree — worth reviewing" className="text-amber-400 text-xs cursor-help">⚠</span>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-slate-500 text-xs">No prediction</span>
-                    )}
-                  </td>
-                  <td className="p-3">
-                    {item.rule_based_label ? (
-                      <ModernBadge
-                        variant={
-                          item.rule_based_label === 'A+' || item.rule_based_label === 'A' ? 'success' :
-                          item.rule_based_label === 'B' || item.rule_based_label === 'C' ? 'warning' : 'error'
-                        }
-                        size="sm"
-                      >
-                        {item.rule_based_label}
-                      </ModernBadge>
-                    ) : (
-                      <span className="text-slate-600 text-xs">—</span>
-                    )}
-                  </td>
-                  <td className="p-3 text-slate-400 text-sm">
-                    {item.confidence || <span className="text-slate-600">—</span>}
-                  </td>
-                  <td className="p-3 text-slate-400 text-sm font-mono">
-                    {item.co2_kg != null ? item.co2_kg.toFixed(2) : <span className="text-slate-600">—</span>}
-                  </td>
-                  <td className="p-3">
-                    {index === selected ? (
-                      <ModernInput
-                        type="text"
-                        value={updatedLabel}
-                        onChange={(e) => setUpdatedLabel(e.target.value)}
-                        placeholder="A+, A, B…"
-                        className="w-20"
-                      />
-                    ) : (
-                      <span className={item.true_label ? "text-emerald-400 font-medium" : "text-slate-500"}>
-                        {item.true_label || '—'}
-                      </span>
-                    )}
-                  </td>
-                  <td className="p-3">
-                    {index === selected ? (
-                      <div className="flex gap-2">
-                        <ModernButton
-                          variant="success"
-                          size="sm"
-                          onClick={handleSave}
-                        >
-                          Save
-                        </ModernButton>
-                        <ModernButton
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => setSelected(null)}
-                        >
-                          Cancel
-                        </ModernButton>
-                      </div>
-                    ) : (
-                      <ModernButton
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => handleEdit(index)}
-                      >
-                        Label
-                      </ModernButton>
-                    )}
-                  </td>
-                </motion.tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="5" className="text-center p-8 text-slate-400">
-                  <div className="space-y-2">
-                    <div className="text-3xl">📭</div>
-                    <p>No submissions found or access denied.</p>
-                    <p className="text-sm text-slate-500">Make some predictions to see data here.</p>
-                  </div>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </ModernCard>
-);
+    </ModernCard>
+  );
+}
 
 const UserManagement = ({ users, handleDeleteUser, handleRoleChange }) => (
   <ModernCard solid>
@@ -353,9 +352,10 @@ export default function AdminPage() {
       .catch((err) => console.error("Error loading users:", err));
   }, []);
 
-  const handleEdit = (index) => {
+  const handleEdit = (index, suggestedGrade = "") => {
     setSelected(index);
-    setUpdatedLabel(submissions[index].true_label || "");
+    // Pre-fill with existing true label, or the system suggestion if unlabelled
+    setUpdatedLabel(submissions[index].true_label || suggestedGrade);
   };
 
   const handleSave = () => {
