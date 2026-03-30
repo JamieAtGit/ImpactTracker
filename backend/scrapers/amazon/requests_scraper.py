@@ -751,7 +751,12 @@ class RequestsScraper:
                          'headphone', 'speaker', 'keyboard', 'monitor', 'router',
                          'printer', 'camera', 'smartwatch', 'console', 'gaming',
                          'earphone', 'earbud', 'wearable', 'television', 'smart tv',
-                         'qled', 'oled', 'smart home', 'smart plug', 'smart bulb'],
+                         'qled', 'oled', 'smart home', 'smart plug', 'smart bulb',
+                         # Home appliances — prevent "paper filter" etc. from
+                         # winning in the text scan
+                         'purifier', 'humidifier', 'dehumidifier',
+                         'vacuum cleaner', 'air fryer', 'coffee maker',
+                         'coffee machine', 'espresso', 'blender'],
         }
 
         # Check title first — most reliable signal
@@ -772,13 +777,24 @@ class RequestsScraper:
             'aluminium alloy', 'aluminum alloy', 'galvanised steel', 'galvanized steel',
             'mild steel', 'high carbon', 'tool steel', 'spring steel',
         ]
+        # For the full-page text scan, 'paper' alone is far too noisy:
+        # air purifiers say "paper HEPA filter", vacuums say "paper bag",
+        # coffee makers say "paper filter", printers are surrounded by the word.
+        # Only match unambiguous compound phrases in the text scan.
+        paper_text_keywords = [
+            'kraft paper', 'wrapping paper', 'tissue paper', 'paper bag',
+            'cardboard', 'paperback', 'hardback', 'kraft',
+        ]
+
+        # Paper is last — it's the most prone to false positives via page text.
         text_scan_order = [
-            'Paper', 'Leather', 'Rubber', 'Wood', 'Ceramic',
-            'Fabric', 'Plastic', 'Stone', 'Glass',
+            'Leather', 'Rubber', 'Wood', 'Ceramic',
+            'Fabric', 'Plastic', 'Stone', 'Glass', 'Paper',
         ]
         text_lower = text.lower()
         for material in text_scan_order:
-            if material in materials and any(kw in text_lower for kw in materials[material]):
+            kws = paper_text_keywords if material == 'Paper' else materials[material]
+            if material in materials and any(kw in text_lower for kw in kws):
                 return material
         if any(kw in text_lower for kw in text_metal_keywords):
             return 'Metal'

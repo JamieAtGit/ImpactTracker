@@ -114,14 +114,34 @@ def smart_guess_material(title: str) -> str | None:
         (["paper", "kraft", "pulp"],                    "Paper"),
         (["cardboard", "carton"],                       "Cardboard"),
 
-        # ── Electronics / computers (must appear before Paper so "notebook"
-        #    in page text doesn't cause laptops to be classified as Paper) ──
-        (["macbook", "macbook air", "macbook pro"],     "Aluminium"),
-        (["iphone", "ipad", "apple watch"],             "Aluminium"),
+        # ── Home appliances ───────────────────────────────────────────────────
+        # These must appear before Paper/Cardboard — appliance pages mention
+        # "paper filter", "paper bag", "kraft packaging" etc. in descriptions.
+        (["air purifier", "hepa purifier", "air cleaner",
+          "air quality monitor"],                          "Plastic"),
+        (["humidifier", "dehumidifier"],                  "Plastic"),
+        (["robot vacuum", "robotic vacuum", "robot hoover",
+          "cordless vacuum", "vacuum cleaner", "hoover",
+          "stick vacuum"],                                 "Plastic"),
+        (["coffee maker", "coffee machine", "espresso machine",
+          "coffee grinder"],                               "Plastic"),
+        (["air fryer", "slow cooker", "rice cooker",
+          "instant pot", "pressure cooker", "multicooker"], "Plastic"),
+        (["hair dryer", "hair straightener", "curling iron",
+          "curling wand", "hair curler"],                  "Plastic"),
+        (["blender", "food processor", "stand mixer"],    "Plastic"),
+        (["smart speaker", "bluetooth speaker", "soundbar"], "Plastic"),
+        (["router", "wifi extender", "mesh wifi", "modem"], "Plastic"),
+        (["security camera", "dash cam", "action camera",
+          "baby monitor", "doorbell camera"],              "Mixed"),
+
+        # ── Electronics / computers ───────────────────────────────────────────
+        (["macbook", "macbook air", "macbook pro"],       "Aluminium"),
+        (["iphone", "ipad", "apple watch"],               "Aluminium"),
         (["laptop", "notebook computer", "ultrabook",
           "chromebook", "thinkpad", "surface pro",
-          "gaming laptop"],                             "Mixed"),
-        (["smartphone", "android phone", "tablet pc"], "Mixed"),
+          "gaming laptop"],                               "Mixed"),
+        (["smartphone", "android phone", "tablet pc"],   "Mixed"),
     ]
 
     for keywords, material in RULES:
