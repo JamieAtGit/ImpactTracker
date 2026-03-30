@@ -256,8 +256,8 @@ function PredictionManagement({ submissions, selected, updatedLabel, setUpdatedL
                 <tr>
                   <td colSpan="9" className="text-center p-8 text-slate-400">
                     <div className="space-y-2">
-                      <div className="text-3xl">{showDisagreementsOnly ? '✅' : '📭'}</div>
-                      <p>{showDisagreementsOnly ? 'No unresolved disagreements — all matching grades auto-approved.' : 'No submissions found or access denied.'}</p>
+                      <div className="text-3xl">{filter !== 'all' ? '✅' : '📭'}</div>
+                      <p>{filter !== 'all' ? 'No items match this filter.' : 'No submissions found or access denied.'}</p>
                     </div>
                   </td>
                 </tr>
