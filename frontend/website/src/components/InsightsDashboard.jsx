@@ -198,7 +198,7 @@ export default function InsightsDashboard({ refreshKey = 0 }) {
                       <span className="text-cyan-400 text-xs">🔍</span>
                     </div>
                     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-slate-800 text-slate-200 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 border border-slate-600">
-                      Distribution across training dataset (A+ = best, F = worst)
+                      Distribution of environmental impact scores (A+ = best, F = worst)
                       <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-800"></div>
                     </div>
                   </div>
@@ -359,7 +359,7 @@ export default function InsightsDashboard({ refreshKey = 0 }) {
                                   <span className="text-purple-400 font-bold text-lg">{percentage}%</span>
                                 </div>
                                 <div className="pt-2 border-t border-slate-600">
-                                  <span className="text-slate-400 text-xs">Training dataset · top {materialData.length} by frequency</span>
+                                  <span className="text-slate-400 text-xs">Material analysis based on ML predictions</span>
                                 </div>
                               </div>
                             </div>
@@ -369,45 +369,35 @@ export default function InsightsDashboard({ refreshKey = 0 }) {
                       }}
                     />
                     
-                    <Legend 
-                      content={({ payload }) => (
-                        <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm pt-6">
-                          {payload.slice(0, 8).map((entry, index) => {
-                            const materialItem = materialData.find(item => item.name === entry.value);
-                            const total = materialData.reduce((sum, item) => sum + item.value, 0);
-                            const percentage = materialItem ? ((materialItem.value / total) * 100).toFixed(0) : 0;
-                            
-                            return (
-                              <div key={index} className="flex items-center gap-3 group cursor-pointer">
-                                <div 
-                                  className="w-4 h-4 rounded-full flex-shrink-0 shadow-md border-2 border-slate-500 group-hover:scale-125 transition-all duration-300" 
-                                  style={{
-                                    backgroundColor: MODERN_COLORS[payload.findIndex(item => item.value === entry.value) % MODERN_COLORS.length],
-                                    boxShadow: `0 0 8px ${MODERN_COLORS[payload.findIndex(item => item.value === entry.value) % MODERN_COLORS.length]}40`
-                                  }}
-                                ></div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-slate-300 font-medium truncate group-hover:text-slate-200 transition-colors">
+                    <Legend
+                      content={({ payload }) => {
+                        const total = materialData.reduce((sum, item) => sum + item.value, 0);
+                        return (
+                          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm pt-4">
+                            {payload.map((entry, index) => {
+                              const materialItem = materialData.find(item => item.name === entry.value);
+                              const percentage = materialItem ? ((materialItem.value / total) * 100).toFixed(0) : 0;
+                              const color = MODERN_COLORS[index % MODERN_COLORS.length];
+                              return (
+                                <div key={index} className="flex items-center gap-2 group cursor-pointer min-w-0">
+                                  <div
+                                    className="w-3 h-3 rounded-full flex-shrink-0 border border-slate-500 group-hover:scale-125 transition-transform duration-200"
+                                    style={{ backgroundColor: color, boxShadow: `0 0 6px ${color}40` }}
+                                  />
+                                  <div className="flex items-center justify-between flex-1 min-w-0">
+                                    <span className="text-slate-300 text-xs font-medium truncate group-hover:text-slate-100 transition-colors">
                                       {entry.value}
                                     </span>
-                                    <span className="text-slate-400 text-xs font-medium ml-2">
+                                    <span className="text-slate-400 text-xs ml-1 flex-shrink-0">
                                       {percentage}%
                                     </span>
                                   </div>
                                 </div>
-                              </div>
-                            );
-                          })}
-                          {payload.length > 8 && (
-                            <div className="col-span-2 text-center pt-2 border-t border-slate-700">
-                              <span className="text-slate-500 text-xs">
-                                +{payload.length - 8} more materials
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      )}
+                              );
+                            })}
+                          </div>
+                        );
+                      }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
