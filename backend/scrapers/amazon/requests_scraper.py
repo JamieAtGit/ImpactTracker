@@ -221,13 +221,28 @@ class RequestsScraper:
             return self.create_intelligent_fallback(url, asin)
     
     def is_blocked(self, soup) -> bool:
-        """Check if we're being blocked"""
-        page_text = soup.get_text().lower()
-        blocked_indicators = [
-            'captcha', 'robot', 'blocked', 'access denied',
-            'unusual traffic', 'automated', 'verify you are human'
-        ]
-        return any(indicator in page_text for indicator in blocked_indicators)
+        """Check if Amazon returned a CAPTCHA / bot-detection page.
+
+        Only inspect the <title> tag and short-page heuristics — NOT the full
+        body text, which legitimately contains words like 'robot', 'blocked',
+        'automated' in product descriptions and reviews.
+        """
+        # Amazon CAPTCHA page title is literally "Robot Check"
+        title_tag = soup.find('title')
+        page_title = title_tag.get_text().strip().lower() if title_tag else ''
+        captcha_titles = {'robot check', 'sorry!', 'service unavailable', ''}
+        if page_title in captcha_titles and not soup.find(id='productTitle'):
+            return True
+
+        # CAPTCHA pages are very short — real product pages are >5 KB
+        if len(soup.get_text()) < 1500 and not soup.find(id='productTitle'):
+            return True
+
+        # Explicit CAPTCHA form element present
+        if soup.find('form', {'action': '/errors/validateCaptcha'}):
+            return True
+
+        return False
     
     def extract_from_soup(self, soup, asin: str, url: str) -> Dict:
         """Extract product data from HTML"""
