@@ -24,6 +24,22 @@ load_dotenv()
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.append(BASE_DIR)
 
+# Single source of truth for material CO₂ intensities (kg CO₂ per kg of material).
+# Used in both the main rule-based calculation and counterfactual explanations.
+# Update here and both places stay in sync automatically.
+MATERIAL_CO2_INTENSITY = {
+    "Plastic":  2.5,
+    "Steel":    3.0,
+    "Metal":    3.0,
+    "Paper":    1.2,
+    "Glass":    1.5,
+    "Wood":     0.8,
+    "Fabric":   1.8,
+    "Ceramic":  1.5,
+    "Rubber":   2.2,
+    "Other":    2.0,
+}
+
 # Import database models
 from backend.models.database import db, User, Product, ScrapedProduct, EmissionCalculation, AdminReview
 from backend.models.database import save_scraped_product, save_emission_calculation, get_or_create_scraped_product, find_cached_emission_calculation
@@ -830,10 +846,7 @@ def create_app(config_name='production'):
             # === Rule-based CO2 calculation ===
             import numpy as np
             transport_co2 = weight * mode_factor * origin_distance_km / 1000
-            material_intensity = {"Plastic": 2.5, "Steel": 3.0, "Paper": 1.2,
-                                   "Glass": 1.5, "Wood": 0.8, "Metal": 3.0,
-                                   "Fabric": 1.8, "Ceramic": 1.5, "Rubber": 2.2,
-                                   "Other": 2.0}.get(material, 2.0)
+            material_intensity = MATERIAL_CO2_INTENSITY.get(material, 2.0)
             material_co2 = weight * material_intensity
             rule_co2 = transport_co2 + material_co2
             total_co2 = rule_co2
@@ -1016,10 +1029,7 @@ def create_app(config_name='production'):
                 try:
                     grade_order = ['A+', 'A', 'B', 'C', 'D', 'E', 'F']
                     current_grade_idx = grade_order.index(eco_score_ml) if eco_score_ml in grade_order else 6
-                    _mat_intensities = {
-                        "Plastic": 2.5, "Steel": 3.0, "Metal": 3.0, "Paper": 1.2,
-                        "Glass": 1.5, "Wood": 0.8, "Fabric": 1.8, "Ceramic": 1.5, "Rubber": 2.2
-                    }
+                    _mat_intensities = MATERIAL_CO2_INTENSITY  # same source as main calc
                     cf_scenarios = [
                         ('origin',    'United Kingdom', 'Source locally (UK manufacture)'),
                         ('material',  'Paper',          'Switch to Paper/Cardboard'),
@@ -2432,11 +2442,7 @@ def create_app(config_name='production'):
         if not user or user.get('role') != 'admin':
             return jsonify({'error': 'Admin access required'}), 403
 
-        _material_intensity = {
-            "Plastic": 2.5, "Steel": 3.0, "Paper": 1.2, "Glass": 1.5,
-            "Wood": 0.8, "Metal": 3.0, "Fabric": 1.8, "Ceramic": 1.5,
-            "Rubber": 2.2, "Other": 2.0,
-        }
+        _material_intensity = MATERIAL_CO2_INTENSITY  # single source of truth
         _mode_factor = {
             "Truck": 0.15, "Ship": 0.03, "Air": 0.5,
             "Land": 0.15, "Sea": 0.03,
