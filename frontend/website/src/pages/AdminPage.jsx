@@ -382,7 +382,7 @@ export default function AdminPage() {
       credentials: "include",
     })
       .then((res) => res.json())
-      .then((data) => setSubmissions(data))
+      .then((data) => setSubmissions(Array.isArray(data) ? data : []))
       .catch((err) => console.error("Error loading submissions:", err));
 
     // Load dashboard metrics for admin overview
@@ -403,7 +403,7 @@ export default function AdminPage() {
       credentials: "include",
     })
       .then((res) => res.json())
-      .then((data) => setUsers(data))
+      .then((data) => setUsers(Array.isArray(data) ? data : []))
       .catch((err) => console.error("Error loading users:", err));
   }, []);
 
