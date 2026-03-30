@@ -2173,6 +2173,105 @@ def create_app(config_name='production'):
             db.session.rollback()
             return jsonify({'error': str(e)}), 500
 
+    def _bulk_approve_by_source(source: str):
+        """
+        Shared logic for bulk-approve-ml and bulk-approve-rule.
+        source='ml'   → set true_label = derived ML grade for all unlabelled rows
+        source='rule' → set true_label = derived rule grade for all unlabelled rows
+        """
+        user = session.get('user')
+        if not user or user.get('role') != 'admin':
+            return jsonify({'error': 'Admin access required'}), 403
+
+        try:
+            deps = _load_estimation_dependencies()
+            _calc_eco_score = deps['calculate_eco_score']
+            _recyclability_rates = {
+                'Plastic': 30, 'Glass': 80, 'Metal': 85, 'Steel': 90,
+                'Stainless Steel': 88, 'Aluminum': 95, 'Cotton': 20,
+                'Polyester': 15, 'Nylon': 20, 'Wood': 40, 'Paper': 75,
+                'Cardboard': 80, 'Rubber': 30, 'Leather': 10,
+                'Mixed': 15, 'Electronic': 15,
+            }
+
+            submissions = ScrapedProduct.query.order_by(ScrapedProduct.id.desc()).limit(100).all()
+            approved = 0
+            skipped = 0
+            admin_user_id = user.get('id')
+
+            for sub in submissions:
+                calc = EmissionCalculation.query.filter_by(
+                    scraped_product_id=sub.id
+                ).order_by(EmissionCalculation.id.desc()).first()
+                review = AdminReview.query.filter_by(
+                    scraped_product_id=sub.id
+                ).order_by(AdminReview.id.desc()).first()
+
+                if review and review.corrected_grade:
+                    skipped += 1
+                    continue
+                if not calc:
+                    skipped += 1
+                    continue
+
+                rec_pct   = _recyclability_rates.get(sub.material or '', 50)
+                rec_label = 'High' if rec_pct >= 70 else ('Medium' if rec_pct >= 40 else 'Low')
+                dist      = float(calc.transport_distance or 0)
+                weight    = float(sub.weight or 0.5)
+
+                grade = None
+                if source == 'ml':
+                    grade = calc.eco_grade_ml or None
+                    if not grade and calc.ml_prediction:
+                        try:
+                            grade = _calc_eco_score(float(calc.ml_prediction), rec_label, dist, weight)
+                        except Exception:
+                            pass
+                else:  # rule
+                    if calc.rule_based_prediction:
+                        try:
+                            grade = _calc_eco_score(float(calc.rule_based_prediction), rec_label, dist, weight)
+                        except Exception:
+                            pass
+
+                if not grade:
+                    skipped += 1
+                    continue
+
+                note = f'Auto-approved: using {"ML" if source == "ml" else "rule-based"} grade'
+                if review:
+                    review.corrected_grade = grade
+                    review.review_status = 'approved'
+                    review.reviewed_by = admin_user_id
+                    review.reviewed_at = datetime.utcnow()
+                    review.admin_notes = note
+                else:
+                    db.session.add(AdminReview(
+                        scraped_product_id=sub.id,
+                        corrected_grade=grade,
+                        review_status='approved',
+                        reviewed_by=admin_user_id,
+                        reviewed_at=datetime.utcnow(),
+                        admin_notes=note,
+                    ))
+                approved += 1
+
+            db.session.commit()
+            return jsonify({'success': True, 'approved': approved, 'skipped': skipped})
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': str(e)}), 500
+
+    @app.route('/admin/bulk-approve-ml', methods=['POST'])
+    def admin_bulk_approve_ml():
+        """Bulk-approve all unlabelled submissions using the derived ML grade."""
+        return _bulk_approve_by_source('ml')
+
+    @app.route('/admin/bulk-approve-rule', methods=['POST'])
+    def admin_bulk_approve_rule():
+        """Bulk-approve all unlabelled submissions using the derived rule-based grade."""
+        return _bulk_approve_by_source('rule')
+
     @app.route('/admin/update', methods=['POST'])
     def admin_update():
         """Update admin submission - REQUIRES ADMIN AUTH"""

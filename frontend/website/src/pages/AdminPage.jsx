@@ -55,46 +55,103 @@ const suggest = (item) => {
   return { grade: '', reason: 'No suggestion available' };
 };
 
-function PredictionManagement({ submissions, selected, updatedLabel, setUpdatedLabel, handleEdit, handleSave, setSelected, handleBulkApprove }) {
-  const [showDisagreementsOnly, setShowDisagreementsOnly] = React.useState(false);
+const GRADE_ORDER = { 'A+': 0, 'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5, 'F': 6 };
+const gradeGap = (a, b) => {
+  if (a == null || b == null || !(a in GRADE_ORDER) || !(b in GRADE_ORDER)) return null;
+  return Math.abs(GRADE_ORDER[a] - GRADE_ORDER[b]);
+};
 
-  const displayed = showDisagreementsOnly
-    ? submissions.filter(s => s.predicted_label && s.rule_based_label && s.predicted_label !== s.rule_based_label && !s.true_label)
-    : submissions;
+// Pill button used in the bulk-actions bar
+const ActionPill = ({ onClick, color, dot, children }) => {
+  const styles = {
+    emerald: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-400/50',
+    blue:    'bg-blue-500/10 border-blue-500/30 text-blue-400 hover:bg-blue-500/20 hover:border-blue-400/50',
+    violet:  'bg-violet-500/10 border-violet-500/30 text-violet-400 hover:bg-violet-500/20 hover:border-violet-400/50',
+  };
+  return (
+    <button
+      onClick={onClick}
+      className={`group inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 ${styles[color]}`}
+    >
+      {dot && <span className={`w-1.5 h-1.5 rounded-full bg-current group-hover:animate-ping`} />}
+      {children}
+    </button>
+  );
+};
+
+// Inline action button used inside the table
+const InlineBtn = ({ onClick, variant = 'default', children }) => {
+  const styles = {
+    default: 'border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white',
+    save:    'border-emerald-500/60 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20',
+    cancel:  'border-slate-600 text-slate-400 hover:bg-slate-700',
+  };
+  return (
+    <button
+      onClick={onClick}
+      className={`px-3 py-1 rounded-md border text-xs font-medium transition-all duration-150 ${styles[variant]}`}
+    >
+      {children}
+    </button>
+  );
+};
+
+function PredictionManagement({ submissions, selected, updatedLabel, setUpdatedLabel, handleEdit, handleSave, setSelected, handleBulkApprove, handleBulkApproveML, handleBulkApproveRule }) {
+  const [filter, setFilter] = React.useState('all'); // 'all' | 'disagree' | 'close' | 'far'
 
   const disagreementCount = submissions.filter(
     s => s.predicted_label && s.rule_based_label && s.predicted_label !== s.rule_based_label && !s.true_label
   ).length;
 
+  const displayed = React.useMemo(() => {
+    if (filter === 'all') return submissions;
+    return submissions.filter(s => {
+      if (s.true_label) return false;
+      const gap = gradeGap(s.predicted_label, s.rule_based_label);
+      if (filter === 'disagree') return gap != null && gap > 0;
+      if (filter === 'close')   return gap != null && gap === 1;
+      if (filter === 'far')     return gap != null && gap >= 3;
+      return true;
+    });
+  }, [submissions, filter]);
+
+  const filterBtn = (key, label, activeColor) => (
+    <button
+      onClick={() => setFilter(key)}
+      className={`px-3 py-1 rounded-full text-xs font-medium border transition-all duration-150 ${
+        filter === key
+          ? activeColor
+          : 'bg-slate-700/40 border-slate-600 text-slate-400 hover:text-slate-200'
+      }`}
+    >
+      {label}
+    </button>
+  );
+
   return (
     <ModernCard solid>
-      <div className="space-y-6">
-        {/* Header */}
+      <div className="space-y-5">
+        {/* Header row */}
         <div className="flex items-center justify-between flex-wrap gap-3">
           <h3 className="text-lg font-display text-slate-200">Review & Validate Predictions</h3>
-          <div className="flex items-center gap-3 flex-wrap">
-            <button
-              onClick={() => setShowDisagreementsOnly(v => !v)}
-              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 ${
-                showDisagreementsOnly
-                  ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
-                  : 'bg-slate-700/50 border-slate-600 text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              ⚠ Disagreements only
-              {disagreementCount > 0 && (
-                <span className="bg-amber-500/30 text-amber-300 rounded-full px-1.5">{disagreementCount}</span>
-              )}
-            </button>
-            <button
-              onClick={handleBulkApprove}
-              className="group inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm font-medium hover:bg-emerald-500/20 hover:border-emerald-400/50 transition-all duration-200"
-            >
-              <span className="w-2 h-2 rounded-full bg-emerald-400 group-hover:animate-ping" />
-              Auto-approve matching grades
-            </button>
-            <ModernBadge variant="info" size="sm">{displayed.length} items</ModernBadge>
-          </div>
+          <ModernBadge variant="info" size="sm">{displayed.length} of {submissions.length}</ModernBadge>
+        </div>
+
+        {/* Bulk actions row */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs text-slate-500 font-medium">Bulk approve:</span>
+          <ActionPill color="emerald" dot onClick={handleBulkApprove}>Matching grades</ActionPill>
+          <ActionPill color="blue"    dot onClick={handleBulkApproveML}>ML grades</ActionPill>
+          <ActionPill color="violet"  dot onClick={handleBulkApproveRule}>Rule grades</ActionPill>
+        </div>
+
+        {/* Filter row */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs text-slate-500 font-medium">Filter:</span>
+          {filterBtn('all',     'All',                        'bg-slate-600 border-slate-500 text-slate-200')}
+          {filterBtn('disagree','⚠ Disagreements' + (disagreementCount ? ` (${disagreementCount})` : ''), 'bg-amber-500/20 border-amber-500/50 text-amber-300')}
+          {filterBtn('close',   'Close (1 grade apart)',       'bg-sky-500/20 border-sky-500/50 text-sky-300')}
+          {filterBtn('far',     'Far apart (3+ grades)',       'bg-red-500/20 border-red-500/50 text-red-300')}
         </div>
 
         {/* Guidance panel */}
@@ -185,13 +242,11 @@ function PredictionManagement({ submissions, selected, updatedLabel, setUpdatedL
                       <td className="p-3">
                         {realIndex === selected ? (
                           <div className="flex gap-2">
-                            <ModernButton variant="success" size="sm" onClick={handleSave}>Save</ModernButton>
-                            <ModernButton variant="secondary" size="sm" onClick={() => setSelected(null)}>Cancel</ModernButton>
+                            <InlineBtn variant="save" onClick={handleSave}>Save</InlineBtn>
+                            <InlineBtn variant="cancel" onClick={() => setSelected(null)}>Cancel</InlineBtn>
                           </div>
                         ) : (
-                          <ModernButton variant="secondary" size="sm" onClick={() => handleEdit(realIndex, suggestedGrade)}>
-                            Label
-                          </ModernButton>
+                          <InlineBtn onClick={() => handleEdit(realIndex, suggestedGrade)}>Label</InlineBtn>
                         )}
                       </td>
                     </motion.tr>
@@ -397,28 +452,33 @@ export default function AdminPage() {
     }
   };
 
-  const handleBulkApprove = async () => {
+  const refreshSubmissions = async () => {
+    const res = await fetch(`${BASE_URL}/admin/submissions`, { credentials: 'include' });
+    setSubmissions(await res.json());
+  };
+
+  const bulkAction = async (endpoint, label) => {
     try {
-      const res = await fetch(`${BASE_URL}/admin/bulk-approve-matching`, {
+      const res = await fetch(`${BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
       });
       const data = await res.json();
       if (res.ok) {
-        alert(`Done: ${data.approved} auto-approved, ${data.skipped} skipped.`);
-        // Refresh submissions to show updated true labels
-        const updated = await fetch(`${BASE_URL}/admin/submissions`, { credentials: 'include' });
-        const updatedData = await updated.json();
-        setSubmissions(updatedData);
+        alert(`${label}: ${data.approved} approved, ${data.skipped} skipped.`);
+        await refreshSubmissions();
       } else {
         alert(`Failed: ${data.error}`);
       }
     } catch (err) {
-      console.error('Bulk approve failed:', err);
-      alert('Bulk approve failed');
+      alert(`${label} failed`);
     }
   };
+
+  const handleBulkApprove     = () => bulkAction('/admin/bulk-approve-matching', 'Auto-approve matching');
+  const handleBulkApproveML   = () => bulkAction('/admin/bulk-approve-ml',       'Approve ML grades');
+  const handleBulkApproveRule = () => bulkAction('/admin/bulk-approve-rule',      'Approve rule grades');
 
   const handleRoleChange = async (user, newRole) => {
     try {
@@ -598,6 +658,8 @@ export default function AdminPage() {
                     handleSave={handleSave}
                     setSelected={setSelected}
                     handleBulkApprove={handleBulkApprove}
+                    handleBulkApproveML={handleBulkApproveML}
+                    handleBulkApproveRule={handleBulkApproveRule}
                   />
                 )}
 
