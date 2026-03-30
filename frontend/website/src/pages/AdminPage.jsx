@@ -55,6 +55,7 @@ const PredictionManagement = ({ submissions, selected, updatedLabel, setUpdatedL
               <th className="text-left p-3 text-slate-300 font-medium">Product Title</th>
               <th className="text-left p-3 text-slate-300 font-medium">Origin</th>
               <th className="text-left p-3 text-slate-300 font-medium">ML Grade</th>
+              <th className="text-left p-3 text-slate-300 font-medium">Rule Grade</th>
               <th className="text-left p-3 text-slate-300 font-medium">Confidence</th>
               <th className="text-left p-3 text-slate-300 font-medium">CO₂ (kg)</th>
               <th className="text-left p-3 text-slate-300 font-medium">True Label</th>
@@ -78,17 +79,37 @@ const PredictionManagement = ({ submissions, selected, updatedLabel, setUpdatedL
                   <td className="p-3 text-slate-400 text-sm">{item.origin || '—'}</td>
                   <td className="p-3">
                     {item.predicted_label ? (
+                      <div className="flex items-center gap-1.5">
+                        <ModernBadge
+                          variant={
+                            item.predicted_label === 'A+' || item.predicted_label === 'A' ? 'success' :
+                            item.predicted_label === 'B' || item.predicted_label === 'C' ? 'warning' : 'error'
+                          }
+                          size="sm"
+                        >
+                          {item.predicted_label}
+                        </ModernBadge>
+                        {item.rule_based_label && item.predicted_label !== item.rule_based_label && (
+                          <span title="ML and rule-based grades disagree — worth reviewing" className="text-amber-400 text-xs cursor-help">⚠</span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-slate-500 text-xs">No prediction</span>
+                    )}
+                  </td>
+                  <td className="p-3">
+                    {item.rule_based_label ? (
                       <ModernBadge
                         variant={
-                          item.predicted_label === 'A+' || item.predicted_label === 'A' ? 'success' :
-                          item.predicted_label === 'B' || item.predicted_label === 'C' ? 'warning' : 'error'
+                          item.rule_based_label === 'A+' || item.rule_based_label === 'A' ? 'success' :
+                          item.rule_based_label === 'B' || item.rule_based_label === 'C' ? 'warning' : 'error'
                         }
                         size="sm"
                       >
-                        {item.predicted_label}
+                        {item.rule_based_label}
                       </ModernBadge>
                     ) : (
-                      <span className="text-slate-500 text-xs">No prediction</span>
+                      <span className="text-slate-600 text-xs">—</span>
                     )}
                   </td>
                   <td className="p-3 text-slate-400 text-sm">

@@ -2003,17 +2003,40 @@ def create_app(config_name='production'):
             return jsonify({'error': 'Admin access required'}), 403
             
         try:
+            deps = _load_estimation_dependencies()
+            _calc_eco_score = deps['calculate_eco_score']
+
+            # Recyclability lookup — mirrors the cache-hit path
+            _recyclability_rates = {
+                'Plastic': 30, 'Glass': 80, 'Metal': 85, 'Steel': 90,
+                'Stainless Steel': 88, 'Aluminum': 95, 'Cotton': 20,
+                'Polyester': 15, 'Nylon': 20, 'Wood': 40, 'Paper': 75,
+                'Cardboard': 80, 'Rubber': 30, 'Leather': 10,
+                'Mixed': 15, 'Electronic': 15,
+            }
+
             submissions = ScrapedProduct.query.order_by(ScrapedProduct.id.desc()).limit(100).all()
             result = []
             for sub in submissions:
-                # Get latest emission calculation for this product
                 calc = EmissionCalculation.query.filter_by(
                     scraped_product_id=sub.id
                 ).order_by(EmissionCalculation.id.desc()).first()
-                # Get admin review (true label) if any
                 review = AdminReview.query.filter_by(
                     scraped_product_id=sub.id
                 ).order_by(AdminReview.id.desc()).first()
+
+                # Derive rule-based grade from stored calculation values
+                rule_grade = None
+                if calc and calc.rule_based_prediction:
+                    try:
+                        rule_co2     = float(calc.rule_based_prediction)
+                        rule_dist    = float(calc.transport_distance or 0)
+                        rule_weight  = float(sub.weight or 0.5)
+                        rec_pct      = _recyclability_rates.get(sub.material or '', 50)
+                        rec_label    = 'High' if rec_pct >= 70 else ('Medium' if rec_pct >= 40 else 'Low')
+                        rule_grade   = _calc_eco_score(rule_co2, rec_label, rule_dist, rule_weight)
+                    except Exception:
+                        pass
 
                 result.append({
                     'id': sub.id,
@@ -2023,8 +2046,8 @@ def create_app(config_name='production'):
                     'origin': sub.origin_country,
                     'brand': sub.brand,
                     'predicted_label': calc.eco_grade_ml if calc else None,
+                    'rule_based_label': rule_grade,
                     'confidence': f"{float(calc.ml_confidence):.1f}%" if calc and calc.ml_confidence else None,
-                    'rule_based_label': None,
                     'true_label': review.corrected_grade if review else None,
                     'review_status': review.review_status if review else 'pending',
                     'admin_notes': review.admin_notes if review else None,
