@@ -40,6 +40,71 @@ MATERIAL_CO2_INTENSITY = {
     "Other":    2.0,
 }
 
+# Recyclability rates (%) by country, sourced from national recycling data.
+# 'UK' uses WRAP 2022/23 figures. 'global' is a world-average fallback.
+# To add a new country: add a new key with the same material keys below.
+# Default used everywhere is 'UK'. Change DEFAULT_RECYCLABILITY_COUNTRY to
+# switch the whole app to a different region.
+RECYCLABILITY_RATES = {
+    'UK': {
+        # Source: WRAP 2022/23, DEFRA statistics, RECOUP reports
+        'Glass':           76,   # Bottle banks + kerbside
+        'Aluminum':        52,   # Kerbside widely accepted; drinks cans ~75% but foil drags average
+        'Steel':           70,   # Cans, tins well-collected
+        'Metal':           70,
+        'Stainless Steel': 67,
+        'Paper':           74,   # Strong UK paper recycling infrastructure
+        'Cardboard':       80,   # Highest-performing UK stream
+        'Wood':            35,   # Limited kerbside; some commercial routes
+        'Bamboo':          25,   # Niche; rarely collected
+        'Fabric':          15,   # UK textile recycling is poor (WRAP 2023)
+        'Cotton':          15,
+        'Polyester':       10,
+        'Nylon':           10,
+        'Plastic':         12,   # UK plastic recycling rate 2022 (RECOUP)
+        'Mixed':           10,   # Hard to separate
+        'Electronic':      17,   # WEEE collection ~40% but actual recycling lower
+        'Leather':         10,
+        'Rubber':          25,   # Tyre recycling routes exist; other rubber low
+        'Silicone':        10,
+        'Ceramic':         20,
+        'Foam':             5,
+    },
+    'global': {
+        # World-average fallback (pre-existing values)
+        'Glass':           90,
+        'Aluminum':        85,
+        'Steel':           85,
+        'Metal':           85,
+        'Stainless Steel': 88,
+        'Paper':           80,
+        'Cardboard':       80,
+        'Wood':            70,
+        'Bamboo':          70,
+        'Fabric':          40,
+        'Cotton':          40,
+        'Polyester':       15,
+        'Nylon':           20,
+        'Plastic':         20,
+        'Mixed':           15,
+        'Electronic':      15,
+        'Leather':         10,
+        'Rubber':          30,
+        'Silicone':        20,
+        'Ceramic':         30,
+        'Foam':            10,
+    },
+}
+
+DEFAULT_RECYCLABILITY_COUNTRY = 'UK'
+
+
+def get_recyclability_pct(material: str, country: str = DEFAULT_RECYCLABILITY_COUNTRY) -> int:
+    """Return recyclability % for a material in the given country. Falls back to global, then 50."""
+    rates = RECYCLABILITY_RATES.get(country) or RECYCLABILITY_RATES.get('global', {})
+    return rates.get(material) or RECYCLABILITY_RATES['global'].get(material, 50)
+
+
 def estimate_default_weight(title: str, category: str) -> float:
     """
     Return a sensible default weight (kg) when scraping fails to extract one.
@@ -557,13 +622,7 @@ def create_app(config_name='production'):
                 cached_transport = cached_calc.transport_mode or 'Ship'
                 cached_material  = cached_product.material or 'Mixed'
 
-                _recyclability_rates = {
-                    'Glass': 90, 'Aluminum': 85, 'Steel': 85, 'Metal': 85,
-                    'Paper': 80, 'Cardboard': 80, 'Wood': 70, 'Bamboo': 70,
-                    'Fabric': 40, 'Cotton': 40, 'Plastic': 20,
-                    'Mixed': 15, 'Electronic': 15,
-                }
-                rec_pct   = _recyclability_rates.get(cached_material, 50)
+                rec_pct   = get_recyclability_pct(cached_material)
                 rec_label = 'High' if rec_pct >= 70 else ('Medium' if rec_pct >= 40 else 'Low')
 
                 cached_grade_ml   = calculate_eco_score(cached_ml_co2,   rec_label, cached_distance, cached_weight)
@@ -1165,29 +1224,7 @@ def create_app(config_name='production'):
                 except Exception as cf_err:
                     print(f"⚠️ Counterfactual generation error: {cf_err}")
 
-            # Real-world recyclability rates by material (based on global recycling data)
-            _recyclability_rates = {
-                'Glass':      90,   # Closed-loop, widely recycled
-                'Aluminum':   85,   # Infinitely recyclable
-                'Steel':      85,   # Infinitely recyclable
-                'Metal':      85,
-                'Paper':      80,   # Strong infrastructure
-                'Cardboard':  80,
-                'Wood':       70,   # Biodegradable/recyclable
-                'Bamboo':     70,
-                'Ceramic':    60,   # Recyclable but limited infrastructure
-                'Stone':      25,   # Natural material, rarely recycled
-                'Fabric':     40,   # Limited infrastructure
-                'Cotton':     40,
-                'Leather':    10,   # Very difficult to recycle
-                'Rubber':     30,   # Some recycling routes (e.g. tyres) but limited
-                'Silicone':   20,   # Technically recyclable but rarely is
-                'Plastic':    20,   # ~9% of all plastic ever produced has been recycled
-                'Polyester':  15,
-                'Mixed':      15,   # Hard to separate components
-                'Electronic': 15,
-            }
-            recyclability_pct = _recyclability_rates.get(material, 50)
+            recyclability_pct = get_recyclability_pct(material)
             recyclability_label = 'High' if recyclability_pct >= 70 else ('Medium' if recyclability_pct >= 40 else 'Low')
 
             # Prepare response matching localhost format EXACTLY
@@ -2113,14 +2150,6 @@ def create_app(config_name='production'):
             deps = _load_estimation_dependencies()
             _calc_eco_score = deps['calculate_eco_score']
 
-            # Recyclability lookup — mirrors the cache-hit path
-            _recyclability_rates = {
-                'Plastic': 30, 'Glass': 80, 'Metal': 85, 'Steel': 90,
-                'Stainless Steel': 88, 'Aluminum': 95, 'Cotton': 20,
-                'Polyester': 15, 'Nylon': 20, 'Wood': 40, 'Paper': 75,
-                'Cardboard': 80, 'Rubber': 30, 'Leather': 10,
-                'Mixed': 15, 'Electronic': 15,
-            }
 
             submissions = ScrapedProduct.query.order_by(ScrapedProduct.id.desc()).limit(100).all()
             result = []
@@ -2132,7 +2161,7 @@ def create_app(config_name='production'):
                     scraped_product_id=sub.id
                 ).order_by(AdminReview.id.desc()).first()
 
-                rec_pct   = _recyclability_rates.get(sub.material or '', 50)
+                rec_pct   = get_recyclability_pct(sub.material or '')
                 rec_label = 'High' if rec_pct >= 70 else ('Medium' if rec_pct >= 40 else 'Low')
                 dist      = float(calc.transport_distance or 0) if calc else 0
                 weight    = float(sub.weight or 0.5)
@@ -2196,14 +2225,6 @@ def create_app(config_name='production'):
             deps = _load_estimation_dependencies()
             _calc_eco_score = deps['calculate_eco_score']
 
-            _recyclability_rates = {
-                'Plastic': 30, 'Glass': 80, 'Metal': 85, 'Steel': 90,
-                'Stainless Steel': 88, 'Aluminum': 95, 'Cotton': 20,
-                'Polyester': 15, 'Nylon': 20, 'Wood': 40, 'Paper': 75,
-                'Cardboard': 80, 'Rubber': 30, 'Leather': 10,
-                'Mixed': 15, 'Electronic': 15,
-            }
-
             submissions = ScrapedProduct.query.order_by(ScrapedProduct.id.desc()).limit(100).all()
             approved = 0
             skipped = 0
@@ -2226,7 +2247,7 @@ def create_app(config_name='production'):
                     skipped += 1
                     continue
 
-                rec_pct   = _recyclability_rates.get(sub.material or '', 50)
+                rec_pct   = get_recyclability_pct(sub.material or '')
                 rec_label = 'High' if rec_pct >= 70 else ('Medium' if rec_pct >= 40 else 'Low')
                 dist      = float(calc.transport_distance or 0)
                 weight    = float(sub.weight or 0.5)
@@ -2293,14 +2314,6 @@ def create_app(config_name='production'):
         try:
             deps = _load_estimation_dependencies()
             _calc_eco_score = deps['calculate_eco_score']
-            _recyclability_rates = {
-                'Plastic': 30, 'Glass': 80, 'Metal': 85, 'Steel': 90,
-                'Stainless Steel': 88, 'Aluminum': 95, 'Cotton': 20,
-                'Polyester': 15, 'Nylon': 20, 'Wood': 40, 'Paper': 75,
-                'Cardboard': 80, 'Rubber': 30, 'Leather': 10,
-                'Mixed': 15, 'Electronic': 15,
-            }
-
             submissions = ScrapedProduct.query.order_by(ScrapedProduct.id.desc()).limit(100).all()
             approved = 0
             skipped = 0
@@ -2321,7 +2334,7 @@ def create_app(config_name='production'):
                     skipped += 1
                     continue
 
-                rec_pct   = _recyclability_rates.get(sub.material or '', 50)
+                rec_pct   = get_recyclability_pct(sub.material or '')
                 rec_label = 'High' if rec_pct >= 70 else ('Medium' if rec_pct >= 40 else 'Low')
                 dist      = float(calc.transport_distance or 0)
                 weight    = float(sub.weight or 0.5)
