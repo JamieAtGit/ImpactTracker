@@ -32,19 +32,24 @@ class EnhancedMaterialsIntelligenceService:
         self.setup_price_tier_intelligence()
     
     def load_material_data(self):
-        """Load CO2 intensity data for environmental impact scoring"""
+        """Load CO2 intensity data for environmental impact scoring.
+
+        Strategy: start with the hardcoded map (comprehensive defaults), then
+        overlay the DEFRA CSV values so official data wins where available but
+        newly added materials (recycled variants, proprietary codes, etc.) are
+        never silently dropped just because the CSV predates them.
+        """
+        base = self.get_enhanced_co2_map()
         try:
             base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
             csv_path = os.path.join(base_dir, "common", "data", "csv", "defra_material_intensity.csv")
-            
             if os.path.exists(csv_path):
                 df = pd.read_csv(csv_path)
-                self.material_co2_map = dict(zip(df['material'].str.lower(), df['co2_per_kg']))
-            else:
-                self.material_co2_map = self.get_enhanced_co2_map()
+                csv_map = dict(zip(df['material'].str.lower(), df['co2_per_kg']))
+                base.update(csv_map)   # CSV values override defaults; gaps stay from base
         except Exception as e:
-            print(f"⚠️ Error loading material CO2 data: {e}")
-            self.material_co2_map = self.get_enhanced_co2_map()
+            print(f"⚠️ Error loading material CO2 CSV: {e}")
+        self.material_co2_map = base
     
     def get_enhanced_co2_map(self):
         """ENHANCED CO2 intensity values (kg CO2 per kg material)"""
@@ -61,8 +66,10 @@ class EnhancedMaterialsIntelligenceService:
             'vinyl': 3.2, 'silicon': 5.8, 'silicone': 5.8,
             'tpe': 3.6, 'tpu': 3.9, 'eva foam': 2.6,
             'polystyrene': 3.4, 'hdpe': 2.8, 'ldpe': 2.5, 'pet': 3.4,
-            'acrylic': 4.5, 'pu': 3.6, 'recycled plastic': 1.8,
-            'recycled polyester': 1.5,
+            'acrylic': 4.5, 'pu': 3.6,
+            'recycled plastic': 1.8, 'recycled polyester': 1.5,
+            'recycled nylon': 3.8, 'recycled cotton': 1.0,
+            'recycled aluminum': 0.7, 'recycled steel': 0.6,
 
             # Natural Materials
             'wood': 0.4, 'timber': 0.4, 'solid wood': 0.4, 'engineered wood': 0.6,
@@ -1130,11 +1137,11 @@ class EnhancedMaterialsIntelligenceService:
             # ── Compound rubber / fabric ──────────────────────────────────────
             'natural rubber': 'Rubber',
             'synthetic rubber': 'Rubber',
-            # ── Recycled materials ────────────────────────────────────────────
-            'recycled plastic': 'Plastic',
-            'recycled polyester': 'Polyester',
-            'recycled nylon': 'Nylon',
-            'recycled cotton': 'Cotton',
+            # ── Recycled materials — preserve full name so lower CO₂ is used ──
+            'recycled plastic': 'Recycled Plastic',
+            'recycled polyester': 'Recycled Polyester',
+            'recycled nylon': 'Recycled Nylon',
+            'recycled cotton': 'Recycled Cotton',
             # ── Eyewear frames ────────────────────────────────────────────────
             'tr90': 'Nylon', 'tr-90': 'Nylon',
             'acetate': 'Plastic',       # Cellulose acetate — classic glasses

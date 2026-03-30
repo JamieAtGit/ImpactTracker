@@ -2062,6 +2062,92 @@ def create_app(config_name='production'):
         except Exception as e:
             return jsonify({'error': str(e)}), 500
     
+    @app.route('/admin/backfill-materials', methods=['POST'])
+    def admin_backfill_materials():
+        """
+        One-time maintenance endpoint: populate materials_json for existing
+        ScrapedProduct rows that were saved before the column existed.
+
+        Parses each row's `material` field (already normalised by the scraper)
+        into a synthetic amazon_extracted_materials dict so future cache hits
+        use Tier 1/2 detection instead of falling back to Tier 3 guessing.
+
+        Skips rows that already have materials_json or have material='Mixed'/
+        'Unknown'.  Safe to call multiple times (idempotent).
+
+        Requires admin session.
+        """
+        user = session.get('user')
+        if not user or user.get('role') != 'admin':
+            return jsonify({'error': 'Admin access required'}), 403
+
+        import re as _re
+
+        # Very simple percentage parser: "95% Cotton, 5% Elastane" or
+        # "Cotton 95%, Elastane 5%"
+        _PCT_FIRST = _re.compile(
+            r'(\d+(?:\.\d+)?)\s*%\s*([A-Za-z][A-Za-z\s\-]{1,30}?)(?=[,;/+]|\d|$)'
+        )
+        _PCT_LAST = _re.compile(
+            r'([A-Za-z][A-Za-z\s\-]{1,30}?)\s+(\d+(?:\.\d+)?)\s*%(?=[,;/+]|$)'
+        )
+
+        _SKIP = {'mixed', 'unknown', 'other', 'n/a', '', 'not found'}
+
+        def _build_materials_json(material_str: str):
+            if not material_str or material_str.strip().lower() in _SKIP:
+                return None
+            raw = material_str.strip()
+
+            # Try percentage composition first
+            matches = _PCT_FIRST.findall(raw)
+            if not matches:
+                matches = [(pct, nm) for nm, pct in _PCT_LAST.findall(raw)]
+            if matches:
+                total = sum(float(p) for p, _ in matches)
+                if 85 <= total <= 105:
+                    items = [
+                        {'name': nm.strip().title(), 'confidence_score': 0.9,
+                         'weight': round(float(p) / 100, 4)}
+                        for p, nm in matches if nm.strip()
+                    ]
+                    if items:
+                        return json.dumps({'materials': items})
+
+            # Fallback: split on separators, treat each token as a material
+            parts = [p.strip() for p in _re.split(r'[,;/\+&]', raw) if p.strip()]
+            if not parts:
+                return None
+            items = [{'name': p.title(), 'confidence_score': 0.75} for p in parts]
+            return json.dumps({'materials': items})
+
+        try:
+            rows = ScrapedProduct.query.filter(
+                ScrapedProduct.materials_json.is_(None),
+                ScrapedProduct.material.isnot(None),
+            ).all()
+
+            updated = 0
+            skipped = 0
+            for row in rows:
+                mj = _build_materials_json(row.material)
+                if mj:
+                    row.materials_json = mj
+                    updated += 1
+                else:
+                    skipped += 1
+
+            db.session.commit()
+            return jsonify({
+                'success': True,
+                'updated': updated,
+                'skipped_no_useful_material': skipped,
+                'total_processed': len(rows),
+            })
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': str(e)}), 500
+
     @app.route('/all-model-metrics', methods=['GET'])
     def all_model_metrics():
         """Get all model metrics from real training artifacts"""
