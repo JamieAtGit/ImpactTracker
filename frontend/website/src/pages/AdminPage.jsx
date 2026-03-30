@@ -36,16 +36,21 @@ const AdminStatCard = ({ title, value, subtitle, icon, color = "blue" }) => {
   );
 };
 
-const PredictionManagement = ({ submissions, selected, updatedLabel, setUpdatedLabel, handleEdit, handleSave, setSelected }) => (
+const PredictionManagement = ({ submissions, selected, updatedLabel, setUpdatedLabel, handleEdit, handleSave, setSelected, handleBulkApprove }) => (
   <ModernCard solid>
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-display text-slate-200">
           Review & Validate Predictions
         </h3>
-        <ModernBadge variant="info" size="sm">
-          {submissions.length} items
-        </ModernBadge>
+        <div className="flex items-center gap-3">
+          <ModernButton variant="success" size="sm" onClick={handleBulkApprove}>
+            Auto-approve matching
+          </ModernButton>
+          <ModernBadge variant="info" size="sm">
+            {submissions.length} items
+          </ModernBadge>
+        </div>
       </div>
 
       <div className="overflow-x-auto">
@@ -362,6 +367,29 @@ export default function AdminPage() {
     }
   };
 
+  const handleBulkApprove = async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/admin/bulk-approve-matching`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(`Done: ${data.approved} auto-approved, ${data.skipped} skipped.`);
+        // Refresh submissions to show updated true labels
+        const updated = await fetch(`${BASE_URL}/admin/submissions`, { credentials: 'include' });
+        const updatedData = await updated.json();
+        setSubmissions(updatedData);
+      } else {
+        alert(`Failed: ${data.error}`);
+      }
+    } catch (err) {
+      console.error('Bulk approve failed:', err);
+      alert('Bulk approve failed');
+    }
+  };
+
   const handleRoleChange = async (user, newRole) => {
     try {
       const res = await fetch(`${BASE_URL}/admin/users/${user.id}/role`, {
@@ -531,7 +559,7 @@ export default function AdminPage() {
 
                 {/* Tab Content */}
                 {activeTab === "predictions" && (
-                  <PredictionManagement 
+                  <PredictionManagement
                     submissions={submissions}
                     selected={selected}
                     updatedLabel={updatedLabel}
@@ -539,6 +567,7 @@ export default function AdminPage() {
                     handleEdit={handleEdit}
                     handleSave={handleSave}
                     setSelected={setSelected}
+                    handleBulkApprove={handleBulkApprove}
                   />
                 )}
 

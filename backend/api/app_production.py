@@ -2025,16 +2025,29 @@ def create_app(config_name='production'):
                     scraped_product_id=sub.id
                 ).order_by(AdminReview.id.desc()).first()
 
-                # Derive rule-based grade from stored calculation values
+                rec_pct   = _recyclability_rates.get(sub.material or '', 50)
+                rec_label = 'High' if rec_pct >= 70 else ('Medium' if rec_pct >= 40 else 'Low')
+                dist      = float(calc.transport_distance or 0) if calc else 0
+                weight    = float(sub.weight or 0.5)
+
+                # Derive rule-based grade from stored rule_based_prediction
                 rule_grade = None
                 if calc and calc.rule_based_prediction:
                     try:
-                        rule_co2     = float(calc.rule_based_prediction)
-                        rule_dist    = float(calc.transport_distance or 0)
-                        rule_weight  = float(sub.weight or 0.5)
-                        rec_pct      = _recyclability_rates.get(sub.material or '', 50)
-                        rec_label    = 'High' if rec_pct >= 70 else ('Medium' if rec_pct >= 40 else 'Low')
-                        rule_grade   = _calc_eco_score(rule_co2, rec_label, rule_dist, rule_weight)
+                        rule_grade = _calc_eco_score(
+                            float(calc.rule_based_prediction), rec_label, dist, weight
+                        )
+                    except Exception:
+                        pass
+
+                # eco_grade_ml is NULL for products scraped before the column existed.
+                # Fall back to deriving it from ml_prediction so the column is never blank.
+                ml_grade = calc.eco_grade_ml if calc and calc.eco_grade_ml else None
+                if not ml_grade and calc and calc.ml_prediction:
+                    try:
+                        ml_grade = _calc_eco_score(
+                            float(calc.ml_prediction), rec_label, dist, weight
+                        )
                     except Exception:
                         pass
 
@@ -2045,7 +2058,7 @@ def create_app(config_name='production'):
                     'material': sub.material,
                     'origin': sub.origin_country,
                     'brand': sub.brand,
-                    'predicted_label': calc.eco_grade_ml if calc else None,
+                    'predicted_label': ml_grade,
                     'rule_based_label': rule_grade,
                     'confidence': f"{float(calc.ml_confidence):.1f}%" if calc and calc.ml_confidence else None,
                     'true_label': review.corrected_grade if review else None,
@@ -2058,7 +2071,108 @@ def create_app(config_name='production'):
             return jsonify(result)
         except Exception as e:
             return jsonify({'error': str(e)}), 500
-    
+
+    @app.route('/admin/bulk-approve-matching', methods=['POST'])
+    def admin_bulk_approve_matching():
+        """
+        Auto-approve all submissions where the derived ML grade and rule-based
+        grade agree, and no true label has been set yet. When two independent
+        methods (ML model + deterministic rule calculation) reach the same
+        conclusion, confidence is high enough to treat it as ground truth.
+        Requires admin auth.
+        """
+        user = session.get('user')
+        if not user or user.get('role') != 'admin':
+            return jsonify({'error': 'Admin access required'}), 403
+
+        try:
+            deps = _load_estimation_dependencies()
+            _calc_eco_score = deps['calculate_eco_score']
+
+            _recyclability_rates = {
+                'Plastic': 30, 'Glass': 80, 'Metal': 85, 'Steel': 90,
+                'Stainless Steel': 88, 'Aluminum': 95, 'Cotton': 20,
+                'Polyester': 15, 'Nylon': 20, 'Wood': 40, 'Paper': 75,
+                'Cardboard': 80, 'Rubber': 30, 'Leather': 10,
+                'Mixed': 15, 'Electronic': 15,
+            }
+
+            submissions = ScrapedProduct.query.order_by(ScrapedProduct.id.desc()).limit(100).all()
+            approved = 0
+            skipped = 0
+            admin_user_id = user.get('id')
+
+            for sub in submissions:
+                calc = EmissionCalculation.query.filter_by(
+                    scraped_product_id=sub.id
+                ).order_by(EmissionCalculation.id.desc()).first()
+                review = AdminReview.query.filter_by(
+                    scraped_product_id=sub.id
+                ).order_by(AdminReview.id.desc()).first()
+
+                # Skip already-labelled products
+                if review and review.corrected_grade:
+                    skipped += 1
+                    continue
+
+                if not calc:
+                    skipped += 1
+                    continue
+
+                rec_pct   = _recyclability_rates.get(sub.material or '', 50)
+                rec_label = 'High' if rec_pct >= 70 else ('Medium' if rec_pct >= 40 else 'Low')
+                dist      = float(calc.transport_distance or 0)
+                weight    = float(sub.weight or 0.5)
+
+                # Derive ML grade (stored or calculated from ml_prediction)
+                ml_grade = calc.eco_grade_ml or None
+                if not ml_grade and calc.ml_prediction:
+                    try:
+                        ml_grade = _calc_eco_score(float(calc.ml_prediction), rec_label, dist, weight)
+                    except Exception:
+                        pass
+
+                # Derive rule grade
+                rule_grade = None
+                if calc.rule_based_prediction:
+                    try:
+                        rule_grade = _calc_eco_score(float(calc.rule_based_prediction), rec_label, dist, weight)
+                    except Exception:
+                        pass
+
+                # Only approve when both methods agree
+                if not ml_grade or not rule_grade or ml_grade != rule_grade:
+                    skipped += 1
+                    continue
+
+                if review:
+                    review.corrected_grade = ml_grade
+                    review.review_status = 'approved'
+                    review.reviewed_by = admin_user_id
+                    review.reviewed_at = datetime.utcnow()
+                    review.admin_notes = 'Auto-approved: ML and rule-based grades agree'
+                else:
+                    db.session.add(AdminReview(
+                        scraped_product_id=sub.id,
+                        corrected_grade=ml_grade,
+                        review_status='approved',
+                        reviewed_by=admin_user_id,
+                        reviewed_at=datetime.utcnow(),
+                        admin_notes='Auto-approved: ML and rule-based grades agree',
+                    ))
+                approved += 1
+
+            db.session.commit()
+            return jsonify({
+                'success': True,
+                'approved': approved,
+                'skipped': skipped,
+                'message': f'{approved} submissions auto-approved, {skipped} skipped (already labelled or grades disagree)',
+            })
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': str(e)}), 500
+
     @app.route('/admin/update', methods=['POST'])
     def admin_update():
         """Update admin submission - REQUIRES ADMIN AUTH"""
