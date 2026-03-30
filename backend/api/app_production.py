@@ -430,11 +430,24 @@ def create_app(config_name='production'):
             asin_key = extract_asin_from_amazon_url(url)
             cached_calc = find_cached_emission_calculation(asin=asin_key, amazon_url=url, postcode=postcode)
             _BAD_TITLES = {'amazon product', 'unknown product', 'unknown', '', 'consumer product'}
+            _POOR_MATERIALS = {'mixed', 'unknown', 'other', 'n/a', '', 'not found'}
+            # Cache is only usable when we have good material data. If materials_json
+            # is NULL and the stored material string is vague (Mixed/Unknown), bypass
+            # the cache and re-scrape so the product silently upgrades itself.
+            _cached_material_ok = (
+                cached_calc
+                and cached_calc.scraped_product
+                and (
+                    cached_calc.scraped_product.materials_json is not None
+                    or (cached_calc.scraped_product.material or '').strip().lower() not in _POOR_MATERIALS
+                )
+            )
             _cache_usable = (
                 cached_calc
                 and cached_calc.scraped_product
                 and (cached_calc.scraped_product.title or '').strip().lower() not in _BAD_TITLES
                 and float(cached_calc.final_emission or 0) > 0
+                and _cached_material_ok
             )
             if _cache_usable:
                 cached_product = cached_calc.scraped_product
