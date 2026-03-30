@@ -730,7 +730,7 @@ class RequestsScraper:
                          'carbon steel', 'alloy', 'pewter', 'nickel',
                          'razor', 'razor blade', 'blade refill', 'shaving blade',
                          'knife', 'knives', 'scissors', 'cutlery', 'spanner', 'wrench'],
-            'Paper':    ['paper', 'cardboard', 'book', 'notebook', 'journal',
+            'Paper':    ['paper', 'cardboard', 'book', 'journal',
                          'paperback', 'hardback', 'kraft'],
             'Leather':  ['leather', 'suede', 'nubuck', 'faux leather', 'pu leather',
                          'vegan leather', 'patent leather', 'genuine leather'],

@@ -113,6 +113,15 @@ def smart_guess_material(title: str) -> str | None:
         (["carbon fibre", "carbon fiber"],              "Carbon Fibre"),
         (["paper", "kraft", "pulp"],                    "Paper"),
         (["cardboard", "carton"],                       "Cardboard"),
+
+        # ── Electronics / computers (must appear before Paper so "notebook"
+        #    in page text doesn't cause laptops to be classified as Paper) ──
+        (["macbook", "macbook air", "macbook pro"],     "Aluminium"),
+        (["iphone", "ipad", "apple watch"],             "Aluminium"),
+        (["laptop", "notebook computer", "ultrabook",
+          "chromebook", "thinkpad", "surface pro",
+          "gaming laptop"],                             "Mixed"),
+        (["smartphone", "android phone", "tablet pc"], "Mixed"),
     ]
 
     for keywords, material in RULES:
