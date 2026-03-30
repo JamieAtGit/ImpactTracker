@@ -2062,7 +2062,7 @@ def create_app(config_name='production'):
         except Exception as e:
             return jsonify({'error': str(e)}), 500
     
-    @app.route('/admin/backfill-materials', methods=['POST'])
+    @app.route('/api/admin/backfill-materials', methods=['POST'])
     def admin_backfill_materials():
         """
         One-time maintenance endpoint: populate materials_json for existing
