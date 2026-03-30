@@ -198,7 +198,7 @@ export default function InsightsDashboard({ refreshKey = 0 }) {
                       <span className="text-cyan-400 text-xs">🔍</span>
                     </div>
                     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-slate-800 text-slate-200 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 border border-slate-600">
-                      Distribution of environmental impact scores (A+ = best, F = worst)
+                      Distribution across training dataset (A+ = best, F = worst)
                       <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-800"></div>
                     </div>
                   </div>
@@ -268,7 +268,7 @@ export default function InsightsDashboard({ refreshKey = 0 }) {
                   </div>
                 </div>
                 <ModernBadge variant="success" size="sm">
-                  {materialData.length} types
+                  Top {materialData.length} of {stats.total_materials}
                 </ModernBadge>
               </div>
               
@@ -359,7 +359,7 @@ export default function InsightsDashboard({ refreshKey = 0 }) {
                                   <span className="text-purple-400 font-bold text-lg">{percentage}%</span>
                                 </div>
                                 <div className="pt-2 border-t border-slate-600">
-                                  <span className="text-slate-400 text-xs">Material analysis based on ML predictions</span>
+                                  <span className="text-slate-400 text-xs">Training dataset · top {materialData.length} by frequency</span>
                                 </div>
                               </div>
                             </div>

@@ -366,16 +366,40 @@ export default function AdminPage() {
   };
 
   // Calculate admin-specific metrics
+  const labelledCount = submissions.filter(s => s.true_label).length;
+  const needsReview = submissions.length - labelledCount;
+
+  // Use per-submission accuracy only when enough labels exist (>=5).
+  // Otherwise fall back to the real XGBoost test-set accuracy from model-metrics.
+  const accuracyInfo = (() => {
+    if (labelledCount >= 5) {
+      const correct = submissions.filter(
+        s => s.true_label && s.predicted_label === s.true_label
+      ).length;
+      return {
+        value: (correct / labelledCount * 100).toFixed(1),
+        subtitle: `${labelledCount} labelled samples`,
+      };
+    }
+    if (modelMetrics.accuracy) {
+      return {
+        value: (modelMetrics.accuracy * 100).toFixed(1),
+        subtitle: "XGBoost test-set accuracy",
+      };
+    }
+    return { value: "N/A", subtitle: "No labelled data yet" };
+  })();
+
+  const recentActivity = submissions.filter(s => {
+    if (!s.created_at) return false;
+    return new Date(s.created_at) > new Date(Date.now() - 24 * 60 * 60 * 1000);
+  }).length;
+
   const submissionStats = {
     total: submissions.length,
-    needsReview: submissions.filter(s => !s.true_label).length,
-    accuracy: submissions.length > 0 ? 
-      (submissions.filter(s => s.predicted_label === s.true_label).length / submissions.length * 100).toFixed(1) : 0,
-    recentActivity: submissions.filter(s => {
-      const submissionDate = new Date(s.timestamp || Date.now());
-      const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      return submissionDate > dayAgo;
-    }).length
+    needsReview,
+    accuracyInfo,
+    recentActivity,
   };
 
   return (
@@ -423,14 +447,14 @@ export default function AdminPage() {
                 <AdminStatCard
                   title="Needs Review"
                   value={submissionStats.needsReview}
-                  subtitle="Missing labels"
+                  subtitle={`${labelledCount} of ${submissionStats.total} labelled`}
                   icon="⚠️"
                   color="amber"
                 />
                 <AdminStatCard
                   title="Model Accuracy"
-                  value={`${submissionStats.accuracy}%`}
-                  subtitle="Prediction success"
+                  value={`${submissionStats.accuracyInfo.value}%`}
+                  subtitle={submissionStats.accuracyInfo.subtitle}
                   icon="🎯"
                   color="green"
                 />
