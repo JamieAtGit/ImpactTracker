@@ -597,6 +597,8 @@ def create_app(config_name='production'):
             _scraped_title = (product.get('title') or '').strip().lower()
             if not product or _scraped_title in _BAD_SCRAPE_TITLES:
                 return jsonify({"error": "Failed to scrape product data"}), 400
+            if _scraped_title == 'blocked':
+                return jsonify({"error": "Amazon is blocking requests from this server. The SCRAPERAPI_KEY environment variable may be missing or expired."}), 503
                 
             print(f"✅ Scraper success: {product.get('title', '')[:50]}...")
             

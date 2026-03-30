@@ -203,8 +203,11 @@ class RequestsScraper:
                 
                 # Check for bot detection
                 if self.is_blocked(soup):
-                    print("🚫 Bot detection in requests method")
-                    return self.create_intelligent_fallback(url, asin)
+                    print("🚫 Bot detection — Amazon is blocking this IP. Set SCRAPERAPI_KEY env var to fix.")
+                    return {"title": "blocked", "origin": "Unknown", "weight_kg": 1.0,
+                            "material_type": "Unknown", "recyclability": "Medium",
+                            "eco_score_ml": "C", "brand": "Unknown", "asin": asin,
+                            "dimensions_cm": [15, 10, 8]}
                 
                 # Extract data
                 return self.extract_from_soup(soup, asin, clean_url)
