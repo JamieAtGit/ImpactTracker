@@ -673,7 +673,13 @@ def create_app(config_name='production'):
             
             # Scrape product - using unified scraper in production
             print(f"🔍 Scraping URL: {url}")
-            product = scrape_amazon_product_page(url)
+            import concurrent.futures as _cf
+            try:
+                with _cf.ThreadPoolExecutor(max_workers=1) as _pool:
+                    _future = _pool.submit(scrape_amazon_product_page, url)
+                    product = _future.result(timeout=30)
+            except _cf.TimeoutError:
+                return jsonify({"error": "Scraping timed out — Amazon may be slow or blocking. Please try again."}), 504
             
             _BAD_SCRAPE_TITLES = {'unknown product', 'amazon product', 'unknown', '', 'consumer product'}
             _scraped_title = (product.get('title') or '').strip().lower()
@@ -1405,11 +1411,16 @@ def create_app(config_name='production'):
                         'origin':         (origin_country or 'Unknown').title(),
                     }
                     _write_header = not os.path.exists(_live_csv)
+                    import fcntl as _fcntl
                     with open(_live_csv, 'a', newline='', encoding='utf-8') as _f:
-                        _w = _csv.DictWriter(_f, fieldnames=list(_row.keys()))
-                        if _write_header:
-                            _w.writeheader()
-                        _w.writerow(_row)
+                        _fcntl.flock(_f, _fcntl.LOCK_EX)
+                        try:
+                            _w = _csv.DictWriter(_f, fieldnames=list(_row.keys()))
+                            if _write_header:
+                                _w.writeheader()
+                            _w.writerow(_row)
+                        finally:
+                            _fcntl.flock(_f, _fcntl.LOCK_UN)
                 except Exception as _e:
                     print(f"Live CSV append skipped: {_e}")
 
