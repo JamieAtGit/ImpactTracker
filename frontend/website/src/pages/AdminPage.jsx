@@ -36,6 +36,17 @@ const AdminStatCard = ({ title, value, subtitle, icon, color = "blue" }) => {
   );
 };
 
+const TooltipHeader = ({ label, tip }) => (
+  <div className="group relative inline-flex items-center gap-1 cursor-help">
+    <span>{label}</span>
+    <span className="text-slate-500 text-xs">ⓘ</span>
+    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 px-3 py-2 bg-slate-800 border border-slate-600 text-slate-200 text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none shadow-xl">
+      {tip}
+      <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-800" />
+    </div>
+  </div>
+);
+
 const PredictionManagement = ({ submissions, selected, updatedLabel, setUpdatedLabel, handleEdit, handleSave, setSelected, handleBulkApprove }) => (
   <ModernCard solid>
     <div className="space-y-6">
@@ -44,13 +55,24 @@ const PredictionManagement = ({ submissions, selected, updatedLabel, setUpdatedL
           Review & Validate Predictions
         </h3>
         <div className="flex items-center gap-3">
-          <ModernButton variant="success" size="sm" onClick={handleBulkApprove}>
-            Auto-approve matching
-          </ModernButton>
+          <button
+            onClick={handleBulkApprove}
+            className="group relative inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm font-medium hover:bg-emerald-500/20 hover:border-emerald-400/50 transition-all duration-200"
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-400 group-hover:animate-ping" />
+            Auto-approve matching grades
+          </button>
           <ModernBadge variant="info" size="sm">
             {submissions.length} items
           </ModernBadge>
         </div>
+      </div>
+
+      {/* Guidance panel */}
+      <div className="rounded-xl border border-slate-700 bg-slate-800/40 px-4 py-3 text-xs text-slate-400 space-y-1">
+        <p><span className="text-slate-300 font-medium">Confidence</span> — how certain the ML model is in its own grade. High (&gt;80%) means trust ML. Low (&lt;60%) means the rule-based grade is more reliable.</p>
+        <p><span className="text-slate-300 font-medium">⚠ Grades disagree</span> — use the CO₂ value as a sense-check. A+ should be &lt;0.5 kg, F is typically &gt;10 kg. If ML confidence is high, prefer ML grade. Otherwise prefer Rule grade.</p>
+        <p><span className="text-slate-300 font-medium">Auto-approve</span> — sets true label automatically for all products where ML and rule grades agree. Only reviews where they differ need manual attention.</p>
       </div>
 
       <div className="overflow-x-auto">
@@ -59,11 +81,19 @@ const PredictionManagement = ({ submissions, selected, updatedLabel, setUpdatedL
             <tr className="border-b border-slate-600">
               <th className="text-left p-3 text-slate-300 font-medium">Product Title</th>
               <th className="text-left p-3 text-slate-300 font-medium">Origin</th>
-              <th className="text-left p-3 text-slate-300 font-medium">ML Grade</th>
-              <th className="text-left p-3 text-slate-300 font-medium">Rule Grade</th>
-              <th className="text-left p-3 text-slate-300 font-medium">Confidence</th>
+              <th className="text-left p-3 text-slate-300 font-medium">
+                <TooltipHeader label="ML Grade" tip="XGBoost model prediction based on material, weight, origin and transport patterns learned from training data." />
+              </th>
+              <th className="text-left p-3 text-slate-300 font-medium">
+                <TooltipHeader label="Rule Grade" tip="Deterministic calculation: material CO₂/kg × weight + transport emissions. No ML involved — explicit maths." />
+              </th>
+              <th className="text-left p-3 text-slate-300 font-medium">
+                <TooltipHeader label="Confidence" tip="ML model's confidence in its own grade (0–100%). Above 80%: trust ML. Below 60%: prefer Rule grade." />
+              </th>
               <th className="text-left p-3 text-slate-300 font-medium">CO₂ (kg)</th>
-              <th className="text-left p-3 text-slate-300 font-medium">True Label</th>
+              <th className="text-left p-3 text-slate-300 font-medium">
+                <TooltipHeader label="True Label" tip="Your verified ground truth. Click Label to set. Use ML grade if high confidence, Rule grade if low confidence, or your own judgement for ⚠ disagreements." />
+              </th>
               <th className="text-left p-3 text-slate-300 font-medium">Actions</th>
             </tr>
           </thead>
