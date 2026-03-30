@@ -96,8 +96,11 @@ const InlineBtn = ({ onClick, variant = 'default', children }) => {
   );
 };
 
-function PredictionManagement({ submissions, selected, updatedLabel, setUpdatedLabel, handleEdit, handleSave, setSelected, handleBulkApprove, handleBulkApproveML, handleBulkApproveRule }) {
+function PredictionManagement({ submissions, selected, updatedLabel, setUpdatedLabel, handleEdit, handleSave, setSelected, handleBulkApprove, handleBulkApproveML, handleBulkApproveRule, handleFixCo2, handleExportCsv }) {
   const [filter, setFilter] = React.useState('all'); // 'all' | 'disagree' | 'close' | 'far'
+
+  const labelledCount = submissions.filter(s => s.true_label).length;
+  const labelPct = submissions.length > 0 ? Math.round((labelledCount / submissions.length) * 100) : 0;
 
   const disagreementCount = submissions.filter(
     s => s.predicted_label && s.rule_based_label && s.predicted_label !== s.rule_based_label && !s.true_label
@@ -137,12 +140,33 @@ function PredictionManagement({ submissions, selected, updatedLabel, setUpdatedL
           <ModernBadge variant="info" size="sm">{displayed.length} of {submissions.length}</ModernBadge>
         </div>
 
+        {/* Labelling progress bar */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between text-xs text-slate-400">
+            <span>Labelling progress</span>
+            <span className="font-medium text-slate-300">{labelledCount} / {submissions.length} labelled ({labelPct}%)</span>
+          </div>
+          <div className="h-2 w-full bg-slate-700 rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 transition-all duration-500"
+              style={{ width: `${labelPct}%` }}
+            />
+          </div>
+        </div>
+
         {/* Bulk actions row */}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs text-slate-500 font-medium">Bulk approve:</span>
           <ActionPill color="emerald" dot onClick={handleBulkApprove}>Matching grades</ActionPill>
           <ActionPill color="blue"    dot onClick={handleBulkApproveML}>ML grades</ActionPill>
           <ActionPill color="violet"  dot onClick={handleBulkApproveRule}>Rule grades</ActionPill>
+        </div>
+
+        {/* Maintenance + export row */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs text-slate-500 font-medium">Tools:</span>
+          <ActionPill color="emerald" onClick={handleFixCo2}>Fix CO₂ units</ActionPill>
+          <ActionPill color="blue" onClick={handleExportCsv}>Export CSV</ActionPill>
         </div>
 
         {/* Filter row */}
@@ -480,6 +504,41 @@ export default function AdminPage() {
   const handleBulkApproveML   = () => bulkAction('/admin/bulk-approve-ml',       'Approve ML grades');
   const handleBulkApproveRule = () => bulkAction('/admin/bulk-approve-rule',      'Approve rule grades');
 
+  const handleFixCo2 = async () => {
+    if (!confirm('Recalculate CO₂ for all records where weight was stored in grams instead of kg?\n\nThis is safe to run multiple times.')) return;
+    try {
+      const res = await fetch(`${BASE_URL}/api/admin/fix-co2`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(`CO₂ fix complete: ${data.fixed} records corrected, ${data.skipped} skipped.`);
+        await refreshSubmissions();
+      } else {
+        alert(`Failed: ${data.error}`);
+      }
+    } catch (err) {
+      alert('CO₂ fix failed');
+    }
+  };
+
+  const handleExportCsv = async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/api/admin/export-labelled-csv`, { credentials: 'include' });
+      if (!res.ok) { alert('Export failed: not authorised'); return; }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'labelled_data.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert('Export failed');
+    }
+  };
+
   const handleRoleChange = async (user, newRole) => {
     try {
       const res = await fetch(`${BASE_URL}/admin/users/${user.id}/role`, {
@@ -660,6 +719,8 @@ export default function AdminPage() {
                     handleBulkApprove={handleBulkApprove}
                     handleBulkApproveML={handleBulkApproveML}
                     handleBulkApproveRule={handleBulkApproveRule}
+                    handleFixCo2={handleFixCo2}
+                    handleExportCsv={handleExportCsv}
                   />
                 )}
 

@@ -467,6 +467,10 @@ def create_app(config_name='production'):
                 cached_rule_co2 = float(cached_calc.rule_based_prediction or cached_total)
                 cached_distance = float(cached_calc.transport_distance or 0.0)
                 cached_weight   = float(cached_product.weight or 0.5)
+                # Sanity-check: no Amazon product should weigh >150 kg;
+                # if so, the value was stored in grams — auto-correct.
+                if cached_weight > 150:
+                    cached_weight /= 1000
                 cached_raw_wt   = round(cached_weight / 1.05, 3)
                 cached_transport = cached_calc.transport_mode or 'Ship'
                 cached_material  = cached_product.material or 'Mixed'
@@ -665,6 +669,11 @@ def create_app(config_name='production'):
             # Get weight
             raw_weight = product.get("weight_kg") or product.get("raw_product_weight_kg") or 0.5
             weight = float(raw_weight)
+            # Sanity-check: no Amazon product should weigh >150 kg;
+            # if so, the scraper returned grams — auto-correct to kg.
+            if weight > 150:
+                weight /= 1000
+                print(f"⚠️ Weight auto-corrected from grams: {weight}kg")
             print(f"🏋️ Using weight: {weight} kg from scraper")
             if include_packaging:
                 weight *= 1.05
@@ -2396,6 +2405,140 @@ def create_app(config_name='production'):
         except Exception as e:
             db.session.rollback()
             return jsonify({'error': str(e)}), 500
+
+    @app.route('/api/admin/fix-co2', methods=['POST'])
+    def admin_fix_co2():
+        """
+        Maintenance endpoint: recalculate rule_based_prediction for emission records
+        where weight was historically stored in grams instead of kg, causing CO₂
+        values that are ~1000× too high.
+
+        Detection: if stored weight > 150 kg (impossible for an Amazon product) it
+        was stored in grams.  We divide by 1000, recalculate rule CO₂, and update
+        both the scraped_product.weight and emission_calculation.rule_based_prediction.
+
+        Safe to call multiple times (idempotent — only updates records that changed).
+        """
+        user = session.get('user')
+        if not user or user.get('role') != 'admin':
+            return jsonify({'error': 'Admin access required'}), 403
+
+        _material_intensity = {
+            "Plastic": 2.5, "Steel": 3.0, "Paper": 1.2, "Glass": 1.5,
+            "Wood": 0.8, "Metal": 3.0, "Fabric": 1.8, "Ceramic": 1.5,
+            "Rubber": 2.2, "Other": 2.0,
+        }
+        _mode_factor = {
+            "Truck": 0.15, "Ship": 0.03, "Air": 0.5,
+            "Land": 0.15, "Sea": 0.03,
+        }
+
+        fixed = 0
+        skipped = 0
+
+        try:
+            all_calcs = EmissionCalculation.query.join(ScrapedProduct).all()
+            for calc in all_calcs:
+                sp = calc.scraped_product
+                if not sp:
+                    skipped += 1
+                    continue
+
+                raw_w = float(sp.weight or 0)
+                if raw_w <= 0:
+                    skipped += 1
+                    continue
+
+                # Detect grams-stored-as-kg: threshold 150 kg
+                if raw_w <= 150:
+                    skipped += 1
+                    continue
+
+                # Convert to kg
+                weight_kg = raw_w / 1000
+                material = sp.material or 'Other'
+                intensity = _material_intensity.get(material, 2.0)
+                mode = calc.transport_mode or 'Ship'
+                factor = _mode_factor.get(mode, 0.03)
+                distance = float(calc.transport_distance or 9000)
+
+                new_rule_co2 = round(weight_kg * intensity + weight_kg * factor * distance / 1000, 2)
+
+                # Update emission record
+                calc.rule_based_prediction = new_rule_co2
+                if calc.ml_prediction and float(calc.ml_prediction) > 0:
+                    # Keep ML as-is but fix final emission to rule average
+                    calc.final_emission = round((new_rule_co2 + float(calc.ml_prediction)) / 2, 2)
+                else:
+                    calc.final_emission = new_rule_co2
+
+                # Fix weight in scraped_products too
+                sp.weight = weight_kg
+                fixed += 1
+
+            db.session.commit()
+            return jsonify({'success': True, 'fixed': fixed, 'skipped': skipped})
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': str(e)}), 500
+
+    @app.route('/api/admin/export-labelled-csv', methods=['GET'])
+    def admin_export_labelled_csv():
+        """Export approved labelled submissions as CSV for ML retraining"""
+        user = session.get('user')
+        if not user or user.get('role') != 'admin':
+            return jsonify({'error': 'Admin access required'}), 403
+
+        import csv
+        import io as _io
+
+        reviews = (
+            AdminReview.query
+            .filter(
+                AdminReview.review_status == 'approved',
+                AdminReview.corrected_grade.isnot(None),
+            )
+            .all()
+        )
+
+        output = _io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow([
+            'title', 'material', 'weight_kg', 'transport_mode',
+            'transport_distance_km', 'origin_country',
+            'true_label', 'ml_grade', 'rule_co2_kg', 'ml_co2_kg',
+        ])
+
+        for review in reviews:
+            sp = review.scraped_product
+            if not sp:
+                continue
+            calc = (
+                EmissionCalculation.query
+                .filter_by(scraped_product_id=sp.id)
+                .order_by(EmissionCalculation.id.desc())
+                .first()
+            )
+            writer.writerow([
+                sp.title or '',
+                sp.material or '',
+                float(sp.weight) if sp.weight else '',
+                calc.transport_mode if calc else '',
+                float(calc.transport_distance) if calc and calc.transport_distance else '',
+                sp.origin_country or '',
+                review.corrected_grade,
+                calc.eco_grade_ml if calc else '',
+                float(calc.rule_based_prediction) if calc and calc.rule_based_prediction else '',
+                float(calc.ml_prediction) if calc and calc.ml_prediction else '',
+            ])
+
+        output.seek(0)
+        from flask import Response as _Response
+        return _Response(
+            output.getvalue(),
+            mimetype='text/csv',
+            headers={'Content-Disposition': 'attachment; filename=labelled_data.csv'},
+        )
 
     @app.route('/all-model-metrics', methods=['GET'])
     def all_model_metrics():

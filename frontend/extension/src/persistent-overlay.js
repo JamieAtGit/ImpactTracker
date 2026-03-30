@@ -6,7 +6,7 @@
   let lastAnalysisData = null;
   let savedPostcode = '';
   let activeOverlayTab = 'calculator'; // 'calculator' | 'history'
-  let ecoSettings = { showBadges: true, showTooltips: true, showAutoCard: true };
+  let ecoSettings = { showBadges: true, showTooltips: true, showAutoCard: true, showAiImaging: true };
 
   // ── Product image highlight ─────────────────────────────────────────────────
   // Applies a red (searching) or green (found) glow-border to the main product
@@ -123,6 +123,10 @@
           <div class="eco-setting-row" id="ecoSettingAutoCard">
             <span class="eco-setting-label">Auto-analyse product pages</span>
             <button class="eco-toggle-btn" data-setting="showAutoCard">ON</button>
+          </div>
+          <div class="eco-setting-row" id="ecoSettingAiImaging">
+            <span class="eco-setting-label">AI image material analysis</span>
+            <button class="eco-toggle-btn" data-setting="showAiImaging">ON</button>
           </div>
         </div>
 
@@ -673,6 +677,119 @@
         padding: 0 !important;
       }
       .eco-card-open-btn:hover { text-decoration: underline !important; }
+
+      /* AI imaging section — overlay */
+      #eco-ai-imaging-section {
+        margin-top: 12px !important;
+        padding: 12px 14px !important;
+        background: rgba(16,185,129,0.05) !important;
+        border: 1px solid rgba(16,185,129,0.2) !important;
+        border-radius: 10px !important;
+      }
+      .eco-ai-header {
+        font-size: 11px !important; font-weight: 700 !important;
+        color: #10b981 !important; text-transform: uppercase !important;
+        letter-spacing: 0.5px !important; margin-bottom: 8px !important;
+        display: flex !important; align-items: center !important; gap: 6px !important;
+      }
+      .eco-ai-badge {
+        font-size: 9px !important; font-weight: 600 !important;
+        padding: 1px 6px !important; border-radius: 9999px !important;
+        background: rgba(16,185,129,0.15) !important;
+        border: 1px solid rgba(16,185,129,0.3) !important;
+        color: #6ee7b7 !important; text-transform: uppercase !important;
+      }
+      .eco-ai-loading {
+        display: flex !important; align-items: center !important; gap: 8px !important;
+        font-size: 11px !important; color: #64748b !important;
+      }
+      .eco-ai-spinner {
+        width: 12px !important; height: 12px !important;
+        border: 2px solid rgba(16,185,129,0.2) !important;
+        border-top-color: #10b981 !important;
+        border-radius: 50% !important;
+        animation: eco-spin 0.8s linear infinite !important;
+        flex-shrink: 0 !important;
+      }
+      @keyframes eco-spin { to { transform: rotate(360deg); } }
+      .eco-ai-conf {
+        font-size: 10px !important; font-weight: 600 !important;
+        text-align: right !important; margin-bottom: 6px !important;
+        text-transform: capitalize !important;
+      }
+      .eco-ai-component { margin-bottom: 6px !important; }
+      .eco-ai-comp-row {
+        display: flex !important; align-items: center !important;
+        justify-content: space-between !important;
+        font-size: 11px !important; margin-bottom: 3px !important;
+      }
+      .eco-ai-part { color: #e2e8f0 !important; font-weight: 600 !important; text-transform: capitalize !important; }
+      .eco-ai-material { color: #94a3b8 !important; flex: 1 !important; text-align: center !important; }
+      .eco-ai-pct { color: #e2e8f0 !important; font-weight: 700 !important; font-family: monospace !important; min-width: 32px !important; text-align: right !important; }
+      .eco-ai-bar-track {
+        width: 100% !important; height: 5px !important;
+        background: rgba(255,255,255,0.08) !important;
+        border-radius: 9999px !important; overflow: hidden !important;
+      }
+      .eco-ai-bar-fill {
+        height: 100% !important;
+        background: linear-gradient(90deg, #10b981, #06b6d4) !important;
+        border-radius: 9999px !important;
+        transition: width 0.5s ease !important;
+      }
+      .eco-ai-reasoning {
+        font-size: 10px !important; color: #475569 !important;
+        font-style: italic !important; margin-top: 2px !important;
+      }
+      .eco-ai-notes {
+        font-size: 10px !important; color: #475569 !important;
+        font-style: italic !important;
+        border-top: 1px solid rgba(255,255,255,0.06) !important;
+        padding-top: 6px !important; margin-top: 6px !important;
+      }
+      .eco-ai-error {
+        font-size: 10px !important; color: #64748b !important; font-style: italic !important;
+      }
+
+      /* AI imaging — inline card compact section */
+      #eco-inline-ai {
+        margin-top: 10px !important;
+        padding-top: 8px !important;
+        border-top: 1px solid rgba(255,255,255,0.06) !important;
+      }
+      .eco-inline-ai-header {
+        font-size: 10px !important; font-weight: 700 !important;
+        color: #10b981 !important; text-transform: uppercase !important;
+        letter-spacing: 0.4px !important; margin-bottom: 6px !important;
+      }
+      .eco-inline-ai-loading {
+        font-size: 10px !important; color: #475569 !important;
+        display: flex !important; align-items: center !important; gap: 5px !important;
+      }
+      .eco-inline-ai-spinner {
+        width: 9px !important; height: 9px !important;
+        border: 1.5px solid rgba(16,185,129,0.2) !important;
+        border-top-color: #10b981 !important;
+        border-radius: 50% !important;
+        animation: eco-spin 0.8s linear infinite !important;
+        flex-shrink: 0 !important;
+      }
+      .eco-inline-ai-row {
+        display: flex !important; align-items: center !important;
+        gap: 6px !important; margin-bottom: 4px !important; font-size: 10px !important;
+      }
+      .eco-inline-ai-label { color: #94a3b8 !important; min-width: 60px !important; font-weight: 500 !important; text-transform: capitalize !important; }
+      .eco-inline-ai-track {
+        flex: 1 !important; height: 4px !important;
+        background: rgba(255,255,255,0.08) !important;
+        border-radius: 9999px !important; overflow: hidden !important;
+      }
+      .eco-inline-ai-fill {
+        height: 100% !important;
+        background: linear-gradient(90deg, #10b981, #06b6d4) !important;
+        border-radius: 9999px !important;
+      }
+      .eco-inline-ai-pct { color: #e2e8f0 !important; font-weight: 700 !important; font-family: monospace !important; min-width: 28px !important; text-align: right !important; }
     `;
     
     document.head.appendChild(style);
@@ -805,6 +922,15 @@
         saveToHistory(analysisData);
         setProductImageHighlight('found');
         displayResults(analysisData);
+
+        // AI image material analysis (if enabled)
+        if (ecoSettings.showAiImaging) {
+          const attr = json.data?.attributes || {};
+          const imgUrl = attr.image_url;
+          if (imgUrl && imgUrl !== 'Not found') {
+            _appendAiImagingToOverlay(imgUrl, json.title || '', attr.gallery_images || [], attr.materials || {});
+          }
+        }
       } else {
         setProductImageHighlight('idle');
         showError('No data received from the server.');
@@ -1218,6 +1344,14 @@
             false
           );
           saveToHistory({ url, title: json.title, data: json.data, timestamp: Date.now() });
+
+          // AI image material analysis (if enabled)
+          if (ecoSettings.showAiImaging && inlineCard) {
+            const imgUrl = attr.image_url;
+            if (imgUrl && imgUrl !== 'Not found') {
+              _appendAiImagingToInlineCard(inlineCard, imgUrl, json.title || '', attr.gallery_images || [], attr.materials || {});
+            }
+          }
         } else {
           setProductImageHighlight('idle');
         }
@@ -1272,6 +1406,116 @@
       cacheNote.textContent = 'cached result';
       card.appendChild(cacheNote);
     }
+  }
+
+  // ── AI image material analysis ────────────────────────────────────────────────
+
+  async function _fetchAiMaterialAnalysis(imageUrl, title, galleryImages, specMaterials) {
+    const BASE_URL = 'https://impacttracker-production.up.railway.app';
+    const res = await fetch(`${BASE_URL}/api/analyse-image`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        image_url: imageUrl,
+        title: title,
+        gallery_images: galleryImages,
+        spec_materials: specMaterials
+      })
+    });
+    if (!res.ok) throw new Error('AI analysis failed');
+    return res.json();
+  }
+
+  function _appendAiImagingToOverlay(imageUrl, title, galleryImages, specMaterials) {
+    const output = document.getElementById('ecoOutput');
+    if (!output) return;
+
+    const section = document.createElement('div');
+    section.id = 'eco-ai-imaging-section';
+    section.innerHTML = `
+      <div class="eco-ai-header">🔍 AI Material Analysis <span class="eco-ai-badge">Beta</span></div>
+      <div id="eco-ai-loading" class="eco-ai-loading">
+        <div class="eco-ai-spinner"></div>
+        <span>Scanning product image…</span>
+      </div>
+      <div id="eco-ai-results" style="display:none;"></div>
+    `;
+    output.appendChild(section);
+
+    _fetchAiMaterialAnalysis(imageUrl, title, galleryImages, specMaterials)
+      .then(data => {
+        const loadingEl = document.getElementById('eco-ai-loading');
+        const resultsEl = document.getElementById('eco-ai-results');
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (!resultsEl || !data?.components?.length) return;
+
+        const confColor = data.confidence === 'high' ? '#10b981' : data.confidence === 'medium' ? '#f59e0b' : '#ef4444';
+        const barsHtml = data.components.map(c => `
+          <div class="eco-ai-component">
+            <div class="eco-ai-comp-row">
+              <span class="eco-ai-part">${c.part}</span>
+              <span class="eco-ai-material">${c.material}</span>
+              <span class="eco-ai-pct">${c.percentage}%</span>
+            </div>
+            <div class="eco-ai-bar-track">
+              <div class="eco-ai-bar-fill" style="width:${c.percentage}%"></div>
+            </div>
+            ${c.reasoning ? `<div class="eco-ai-reasoning">${c.reasoning}</div>` : ''}
+          </div>
+        `).join('');
+
+        resultsEl.innerHTML = `
+          <div class="eco-ai-conf" style="color:${confColor};">${data.confidence} confidence</div>
+          ${barsHtml}
+          ${data.notes ? `<div class="eco-ai-notes">${data.notes}</div>` : ''}
+        `;
+        resultsEl.style.display = 'block';
+      })
+      .catch(() => {
+        const loadingEl = document.getElementById('eco-ai-loading');
+        if (loadingEl) {
+          loadingEl.innerHTML = '<span class="eco-ai-error">AI analysis unavailable</span>';
+        }
+      });
+  }
+
+  function _appendAiImagingToInlineCard(card, imageUrl, title, galleryImages, specMaterials) {
+    const aiSection = document.createElement('div');
+    aiSection.id = 'eco-inline-ai';
+    aiSection.innerHTML = `
+      <div class="eco-inline-ai-header">🔍 AI Materials</div>
+      <div id="eco-inline-ai-loading" class="eco-inline-ai-loading">
+        <div class="eco-inline-ai-spinner"></div>
+        <span>Scanning…</span>
+      </div>
+      <div id="eco-inline-ai-results" style="display:none;"></div>
+    `;
+    card.appendChild(aiSection);
+
+    _fetchAiMaterialAnalysis(imageUrl, title, galleryImages, specMaterials)
+      .then(data => {
+        const loadingEl = document.getElementById('eco-inline-ai-loading');
+        const resultsEl = document.getElementById('eco-inline-ai-results');
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (!resultsEl || !data?.components?.length) return;
+
+        // Show top 3 components only for compact card
+        const top = data.components.slice(0, 3);
+        resultsEl.innerHTML = top.map(c => `
+          <div class="eco-inline-ai-row">
+            <span class="eco-inline-ai-label">${c.part}</span>
+            <div class="eco-inline-ai-track">
+              <div class="eco-inline-ai-fill" style="width:${c.percentage}%"></div>
+            </div>
+            <span class="eco-inline-ai-pct">${c.percentage}%</span>
+          </div>
+        `).join('');
+        resultsEl.style.display = 'block';
+      })
+      .catch(() => {
+        const loadingEl = document.getElementById('eco-inline-ai-loading');
+        if (loadingEl) loadingEl.style.display = 'none';
+      });
   }
 
   // Local function for new analysis
