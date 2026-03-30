@@ -145,23 +145,23 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
       <div className="grid grid-cols-3 gap-3 mb-6">
         <ScoreCard
           icon="🧠"
-          label="ML Score"
+          label="ML Grade"
           score={`${getEmojiForScore(mlScore)} ${mlScore}`}
-          sub={confidence ? `${confidence.toFixed(1)}% confidence` : "XGBoost model"}
+          sub={confidence ? `${confidence.toFixed(1)}% confidence` : "XGBoost classifier"}
           accentClass="border-cyan-500"
         />
         <ScoreCard
           icon="📊"
-          label="Rule-Based"
+          label="Formula Grade"
           score={`${getEmojiForScore(ruleScore)} ${ruleScore}`}
-          sub="Standard method"
+          sub="CO₂ threshold method"
           accentClass="border-amber-500"
         />
         <ScoreCard
           icon="💨"
-          label="Carbon"
+          label="CO₂ Estimate"
           score={carbonKg > 0 ? `${carbonKg} kg` : "N/A"}
-          sub="CO₂ equivalent"
+          sub="Formula-based"
           accentClass="border-red-500"
         />
       </div>

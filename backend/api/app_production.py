@@ -1148,12 +1148,18 @@ def create_app(config_name='production'):
                 "eco_score_rule_based_local_only": eco_score_rule_based,
 
                 # Method Comparison
-                "method_agreement": "No",
+                # Note: both methods predict eco GRADES (A–F), not CO₂ kg.
+                # The CO₂ kg value shown to users is always rule-based (formula).
+                # ML predicts the grade directly from features; rule-based
+                # calculates CO₂ then maps it to a grade via fixed thresholds.
+                "method_agreement": "Yes" if eco_score_ml == eco_score_rule_based else "No",
+                "co2_source": "rule_based_formula",
                 "prediction_methods": {
                     "ml_prediction": {
                         "score": eco_score_ml,
                         "confidence": f"{confidence}%",
-                        "method": "Enhanced XGBoost (11 features)",
+                        "method": "XGBoost grade classifier (11 features)",
+                        "description": "Predicts eco grade (A–F) directly from product features using a trained model. Does not produce a CO₂ kg value.",
                         "features_used": {
                             "feature_count": 11,
                             "features": [
@@ -1166,7 +1172,8 @@ def create_app(config_name='production'):
                     "rule_based_prediction": {
                         "score": eco_score_rule_based,
                         "confidence": "80%",
-                        "method": "Traditional calculation method"
+                        "method": "Formula: (weight × material intensity) + (weight × transport factor × distance)",
+                        "description": "Calculates CO₂ kg from emission factors, then maps to grade via fixed thresholds. This value is shown as the CO₂ estimate."
                     }
                 },
 

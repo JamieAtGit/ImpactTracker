@@ -176,9 +176,9 @@ export default function MLvsDEFRAChart({ showML, result }) {
           )}
         </div>
         <p className="text-sm text-slate-400">
-          Methodology comparison: <span className="text-cyan-300 font-medium">
-            {showML ? "AI prediction only" : "Advanced AI vs standard calculation method"}
-          </span>
+          Both methods predict an eco <span className="text-slate-300 font-medium">grade (A–F)</span>.
+          The CO₂ kg figure shown above is always <span className="text-amber-300 font-medium">formula-based</span> —
+          the ML model classifies grade directly from product features without computing a CO₂ value.
         </p>
       </div>
 
@@ -288,7 +288,7 @@ export default function MLvsDEFRAChart({ showML, result }) {
         {/* Methodology note for single model view */}
         {showML && (
           <div className="text-sm text-slate-400 text-center p-3 bg-slate-800/30 rounded-lg">
-            💡 Toggle comparison mode to see AI prediction vs standard calculation method
+            💡 Toggle comparison mode to see ML grade vs formula-derived grade side by side
           </div>
         )}
       </div>
