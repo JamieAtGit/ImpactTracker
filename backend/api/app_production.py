@@ -40,6 +40,72 @@ MATERIAL_CO2_INTENSITY = {
     "Other":    2.0,
 }
 
+def estimate_default_weight(title: str, category: str) -> float:
+    """
+    Return a sensible default weight (kg) when scraping fails to extract one.
+    Checks the product title first (most specific), then the category string.
+    Falls back to 0.5 kg only for truly unrecognised products.
+    """
+    t = (title or '').lower()
+    c = (category or '').lower()
+
+    # ── Title-based rules (ordered heavy → light) ────────────────────────────
+    title_rules = [
+        (["washing machine", "washer dryer", "tumble dryer", "dishwasher"], 65.0),
+        (["fridge", "refrigerator", "freezer", "chest freezer"],            55.0),
+        (["sofa", "couch", "sectional sofa", "corner sofa"],                45.0),
+        (["bed frame", "bedframe", "divan bed", "ottoman bed"],             40.0),
+        (["wardrobe", "chest of drawers", "bookcase", "bookshelf",
+          "shelving unit"],                                                  30.0),
+        (["desk", "dining table", "coffee table", "side table"],            20.0),
+        (["television", "smart tv", "qled", "oled tv", "led tv"],           12.0),
+        (["office chair", "gaming chair", "armchair", "recliner"],          12.0),
+        (["mattress"],                                                       10.0),
+        (["bicycle", " bike ", "ebike", "e-bike"],                          10.0),
+        (["vacuum cleaner", "hoover", "robot vacuum", "cordless vacuum"],    4.0),
+        (["air purifier", "air fryer", "microwave"],                         4.0),
+        (["coffee maker", "coffee machine", "espresso machine"],             3.0),
+        (["printer", "laser printer", "inkjet printer"],                     5.0),
+        (["gaming console", "playstation", "xbox", "nintendo switch"],       3.0),
+        (["soundbar", "bluetooth speaker", "smart speaker"],                 2.0),
+        (["laptop", "notebook computer", "chromebook", "ultrabook"],         2.0),
+        (["blender", "food processor", "kettle", "toaster", "air fryer"],    1.5),
+        (["hair dryer", "hair straightener", "curling iron"],                0.6),
+        (["tablet", "ipad", "kindle"],                                       0.5),
+        (["smartphone", "iphone", "android phone"],                          0.2),
+        (["book", "paperback", "hardback", "novel"],                         0.4),
+        (["t-shirt", "tshirt", "shirt", "blouse", "top"],                    0.2),
+        (["jeans", "trousers", "dress", "skirt", "leggings"],                0.4),
+        (["jacket", "coat", "hoodie", "jumper", "sweatshirt"],               0.7),
+        (["shoes", "trainers", "sneakers", "boots"],                         0.8),
+        (["backpack", "rucksack", "handbag"],                                0.7),
+    ]
+    for keywords, weight in title_rules:
+        if any(kw in t for kw in keywords):
+            return weight
+
+    # ── Category-based fallbacks ──────────────────────────────────────────────
+    category_rules = [
+        (["large appliance", "washing", "fridge", "freezer"], 50.0),
+        (["furniture", "sofa", "bed", "wardrobe"],            15.0),
+        (["small appliance", "kitchen appliance"],             2.0),
+        (["electronics", "computers", "laptop", "pc"],         1.5),
+        (["tv", "television", "monitor"],                     10.0),
+        (["clothing", "fashion", "apparel"],                   0.3),
+        (["shoes", "footwear"],                                0.8),
+        (["books", "stationery"],                              0.4),
+        (["toys", "games"],                                    0.5),
+        (["sports", "fitness", "outdoors"],                    1.0),
+        (["kitchen", "cookware", "dining"],                    1.0),
+        (["garden", "outdoor", "tools"],                       2.0),
+    ]
+    for keywords, weight in category_rules:
+        if any(kw in c for kw in keywords):
+            return weight
+
+    return 0.5  # fallback for genuinely unknown products
+
+
 # Import database models
 from backend.models.database import db, User, Product, ScrapedProduct, EmissionCalculation, AdminReview
 from backend.models.database import save_scraped_product, save_emission_calculation, get_or_create_scraped_product, find_cached_emission_calculation
@@ -482,7 +548,7 @@ def create_app(config_name='production'):
                 cached_ml_co2   = float(cached_calc.ml_prediction or cached_total)
                 cached_rule_co2 = float(cached_calc.rule_based_prediction or cached_total)
                 cached_distance = float(cached_calc.transport_distance or 0.0)
-                cached_weight   = float(cached_product.weight or 0.5)
+                cached_weight   = float(cached_product.weight) if cached_product.weight else estimate_default_weight(cached_product.title, cached_product.category)
                 # Sanity-check: no Amazon product should weigh >150 kg;
                 # if so, the value was stored in grams — auto-correct.
                 if cached_weight > 150:
@@ -573,7 +639,7 @@ def create_app(config_name='production'):
                             'title': cached_product.title or '',
                             'material_type': cached_material or 'Unknown',
                             'description': cached_material or '',
-                            'category': '',
+                            'category': cached_product.category or '',
                             'price': float(cached_product.price) if cached_product.price else None,
                             'brand': cached_product.brand or '',
                         },
@@ -685,8 +751,10 @@ def create_app(config_name='production'):
                     print(f"🧱 CO₂ material synced from spec table: {material}")
 
             # Get weight
-            raw_weight = product.get("weight_kg") or product.get("raw_product_weight_kg") or 0.5
-            weight = float(raw_weight)
+            raw_weight = product.get("weight_kg") or product.get("raw_product_weight_kg")
+            weight = float(raw_weight) if raw_weight else estimate_default_weight(
+                product.get("title", ""), product.get("category", "")
+            )
             # Sanity-check: no Amazon product should weigh >150 kg;
             # if so, the scraper returned grams — auto-correct to kg.
             if weight > 150:
