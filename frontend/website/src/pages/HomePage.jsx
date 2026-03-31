@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useLocation } from "react-router-dom";
 import ModernLayout, { ModernCard, ModernSection, ModernButton, ModernInput } from "../components/ModernLayout";
@@ -7,17 +7,21 @@ import ProductImpactCard from "../components/ProductImpactCard";
 import InsightsDashboard from "../components/InsightsDashboard";
 import EcoLogTable from "../components/EcoLogTable";
 import Footer from "../components/Footer";
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { estimateEmissions } from "../services/api";
 
 export default function HomePage() {
   const [url, setUrl] = useState("");
   const [postcode, setPostcode] = useState("");
+  const [postcodeSuggestions, setPostcodeSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
-  const [showML, setShowML] = useState(false); // Default to comparison mode
+  const [showML, setShowML] = useState(false);
   const [dashboardKey, setDashboardKey] = useState(0);
   const location = useLocation();
+  const postcodeRef = useRef(null);
+  const debounceRef = useRef(null);
 
   // Clear results and refresh dashboard when the user navigates to "/"
   useEffect(() => {
@@ -29,37 +33,44 @@ export default function HomePage() {
     setDashboardKey((k) => k + 1);
   }, [location.key]);
 
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (postcodeRef.current && !postcodeRef.current.contains(e.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const handlePostcodeChange = useCallback((e) => {
+    const val = e.target.value;
+    setPostcode(val);
+    clearTimeout(debounceRef.current);
+    if (val.length < 2) { setPostcodeSuggestions([]); return; }
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `https://api.postcodes.io/postcodes?q=${encodeURIComponent(val)}&limit=5`
+        );
+        const json = await res.json();
+        if (json.result) setPostcodeSuggestions(json.result.map((r) => r.postcode));
+        else setPostcodeSuggestions([]);
+        setShowSuggestions(true);
+      } catch { setPostcodeSuggestions([]); }
+    }, 300);
+  }, []);
+
   const handleSearch = async () => {
     setLoading(true);
     setError("");
     setResult(null);
+    setShowSuggestions(false);
 
     try {
-      const res = await fetch(`${BASE_URL}/estimate_emissions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amazon_url: url,
-          postcode: postcode || "SW1A 1AA",
-          include_packaging: true,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Unknown error");
-
-      // Include the product title from the top level
-      console.log("🐛 DEBUG HomePage - Raw API response:", data);
-      console.log("🐛 DEBUG HomePage - data.data:", data.data);
-      console.log("🐛 DEBUG HomePage - data.data.attributes:", data.data?.attributes);
-      console.log("🐛 DEBUG HomePage - data.data.attributes.materials:", data.data?.attributes?.materials);
-      
-      const resultWithTitle = {
-        ...data.data,
-        title: data.title || "Unknown Product"
-      };
-      
-      console.log("🐛 DEBUG HomePage - resultWithTitle:", resultWithTitle);
+      const data = await estimateEmissions(url, postcode);
+      const resultWithTitle = { ...data.data, title: data.title || "Unknown Product" };
       setResult(resultWithTitle);
     } catch (err) {
       setError(err.message || "Failed to contact backend.");
@@ -125,15 +136,34 @@ export default function HomePage() {
                         icon="🔗"
                       />
                     </div>
-                    <div>
+                    <div ref={postcodeRef} className="relative">
                       <ModernInput
                         label="Postcode (Optional)"
                         type="text"
                         placeholder="SW1A 1AA"
                         value={postcode}
-                        onChange={(e) => setPostcode(e.target.value)}
+                        onChange={handlePostcodeChange}
+                        onFocus={() => postcodeSuggestions.length > 0 && setShowSuggestions(true)}
                         icon="📍"
+                        autoComplete="off"
                       />
+                      {showSuggestions && postcodeSuggestions.length > 0 && (
+                        <ul className="absolute z-50 w-full mt-1 bg-slate-800 border border-slate-600 rounded-lg shadow-xl overflow-hidden">
+                          {postcodeSuggestions.map((pc) => (
+                            <li
+                              key={pc}
+                              className="px-4 py-2.5 text-sm text-slate-200 hover:bg-slate-700 cursor-pointer transition-colors"
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                setPostcode(pc);
+                                setShowSuggestions(false);
+                              }}
+                            >
+                              📍 {pc}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
                   </div>
 

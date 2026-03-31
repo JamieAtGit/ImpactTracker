@@ -10,6 +10,7 @@ import ConfidenceDistributionChart from "./ConfidenceDistributionChart";
 import ConformalPredictionBadge from "./ConformalPredictionBadge";
 import LifecycleAssessment from "./LifecycleAssessment";
 import ImageMaterialAnalysis from "./ImageMaterialAnalysis";
+import { getMaterialAvg } from "../services/api";
 
 const TABS = ["Specifications", "Overview", "Deep Analysis"];
 
@@ -96,9 +97,7 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
   React.useEffect(() => {
     const mat = attr.material_type;
     if (!mat || mat === "Not found") return;
-    const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-    fetch(`${BASE_URL}/api/material-avg?material=${encodeURIComponent(mat)}`)
-      .then(r => r.json())
+    getMaterialAvg(mat)
       .then(d => { if (d.avg_co2_kg && d.sample_size >= 5) setMaterialAvg(d); })
       .catch(() => {});
   }, [attr.material_type]);
@@ -367,6 +366,37 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
                   </div>
                 </div>
               )}
+
+              {/* Material Swap Suggestion */}
+              {(() => {
+                const materialCF = (attr.counterfactuals || [])
+                  .filter(cf => cf.changed_feature === "material" && cf.co2_reduction_kg > 0)
+                  .sort((a, b) => b.co2_reduction_kg - a.co2_reduction_kg)[0];
+                if (!materialCF) return null;
+                return (
+                  <div className="p-4 rounded-xl bg-emerald-500/8 border border-emerald-500/30">
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center flex-shrink-0">
+                        <span className="text-lg">♻️</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-slate-200 font-semibold text-sm">Material Swap Opportunity</p>
+                        <p className="text-slate-400 text-xs mt-0.5 leading-relaxed">
+                          Switching to <span className="text-emerald-400 font-medium">{materialCF.changed_value}</span> could save{" "}
+                          <span className="text-emerald-400 font-bold">−{materialCF.co2_reduction_kg} kg CO₂</span>
+                          {materialCF.co2_reduction_pct > 0 && (
+                            <span className="text-emerald-500/80"> ({materialCF.co2_reduction_pct}% less)</span>
+                          )}
+                          {" "}and improve the grade from{" "}
+                          <span className="text-amber-400 font-bold">{materialCF.current_grade}</span> to{" "}
+                          <span className="text-emerald-400 font-bold">{materialCF.new_grade}</span>.
+                        </p>
+                        <p className="text-slate-600 text-xs mt-1">See Deep Analysis tab for full counterfactual breakdown</p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Lifecycle Assessment */}
               <LifecycleAssessment attr={attr} />

@@ -14,6 +14,7 @@ from flask_limiter.util import get_remote_address
 import os
 import sys
 import hmac
+import threading
 from datetime import timedelta
 from dotenv import load_dotenv
 
@@ -103,6 +104,11 @@ def get_recyclability_pct(material: str, country: str = DEFAULT_RECYCLABILITY_CO
     """Return recyclability % for a material in the given country. Falls back to global, then 50."""
     rates = RECYCLABILITY_RATES.get(country) or RECYCLABILITY_RATES.get('global', {})
     return rates.get(material) or RECYCLABILITY_RATES['global'].get(material, 50)
+
+
+# Lock for ML model lazy-loading — prevents a race condition where two
+# simultaneous requests both attempt to load the model from disk.
+_MODEL_LOAD_LOCK = threading.Lock()
 
 
 def estimate_default_weight(title: str, category: str) -> float:
@@ -529,6 +535,7 @@ def create_app(config_name='production'):
         }), 200
     
     @app.route('/estimate_emissions', methods=['POST', 'OPTIONS'])
+    @limiter.limit("10 per minute", exempt_when=lambda: request.method == 'OPTIONS')
     def estimate_emissions():
         """Main endpoint for estimating product emissions - matches localhost functionality"""
         print("🔔 Route hit: /estimate_emissions")
@@ -1004,18 +1011,20 @@ def create_app(config_name='production'):
             import joblib
 
             if not (hasattr(app, 'xgb_model') and app.xgb_model):
-                try:
-                    app.xgb_model = joblib.load(os.path.join(model_dir, "eco_model.pkl"))
-                    print("✅ Lazy-loaded eco_model.pkl")
-                except Exception:
-                    try:
-                        import xgboost as xgb_mod
-                        _m = xgb_mod.XGBClassifier()
-                        _m.load_model(os.path.join(model_dir, "xgb_model.json"))
-                        app.xgb_model = _m
-                        print("✅ Lazy-loaded xgb_model.json")
-                    except Exception:
-                        app.xgb_model = None
+                with _MODEL_LOAD_LOCK:
+                    if not (hasattr(app, 'xgb_model') and app.xgb_model):  # double-check inside lock
+                        try:
+                            app.xgb_model = joblib.load(os.path.join(model_dir, "eco_model.pkl"))
+                            print("✅ Lazy-loaded eco_model.pkl")
+                        except Exception:
+                            try:
+                                import xgboost as xgb_mod
+                                _m = xgb_mod.XGBClassifier()
+                                _m.load_model(os.path.join(model_dir, "xgb_model.json"))
+                                app.xgb_model = _m
+                                print("✅ Lazy-loaded xgb_model.json")
+                            except Exception:
+                                app.xgb_model = None
 
             if not (hasattr(app, 'label_encoder') and app.label_encoder):
                 try:
@@ -2152,14 +2161,21 @@ def create_app(config_name='production'):
 
 
             submissions = ScrapedProduct.query.order_by(ScrapedProduct.id.desc()).limit(100).all()
+            sub_ids = [s.id for s in submissions]
+            # Bulk-fetch calculations and reviews in 2 queries instead of 2N
+            _all_calcs = EmissionCalculation.query.filter(
+                EmissionCalculation.scraped_product_id.in_(sub_ids)
+            ).order_by(EmissionCalculation.id.desc()).all()
+            _all_reviews = AdminReview.query.filter(
+                AdminReview.scraped_product_id.in_(sub_ids)
+            ).order_by(AdminReview.id.desc()).all()
+            calc_map   = {c.scraped_product_id: c for c in reversed(_all_calcs)}
+            review_map = {r.scraped_product_id: r for r in reversed(_all_reviews)}
+
             result = []
             for sub in submissions:
-                calc = EmissionCalculation.query.filter_by(
-                    scraped_product_id=sub.id
-                ).order_by(EmissionCalculation.id.desc()).first()
-                review = AdminReview.query.filter_by(
-                    scraped_product_id=sub.id
-                ).order_by(AdminReview.id.desc()).first()
+                calc   = calc_map.get(sub.id)
+                review = review_map.get(sub.id)
 
                 rec_pct   = get_recyclability_pct(sub.material or '')
                 rec_label = 'High' if rec_pct >= 70 else ('Medium' if rec_pct >= 40 else 'Low')
@@ -2226,17 +2242,19 @@ def create_app(config_name='production'):
             _calc_eco_score = deps['calculate_eco_score']
 
             submissions = ScrapedProduct.query.order_by(ScrapedProduct.id.desc()).limit(100).all()
+            sub_ids = [s.id for s in submissions]
+            _all_calcs   = EmissionCalculation.query.filter(EmissionCalculation.scraped_product_id.in_(sub_ids)).order_by(EmissionCalculation.id.desc()).all()
+            _all_reviews = AdminReview.query.filter(AdminReview.scraped_product_id.in_(sub_ids)).order_by(AdminReview.id.desc()).all()
+            calc_map   = {c.scraped_product_id: c for c in reversed(_all_calcs)}
+            review_map = {r.scraped_product_id: r for r in reversed(_all_reviews)}
+
             approved = 0
             skipped = 0
             admin_user_id = user.get('id')
 
             for sub in submissions:
-                calc = EmissionCalculation.query.filter_by(
-                    scraped_product_id=sub.id
-                ).order_by(EmissionCalculation.id.desc()).first()
-                review = AdminReview.query.filter_by(
-                    scraped_product_id=sub.id
-                ).order_by(AdminReview.id.desc()).first()
+                calc   = calc_map.get(sub.id)
+                review = review_map.get(sub.id)
 
                 # Skip already-labelled products
                 if review and review.corrected_grade:
@@ -2315,17 +2333,19 @@ def create_app(config_name='production'):
             deps = _load_estimation_dependencies()
             _calc_eco_score = deps['calculate_eco_score']
             submissions = ScrapedProduct.query.order_by(ScrapedProduct.id.desc()).limit(100).all()
+            sub_ids = [s.id for s in submissions]
+            _all_calcs   = EmissionCalculation.query.filter(EmissionCalculation.scraped_product_id.in_(sub_ids)).order_by(EmissionCalculation.id.desc()).all()
+            _all_reviews = AdminReview.query.filter(AdminReview.scraped_product_id.in_(sub_ids)).order_by(AdminReview.id.desc()).all()
+            calc_map   = {c.scraped_product_id: c for c in reversed(_all_calcs)}
+            review_map = {r.scraped_product_id: r for r in reversed(_all_reviews)}
+
             approved = 0
             skipped = 0
             admin_user_id = user.get('id')
 
             for sub in submissions:
-                calc = EmissionCalculation.query.filter_by(
-                    scraped_product_id=sub.id
-                ).order_by(EmissionCalculation.id.desc()).first()
-                review = AdminReview.query.filter_by(
-                    scraped_product_id=sub.id
-                ).order_by(AdminReview.id.desc()).first()
+                calc   = calc_map.get(sub.id)
+                review = review_map.get(sub.id)
 
                 if review and review.corrected_grade:
                     skipped += 1
