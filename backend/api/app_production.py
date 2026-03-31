@@ -29,16 +29,55 @@ sys.path.append(BASE_DIR)
 # Used in both the main rule-based calculation and counterfactual explanations.
 # Update here and both places stay in sync automatically.
 MATERIAL_CO2_INTENSITY = {
-    "Plastic":  2.5,
-    "Steel":    3.0,
-    "Metal":    3.0,
-    "Paper":    1.2,
-    "Glass":    1.5,
-    "Wood":     0.8,
-    "Fabric":   1.8,
-    "Ceramic":  1.5,
-    "Rubber":   2.2,
-    "Other":    2.0,
+    # Generic categories
+    "Plastic":          2.5,
+    "Steel":            3.0,
+    "Metal":            3.0,
+    "Paper":            1.2,
+    "Glass":            1.5,
+    "Wood":             0.8,
+    "Fabric":           1.8,
+    "Ceramic":          1.5,
+    "Rubber":           2.2,
+    "Other":            2.0,
+    # Specific plastics (kg CO2e / kg, cradle-to-gate, ECOINVENT 3.9)
+    "Polypropylene":    1.9,
+    "Polyethylene":     2.0,
+    "HDPE":             1.9,
+    "LDPE":             2.0,
+    "PET":              3.4,
+    "PVC":              2.4,
+    "Polycarbonate":    3.1,
+    "Polystyrene":      3.3,
+    "ABS Plastic":      3.5,
+    "Nylon":            7.9,
+    "Acrylic":          3.2,
+    "TPE":              2.8,
+    "TPU":              4.2,
+    "EVA Foam":         2.5,
+    "PU":               3.5,
+    # Specific metals
+    "Stainless Steel":  6.2,
+    "Aluminium":        8.2,
+    "Aluminum":         8.2,
+    "Copper":          3.8,
+    "Zinc":             3.5,
+    # Specific fabrics
+    "Cotton":           3.8,
+    "Polyester":        5.5,
+    "Wool":             5.0,
+    "Silk":             20.0,
+    "Linen":            1.5,
+    "Bamboo":           1.5,
+    # Wood
+    "MDF":              0.6,
+    "Plywood":          0.7,
+    # Other
+    "Silicone":         2.5,
+    "Natural Rubber":   2.0,
+    "Memory Foam":      3.0,
+    "Leather":          15.0,
+    "Faux Leather":     3.5,
 }
 
 # Recyclability rates (%) by country, sourced from national recycling data.

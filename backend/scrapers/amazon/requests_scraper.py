@@ -328,28 +328,36 @@ class RequestsScraper:
                         origin_confidence = "low"
                         print(f"📍 ✅ Using text mining fallback: {origin}")
                     else:
-                        # 5) Brand database fallback
-                        brand_origin, source = self.lookup_brand_origin(brand)
-                        if brand_origin != "Unknown":
-                            origin = brand_origin
-                            origin_source = source
+                        # 4.5) Title-based "Made in X" / "X Made" — e.g. "UK Made", "Made in UK"
+                        _title_origin = self._extract_origin_from_title(title)
+                        if _title_origin != "Unknown":
+                            origin = _title_origin
+                            origin_source = "title_keywords"
                             origin_confidence = "medium"
-                            print(f"📍 ✅ Using brand_locations fallback: {origin} (source: {source}, brand: {brand})")
+                            print(f"📍 ✅ Using title-based origin: {origin}")
                         else:
-                            # 6) ASIN history fallback
-                            asin_origin = self.lookup_asin_origin(asin)
-                            if asin_origin != "Unknown":
-                                origin = asin_origin
-                                origin_source = "asin_history"
-                                origin_confidence = "low"
-                                print(f"📍 ✅ Using ASIN history fallback: {origin} (asin: {asin})")
-                            else:
-                                # 7) Weak heuristic fallback
-                                brand_origin = self.estimate_origin(brand)
+                            # 5) Brand database fallback
+                            brand_origin, source = self.lookup_brand_origin(brand)
+                            if brand_origin != "Unknown":
                                 origin = brand_origin
-                                origin_source = "heuristic_brand_default"
-                                origin_confidence = "low"
-                                print(f"📍 ⚠️ Using heuristic brand fallback: {origin} (from brand: {brand})")
+                                origin_source = source
+                                origin_confidence = "medium"
+                                print(f"📍 ✅ Using brand_locations fallback: {origin} (source: {source}, brand: {brand})")
+                            else:
+                                # 6) ASIN history fallback
+                                asin_origin = self.lookup_asin_origin(asin)
+                                if asin_origin != "Unknown":
+                                    origin = asin_origin
+                                    origin_source = "asin_history"
+                                    origin_confidence = "low"
+                                    print(f"📍 ✅ Using ASIN history fallback: {origin} (asin: {asin})")
+                                else:
+                                    # 7) Weak heuristic fallback
+                                    brand_origin = self.estimate_origin(brand)
+                                    origin = brand_origin
+                                    origin_source = "heuristic_brand_default"
+                                    origin_confidence = "low"
+                                    print(f"📍 ⚠️ Using heuristic brand fallback: {origin} (from brand: {brand})")
         
         # Extract weight
         weight = self.extract_weight(all_text)
@@ -750,36 +758,67 @@ class RequestsScraper:
     def extract_dimensions_from_text(self, text: str):
         """Extract product dimensions [L, W, H] in cm from page text.
 
-        Handles: cm, centimetres, mm, inches/in, and Amazon's unicode-separated
-        tech-table format. Returns [float, float, float] or None if not found.
+        Handles 3D and 2D formats, letter-suffixed Amazon values (72L x 45W),
+        cm / centimetres / mm / inches, and Amazon's unicode-separated tech tables.
+        Returns [float, float, float] (H=0 for 2D) or None if not found.
         """
         text_lower = text.lower()
+        _NUM = r'(\d+(?:\.\d+)?)'   # capture group: number
+        _SF  = r'[lwhdLWHD]?'       # optional letter suffix (L, W, H, D)
+        _SEP = r'\s*[x×]\s*'        # separator: x or ×
+        _D   = r'(?:product|item|package|parcel)?\s*dimensions?[\s\u200e\u200f]*[:\s\u200e\u200f]*'
 
-        # Dimension field labels (Amazon UK uses unicode separators)
-        _D = r'(?:product|item|package|parcel)?\s*dimensions?[\s\u200e\u200f]*[:\s\u200e\u200f]*'
-
-        patterns = [
-            # "Product Dimensions : 30 x 20 x 10 cm" (with unicode separators)
-            (_D + r'(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*cm', 'cm'),
-            (_D + r'(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*(?:in|inches?)', 'in'),
-            (_D + r'(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*mm', 'mm'),
-            # Plain "30 x 20 x 10 cm" anywhere in page
-            (r'\b(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*cm\b', 'cm'),
-            (r'\b(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*(?:in|inches?)\b', 'in'),
+        patterns_3d = [
+            # "Product Dimensions : 30L x 20W x 10H cm"  (field label + letter suffixes)
+            _D + _NUM + _SF + _SEP + _NUM + _SF + _SEP + _NUM + _SF + r'\s*(?:centimetres?|cm\b)',
+            # "Product Dimensions : 30 x 20 x 10 inches"
+            _D + _NUM + _SF + _SEP + _NUM + _SF + _SEP + _NUM + _SF + r'\s*(?:inches?|in\b)',
+            # "Product Dimensions : 300 x 200 x 100 mm"
+            _D + _NUM + _SF + _SEP + _NUM + _SF + _SEP + _NUM + _SF + r'\s*mm\b',
+            # Plain "30 x 20 x 10 cm" anywhere
+            r'\b' + _NUM + _SF + _SEP + _NUM + _SF + _SEP + _NUM + _SF + r'\s*(?:centimetres?|cm\b)',
+            r'\b' + _NUM + _SF + _SEP + _NUM + _SF + _SEP + _NUM + _SF + r'\s*(?:inches?|in\b)',
+        ]
+        patterns_2d = [
+            # "72L x 45W centimetres"  or  "45 x 66 cm"
+            _D + _NUM + _SF + _SEP + _NUM + _SF + r'\s*(?:centimetres?|cm\b)',
+            _D + _NUM + _SF + _SEP + _NUM + _SF + r'\s*(?:inches?|in\b)',
+            r'\b' + _NUM + _SF + _SEP + _NUM + _SF + r'\s*(?:centimetres?|cm\b)',
+            r'\b' + _NUM + _SF + _SEP + _NUM + _SF + r'\s*(?:inches?|in\b)',
         ]
 
-        for pattern, unit in patterns:
-            m = re.search(pattern, text_lower)
+        def _unit_scale(unit_str):
+            if 'in' in unit_str or 'inch' in unit_str:
+                return 2.54
+            elif 'mm' in unit_str:
+                return 0.1
+            return 1.0
+
+        # Try 3D first
+        for pat in patterns_3d:
+            m = re.search(pat, text_lower)
             if m:
                 try:
-                    vals = [float(m.group(i)) for i in (1, 2, 3)]
-                    if unit == 'in':
-                        vals = [round(v * 2.54, 1) for v in vals]
-                    elif unit == 'mm':
-                        vals = [round(v / 10, 1) for v in vals]
-                    # Sanity: each dimension must be between 0.5 cm and 300 cm
-                    if all(0.5 <= v <= 300 for v in vals):
+                    v1, v2, v3 = float(m.group(1)), float(m.group(2)), float(m.group(3))
+                    # Detect unit from text after match
+                    after = text_lower[m.end():m.end()+15]
+                    scale = _unit_scale(m.group(0))
+                    vals = [round(v * scale, 1) for v in (v1, v2, v3)]
+                    if all(0.5 <= v <= 500 for v in vals):
                         return vals
+                except Exception:
+                    continue
+
+        # Fall back to 2D (store H as 0)
+        for pat in patterns_2d:
+            m = re.search(pat, text_lower)
+            if m:
+                try:
+                    v1, v2 = float(m.group(1)), float(m.group(2))
+                    scale = _unit_scale(m.group(0))
+                    vals = [round(v * scale, 1) for v in (v1, v2)]
+                    if all(0.5 <= v <= 500 for v in vals):
+                        return [vals[0], vals[1], 0.0]
                 except Exception:
                     continue
 
@@ -1258,6 +1297,11 @@ class RequestsScraper:
             # Plastics
             'pe':    'Polyethylene',
             'pp':    'Polypropylene',
+            # Common misspellings
+            'polyproplene':  'Polypropylene',
+            'polypropylene': 'Polypropylene',
+            'polyproplylene': 'Polypropylene',
+            'polypropene':   'Polypropylene',
             'pc':    'Polycarbonate',
             'abs':   'ABS Plastic',
             'pvc':   'PVC',
@@ -1493,8 +1537,68 @@ class RequestsScraper:
         if not parsed:
             return None
 
+        # Filter out non-material attribute words that appear in "Material Features" rows.
+        # These describe product properties, not the actual material composition.
+        _NON_MATERIAL_WORDS = {
+            'breathable', 'durable', 'eco friendly', 'eco-friendly', 'hypoallergenic',
+            'lightweight', 'waterproof', 'water resistant', 'water-resistant',
+            'anti-bacterial', 'antibacterial', 'antimicrobial', 'anti-slip', 'antislip',
+            'non-slip', 'nonslip', 'fire resistant', 'fire-resistant', 'flame retardant',
+            'heat resistant', 'heat-resistant', 'uv resistant', 'uv-resistant',
+            'odour resistant', 'odor resistant', 'stain resistant', 'stain-resistant',
+            'soft', 'smooth', 'stretchy', 'flexible', 'rigid', 'transparent',
+            'insulated', 'padded', 'reinforced', 'recycled', 'sustainable',
+            'machine washable', 'washable', 'dry clean', 'hand wash',
+        }
+        parsed = [m for m in parsed if m['name'].lower() not in _NON_MATERIAL_WORDS]
+
+        if not parsed:
+            return None
+
         print(f"🧵 All spec table materials: {[m['name'] for m in parsed]}")
         return {'materials': parsed}
+
+    def _extract_origin_from_title(self, title: str) -> str:
+        """Detect manufacturing country mentioned in the product title.
+
+        Handles:
+          - "UK Made", "British Made", "Made in UK", "UK Manufactured"
+          - "Made in Germany", "Made in USA", "Italian Made" etc.
+        Returns a normalised country name or 'Unknown'.
+        """
+        from backend.services.prediction_consistency import normalize_country_name
+        t = title.lower()
+
+        # Pattern 1: "<country> Made" or "<country> Manufactured"
+        m = re.search(r'\b([a-zA-Z][a-zA-Z\s]{1,20}?)\s+(?:made|manufactured)\b', t)
+        if m:
+            candidate = m.group(1).strip()
+            result = normalize_country_name(candidate)
+            if result != "Unknown":
+                return result
+
+        # Pattern 2: "Made in <country>" or "Manufactured in <country>"
+        m = re.search(r'\b(?:made|manufactured)\s+in\s+([a-zA-Z][a-zA-Z\s]{1,20}?)\b(?:\s|$|,|\|)', t)
+        if m:
+            candidate = m.group(1).strip()
+            result = normalize_country_name(candidate)
+            if result != "Unknown":
+                return result
+
+        # Pattern 3: Nationality adjective — "British Made", "Italian Design"
+        _NATIONALITY = {
+            'british': 'UK', 'english': 'UK', 'scottish': 'UK', 'welsh': 'UK',
+            'american': 'USA', 'german': 'Germany', 'french': 'France',
+            'italian': 'Italy', 'spanish': 'Spain', 'japanese': 'Japan',
+            'chinese': 'China', 'korean': 'South Korea', 'swedish': 'Sweden',
+            'danish': 'Denmark', 'dutch': 'Netherlands', 'canadian': 'Canada',
+            'australian': 'Australia', 'indian': 'India',
+        }
+        for adj, country in _NATIONALITY.items():
+            if re.search(r'\b' + adj + r'\s+(?:made|manufactured|design|crafted|built)\b', t):
+                return country
+
+        return "Unknown"
 
     def extract_origin_from_spec_table(self, soup: BeautifulSoup) -> str:
         """Extract country of origin from Amazon's structured product detail tables (highest confidence)."""
