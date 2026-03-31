@@ -554,12 +554,16 @@ def create_app(config_name='production'):
         try:
             import joblib
 
-            # Load XGBoost model
-            import xgboost as xgb
-            xgb_model_path = os.path.join(model_dir, "xgb_model.json")
-            if os.path.exists(xgb_model_path):
+            # Load calibrated XGBoost model (preferred) or fall back to raw
+            _cal_path = os.path.join(model_dir, "calibrated_model.pkl")
+            _xgb_path = os.path.join(model_dir, "xgb_model.json")
+            if os.path.exists(_cal_path):
+                app.xgb_model = joblib.load(_cal_path)
+                print("✅ Calibrated XGBoost model loaded successfully")
+            elif os.path.exists(_xgb_path):
+                import xgboost as xgb
                 xgb_model = xgb.XGBClassifier()
-                xgb_model.load_model(xgb_model_path)
+                xgb_model.load_model(_xgb_path)
                 app.xgb_model = xgb_model
                 print("✅ XGBoost model loaded successfully")
 
@@ -903,6 +907,11 @@ def create_app(config_name='production'):
                 print(f"⚠️ Materials detection failed: {_mat_err}")
                 materials_result = None
 
+            # CO₂ uncertainty — ±% based on material detection confidence tier.
+            # High = spec table extraction; medium = title inference; low = fallback.
+            _mat_conf_tier = (materials_result or {}).get('confidence', 'low')
+            co2_uncertainty_pct = {'high': 20, 'medium': 35, 'low': 50}.get(_mat_conf_tier, 45)
+
             # Sync the material used for CO₂ calculation with what detect_materials
             # determined from the spec table (tiers 1–2 = high confidence spec data).
             # Tier 3+ are heuristics and may be wrong, so we keep the original material.
@@ -1115,8 +1124,13 @@ def create_app(config_name='production'):
                 with _MODEL_LOAD_LOCK:
                     if not (hasattr(app, 'xgb_model') and app.xgb_model):  # double-check inside lock
                         try:
-                            app.xgb_model = joblib.load(os.path.join(model_dir, "eco_model.pkl"))
-                            print("✅ Lazy-loaded eco_model.pkl")
+                            _cal_path = os.path.join(model_dir, "calibrated_model.pkl")
+                            if os.path.exists(_cal_path):
+                                app.xgb_model = joblib.load(_cal_path)
+                                print("✅ Lazy-loaded calibrated_model.pkl")
+                            else:
+                                app.xgb_model = joblib.load(os.path.join(model_dir, "eco_model.pkl"))
+                                print("✅ Lazy-loaded eco_model.pkl")
                         except Exception:
                             try:
                                 import xgboost as xgb_mod
@@ -1232,7 +1246,14 @@ def create_app(config_name='production'):
                     # SHAP per-prediction explanation
                     try:
                         import shap as shap_lib
-                        explainer = shap_lib.TreeExplainer(app.xgb_model)
+                        # CalibratedClassifierCV wraps the base estimator — SHAP
+                        # needs the underlying tree model, not the sklearn wrapper.
+                        _shap_model = (
+                            app.xgb_model.calibrated_classifiers_[0].estimator
+                            if hasattr(app.xgb_model, 'calibrated_classifiers_')
+                            else app.xgb_model
+                        )
+                        explainer = shap_lib.TreeExplainer(_shap_model)
                         shap_vals = explainer.shap_values(X)
                         pred_idx = int(np.argmax(app.xgb_model.predict_proba(X)[0]))
                         sv = np.array(shap_vals)
@@ -1433,6 +1454,9 @@ def create_app(config_name='production'):
 
                 # Counterfactual explanations
                 "counterfactuals": counterfactuals,
+
+                # CO₂ uncertainty range (±%) based on material detection confidence
+                "co2_uncertainty_pct": co2_uncertainty_pct,
 
                 # Additional product info
                 "brand": product.get("brand"),
@@ -3326,6 +3350,42 @@ def create_app(config_name='production'):
                 'top_material': top_material,
                 'best_grade': best_grade,
             })
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
+    @app.route('/api/my/carbon-timeline', methods=['GET'])
+    def my_carbon_timeline():
+        """Monthly CO₂ totals for the logged-in user — drives the carbon timeline chart."""
+        user_info = session.get('user')
+        if not user_info:
+            return jsonify({'error': 'Login required'}), 401
+        uid = user_info['id']
+        try:
+            products = (
+                ScrapedProduct.query
+                .filter_by(user_id=uid)
+                .order_by(ScrapedProduct.created_at.asc())
+                .all()
+            )
+            monthly: dict = {}
+            for p in products:
+                if not p.created_at:
+                    continue
+                calc = EmissionCalculation.query.filter_by(
+                    scraped_product_id=p.id
+                ).order_by(EmissionCalculation.id.desc()).first()
+                co2 = float(calc.final_emission) if calc and calc.final_emission else 0.0
+                month_key = p.created_at.strftime('%Y-%m')
+                if month_key not in monthly:
+                    monthly[month_key] = {'month': month_key, 'co2_kg': 0.0, 'scans': 0}
+                monthly[month_key]['co2_kg'] += co2
+                monthly[month_key]['scans'] += 1
+
+            timeline = sorted(monthly.values(), key=lambda x: x['month'])
+            for entry in timeline:
+                entry['co2_kg'] = round(entry['co2_kg'], 2)
+
+            return jsonify({'timeline': timeline})
         except Exception as e:
             return jsonify({'error': str(e)}), 500
 

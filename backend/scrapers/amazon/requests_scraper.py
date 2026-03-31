@@ -604,8 +604,9 @@ class RequestsScraper:
             "dispatched_from": dispatched_from,
             "image_url": image_url,
             "gallery_images": gallery_images,
+            "category": self.detect_category_from_title(title),
         }
-        
+
         print(f"📡 Requests extracted: {title[:50]}...")
         return result
     
@@ -821,9 +822,18 @@ class RequestsScraper:
             'Rubber':   ['rubber', 'latex', 'neoprene', 'silicone', 'memory foam',
                          'eva foam', 'gel pad', 'foam mat', 'resistance band',
                          'exercise band', 'gym mat', 'foam roller'],
-            'Plastic':  ['plastic', 'polymer', 'polypropylene', 'polyethylene', 'bpa',
-                         'pvc', 'acrylic', 'resin', 'abs plastic', 'hard shell',
-                         'hardshell', 'polycarbonate', 'hdpe', 'thermoplastic', 'perspex'],
+            # Specific plastic sub-types checked BEFORE the generic 'Plastic' entry
+            # so that the most precise match wins.  The CO₂ intensity dict in
+            # app_production.py has individual entries for each of these.
+            'Polypropylene': ['polypropylene', 'pp plastic', 'pp bottle', 'pp container'],
+            'Polyethylene':  ['polyethylene', 'hdpe', 'ldpe', 'pe plastic', 'pe container'],
+            'PVC':           ['pvc', 'polyvinyl chloride', 'vinyl chloride'],
+            'Polycarbonate': ['polycarbonate', 'pc plastic', 'lexan'],
+            'ABS Plastic':   ['abs plastic', 'acrylonitrile butadiene'],
+            'Polystyrene':   ['polystyrene', 'styrofoam', 'eps foam', 'expanded polystyrene'],
+            'Plastic':  ['plastic', 'polymer', 'bpa',
+                         'acrylic', 'resin', 'hard shell',
+                         'hardshell', 'thermoplastic', 'perspex'],
             'Mixed':    ['electronic', 'device', 'phone', 'laptop', 'tablet',
                          'headphone', 'speaker', 'keyboard', 'monitor', 'router',
                          'printer', 'camera', 'smartwatch', 'console', 'gaming',
@@ -878,6 +888,55 @@ class RequestsScraper:
 
         return 'Unknown'
     
+    def detect_category_from_title(self, title: str) -> str:
+        """Map product title keywords to a broad product category.
+
+        Used downstream to improve transport-mode defaults and origin estimates.
+        Returns 'Other' when no keyword matches.
+        """
+        t = title.lower()
+        _CATEGORIES = [
+            ('Electronics',     ['phone', 'smartphone', 'laptop', 'tablet', 'headphone',
+                                  'earphone', 'earbud', 'speaker', 'keyboard', 'mouse',
+                                  'monitor', 'charger', 'cable', 'smartwatch', 'router',
+                                  'printer', 'camera', 'television', ' tv ', 'smart tv',
+                                  'gaming console', 'graphics card', 'ssd', 'hard drive']),
+            ('Clothing',        ['t-shirt', 'shirt', 'hoodie', 'jacket', 'coat', 'dress',
+                                  'jeans', 'trousers', 'socks', 'underwear', 'leggings',
+                                  'shorts', 'boots', 'shoes', 'trainers', 'sneakers',
+                                  'sandals', 'hat', 'cap', 'scarf', 'gloves', 'swimwear',
+                                  'pyjamas', 'lingerie', 'bra', 'sportswear']),
+            ('Home & Kitchen',  ['mug', 'cup', 'plate', 'bowl', 'pan', 'pot', 'knife',
+                                  'cutting board', 'kettle', 'toaster', 'blender', 'coffee maker',
+                                  'pillow', 'cushion', 'duvet', 'bedsheet', 'towel', 'curtain',
+                                  'rug', 'lamp', 'candle', 'vase', 'photo frame', 'mirror']),
+            ('Sports & Fitness',['dumbbell', 'barbell', 'kettlebell', 'yoga mat', 'gym',
+                                  'fitness', 'bicycle', 'treadmill', 'resistance band',
+                                  'foam roller', 'running', 'cycling', 'swimming',
+                                  'football', 'basketball', 'tennis', 'cricket', 'golf',
+                                  'hiking', 'climbing', 'weightlifting']),
+            ('Beauty & Health', ['shampoo', 'conditioner', 'moisturiser', 'moisturizer',
+                                  'serum', 'sunscreen', 'toothbrush', 'toothpaste', 'razor',
+                                  'perfume', 'lipstick', 'mascara', 'foundation',
+                                  'vitamin', 'supplement', 'protein powder', 'whey']),
+            ('Books & Media',   ['book', 'novel', 'textbook', 'dvd', 'blu-ray', 'vinyl', 'cd']),
+            ('Toys & Games',    ['toy', 'lego', 'puzzle', 'board game', 'doll',
+                                  'action figure', 'playset', 'remote control car']),
+            ('Garden',          ['plant pot', 'garden', 'seed', 'fertiliser', 'fertilizer',
+                                  'compost', 'lawn', 'garden hose', 'trowel', 'spade',
+                                  'bbq', 'barbecue', 'patio', 'outdoor chair']),
+            ('Baby & Kids',     ['baby', 'nappy', 'diaper', 'pram', 'stroller', 'cot',
+                                  'crib', 'high chair', 'sippy cup', 'baby food']),
+            ('Pet Supplies',    ['dog', 'cat', 'pet', 'cat food', 'dog food', 'pet bed',
+                                  'collar', 'dog lead', 'cat litter', 'fish tank']),
+            ('Food & Drink',    ['coffee beans', 'tea bags', 'chocolate', 'protein bar',
+                                  'olive oil', 'pasta', 'cereal', 'biscuit', 'energy drink']),
+        ]
+        for category, keywords in _CATEGORIES:
+            if any(kw in t for kw in keywords):
+                return category
+        return 'Other'
+
     def estimate_origin(self, brand: str) -> str:
         """Estimate origin from brand"""
         if not brand or brand == "Unknown":

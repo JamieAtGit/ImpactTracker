@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
+  BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip,
+  ResponsiveContainer, Cell, CartesianGrid,
 } from "recharts";
 import ModernLayout, { ModernCard, ModernSection, ModernBadge } from "../components/ModernLayout";
 import Header from "../components/Header";
@@ -39,19 +40,22 @@ function StatCard({ icon, value, label, sub, color = "text-cyan-400" }) {
 
 export default function HistoryPage() {
   const { user } = useAuth();
-  const [history, setHistory] = useState([]);
-  const [stats, setStats]     = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch]   = useState("");
+  const [history, setHistory]   = useState([]);
+  const [stats, setStats]       = useState(null);
+  const [timeline, setTimeline] = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [search, setSearch]     = useState("");
 
   useEffect(() => {
     if (!user) { setLoading(false); return; }
     Promise.all([
-      fetch(`${BASE_URL}/api/my/history`, { credentials: "include" }).then(r => r.ok ? r.json() : []),
-      fetch(`${BASE_URL}/api/my/stats`,   { credentials: "include" }).then(r => r.ok ? r.json() : null),
-    ]).then(([h, s]) => {
+      fetch(`${BASE_URL}/api/my/history`,          { credentials: "include" }).then(r => r.ok ? r.json() : []),
+      fetch(`${BASE_URL}/api/my/stats`,            { credentials: "include" }).then(r => r.ok ? r.json() : null),
+      fetch(`${BASE_URL}/api/my/carbon-timeline`,  { credentials: "include" }).then(r => r.ok ? r.json() : null),
+    ]).then(([h, s, t]) => {
       setHistory(h);
       setStats(s);
+      setTimeline(t?.timeline ?? []);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [user]);
@@ -177,6 +181,39 @@ export default function HistoryPage() {
                                 ))}
                               </Bar>
                             </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </ModernCard>
+                    )}
+
+                    {timeline.length >= 2 && (
+                      <ModernCard solid>
+                        <h3 className="text-slate-300 font-medium mb-1 text-sm">Monthly Carbon Footprint</h3>
+                        <p className="text-slate-500 text-xs mb-4">CO₂ kg tracked per month from your scanned products</p>
+                        <div className="h-48">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={timeline} margin={{ top: 4, right: 16, left: -16, bottom: 0 }}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                              <XAxis
+                                dataKey="month"
+                                tick={{ fill: "#94a3b8", fontSize: 11 }}
+                                tickFormatter={m => m.slice(5)}
+                              />
+                              <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} unit=" kg" />
+                              <Tooltip
+                                contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: 8 }}
+                                formatter={(v, _) => [`${v} kg CO₂`, "Monthly total"]}
+                                labelFormatter={m => `Month: ${m}`}
+                              />
+                              <Line
+                                type="monotone"
+                                dataKey="co2_kg"
+                                stroke="#22d3ee"
+                                strokeWidth={2}
+                                dot={{ fill: "#22d3ee", r: 4 }}
+                                activeDot={{ r: 6 }}
+                              />
+                            </LineChart>
                           </ResponsiveContainer>
                         </div>
                       </ModernCard>

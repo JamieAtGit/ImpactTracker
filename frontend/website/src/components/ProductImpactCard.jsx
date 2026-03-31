@@ -73,10 +73,11 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
   const originKm = parseFloat(attr.distance_from_origin_km || 0);
   const ukKm     = parseFloat(attr.distance_from_uk_hub_km || 0);
 
-  const mlScore       = attr.eco_score_ml || "N/A";
-  const mlConfidence  = attr.eco_score_ml_confidence || "N/A";
-  const ruleScore     = attr.eco_score_rule_based || "N/A";
+  const mlScore         = attr.eco_score_ml || "N/A";
+  const mlConfidence    = attr.eco_score_ml_confidence || "N/A";
+  const ruleScore       = attr.eco_score_rule_based || "N/A";
   const methodAgreement = attr.method_agreement || "No";
+  const co2UncertaintyPct = attr.co2_uncertainty_pct ?? null;
 
   const carbonKg    = parseFloat(attr.carbon_kg || 0);
   const _treesExact = carbonKg / 21;
@@ -171,7 +172,7 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
           icon="💨"
           label="CO₂ Estimate"
           score={carbonKg > 0 ? `${carbonKg} kg` : "N/A"}
-          sub="Formula-based"
+          sub={co2UncertaintyPct != null ? `±${co2UncertaintyPct}% uncertainty` : "Formula-based"}
           accentClass="border-red-500"
         />
       </div>
