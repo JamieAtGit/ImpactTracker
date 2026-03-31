@@ -802,11 +802,22 @@ class RequestsScraper:
         cm / centimetres / mm / inches, and Amazon's unicode-separated tech tables.
         Returns [float, float, float] (H=0 for 2D) or None if not found.
         """
-        text_lower = text.lower()
+        # Strip Unicode format characters (U+200E, U+200F, etc.) which appear
+        # throughout Amazon's tech-spec tables and break \s* matching before
+        # unit words like "Centimetres".
+        import unicodedata as _ucd
+        text_clean = ''.join(ch for ch in text if _ucd.category(ch) != 'Cf')
+        text_lower = text_clean.lower()
+
         _NUM = r'(\d+(?:\.\d+)?)'   # capture group: number
         _SF  = r'[lwhdLWHD]?'       # optional letter suffix (L, W, H, D)
         _SEP = r'\s*[x×]\s*'        # separator: x or ×
-        _D   = r'(?:product|item|package|parcel)?\s*dimensions?[\s\u200e\u200f]*[:\s\u200e\u200f]*'
+        # _D matches the field label.  Amazon UK sometimes includes an
+        # "L x W x H" or "LxWxH" qualifier inside the label itself, e.g.
+        # "Item Dimensions L x W x H : 24.5 x 8.1 x 7.4 Centimetres".
+        # The optional sub-label group consumes that so numbers are next.
+        _SUB = r'(?:\s*l\s*[x×]\s*w\s*[x×]\s*h\s*)?'  # optional LxWxH sub-label
+        _D   = r'(?:product|item|package|parcel)?\s*dimensions?\s*' + _SUB + r'[\s:]*'
 
         patterns_3d = [
             # "Product Dimensions : 30L x 20W x 10H cm"  (field label + letter suffixes)
@@ -1014,7 +1025,9 @@ class RequestsScraper:
         """Extract origin from Amazon's technical details with improved accuracy"""
         text_lower = text.lower()
         
-        # Debug: Check for key countries in the text
+        # Debug: Log country mentions only when surrounded by origin-indicating language
+        # to avoid noise from navigation text, product descriptions, reviewer locations, etc.
+        _ORIGIN_SIGNALS = {'origin', 'made in', 'manufactured in', 'country of', 'imported from', 'product of'}
         debug_countries = ['belgium', 'germany', 'england', 'uk', 'usa', 'china', 'pakistan', 'india', 'bangladesh', 'turkey', 'vietnam', 'indonesia']
         for country in debug_countries:
             if country in text_lower:
@@ -1022,7 +1035,8 @@ class RequestsScraper:
                 context_start = max(0, country_pos - 80)
                 context_end = min(len(text_lower), country_pos + 80)
                 context = text_lower[context_start:context_end]
-                print(f"🔍 DEBUG: Found '{country}' in text: '{context}'")
+                if any(sig in context for sig in _ORIGIN_SIGNALS):
+                    print(f"🔍 DEBUG: Found '{country}' in text: '{context}'")
         
         # Look for country of origin patterns with improved regex (ordered by specificity)
         # Note: Amazon HTML uses Unicode left-to-right marks (\u200e) as separators in
@@ -1337,11 +1351,17 @@ class RequestsScraper:
             # Plastics
             'pe':    'Polyethylene',
             'pp':    'Polypropylene',
-            # Common misspellings
-            'polyproplene':  'Polypropylene',
-            'polypropylene': 'Polypropylene',
-            'polyproplylene': 'Polypropylene',
-            'polypropene':   'Polypropylene',
+            # Common misspellings / verbose forms
+            'polyproplene':              'Polypropylene',
+            'polypropylene':             'Polypropylene',
+            'polyproplylene':            'Polypropylene',
+            'polypropene':               'Polypropylene',
+            'polyvinyl chloride':        'PVC',
+            'polyvinyl chloride (pvc)':  'PVC',
+            'polyvinyl chloride(pvc)':   'PVC',
+            'poly vinyl chloride':       'PVC',
+            'pvc plastic':               'PVC',
+            'acrylonitrile butadiene styrene': 'ABS Plastic',
             'pc':    'Polycarbonate',
             'abs':   'ABS Plastic',
             'pvc':   'PVC',

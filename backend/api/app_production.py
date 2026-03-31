@@ -58,10 +58,15 @@ MATERIAL_CO2_INTENSITY = {
     "PU":               3.5,
     # Specific metals
     "Stainless Steel":  6.2,
+    "Cast Iron":        2.2,   # Primary: ~2.2 kg CO2e/kg (EAF route, ECOINVENT 3.9)
+    "Iron":             2.5,
     "Aluminium":        8.2,
     "Aluminum":         8.2,
-    "Copper":          3.8,
+    "Copper":           3.8,
     "Zinc":             3.5,
+    "Brass":            3.2,
+    "Bronze":           3.0,
+    "Titanium":        35.0,   # Highly energy-intensive to smelt
     # Specific fabrics
     "Cotton":           3.8,
     "Polyester":        5.5,
