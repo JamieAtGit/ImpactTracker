@@ -662,12 +662,21 @@ def create_app(config_name='production'):
                     or (cached_calc.scraped_product.material or '').strip().lower() not in _POOR_MATERIALS
                 )
             )
+            # Cached results older than this are re-scraped so improvements to the
+            # material / origin detection pipeline are automatically applied.
+            _CACHE_MAX_AGE_DAYS = 30
+            _cache_too_old = bool(
+                cached_calc
+                and cached_calc.created_at
+                and (datetime.utcnow() - cached_calc.created_at).days > _CACHE_MAX_AGE_DAYS
+            )
             _cache_usable = (
                 cached_calc
                 and cached_calc.scraped_product
                 and (cached_calc.scraped_product.title or '').strip().lower() not in _BAD_TITLES
                 and float(cached_calc.final_emission or 0) > 0
                 and _cached_material_ok
+                and not _cache_too_old
             )
             if _cache_usable:
                 cached_product = cached_calc.scraped_product
@@ -687,9 +696,17 @@ def create_app(config_name='production'):
                 cached_rule_co2 = float(cached_calc.rule_based_prediction or cached_total)
                 cached_distance = float(cached_calc.transport_distance or 0.0)
                 cached_weight   = float(cached_product.weight) if cached_product.weight else estimate_default_weight(cached_product.title, cached_product.category)
-                # Sanity-check: no Amazon product should weigh >150 kg;
-                # if so, the value was stored in grams — auto-correct.
-                if cached_weight > 150:
+                # Sanity-check: if stored weight >150 kg it was likely saved in
+                # grams by an older scraper — auto-correct, but only for
+                # categories where a >150 kg consumer product is implausible.
+                _HEAVY_CATEGORIES = {
+                    'furniture', 'appliance', 'appliances', 'garden', 'outdoor',
+                    'industrial', 'sports equipment', 'gym', 'fitness', 'tools',
+                    'power tools', 'home improvement', 'plumbing', 'heating',
+                }
+                _cached_cat_lower = (cached_product.category or '').lower()
+                _cached_legitimately_heavy = any(hc in _cached_cat_lower for hc in _HEAVY_CATEGORIES)
+                if cached_weight > 150 and not _cached_legitimately_heavy:
                     cached_weight /= 1000
                 cached_raw_wt   = round(cached_weight / 1.05, 3)
                 cached_transport = cached_calc.transport_mode or 'Ship'
@@ -901,11 +918,21 @@ def create_app(config_name='production'):
             weight = float(raw_weight) if raw_weight else estimate_default_weight(
                 product.get("title", ""), product.get("category", "")
             )
-            # Sanity-check: no Amazon product should weigh >150 kg;
-            # if so, the scraper returned grams — auto-correct to kg.
-            if weight > 150:
+            # Sanity-check: if weight >150 kg it almost certainly means the scraper
+            # returned grams instead of kilograms — auto-correct.
+            # Guard: skip the correction for categories where genuinely heavy
+            # items exist (furniture, appliances, garden, industrial, etc.) to
+            # avoid silently breaking legitimate heavy-product estimates.
+            _HEAVY_CATEGORIES = {
+                'furniture', 'appliance', 'appliances', 'garden', 'outdoor',
+                'industrial', 'sports equipment', 'gym', 'fitness', 'tools',
+                'power tools', 'home improvement', 'plumbing', 'heating',
+            }
+            _cat_lower = (product.get('category') or '').lower()
+            _is_legitimately_heavy = any(hc in _cat_lower for hc in _HEAVY_CATEGORIES)
+            if weight > 150 and not _is_legitimately_heavy:
                 weight /= 1000
-                print(f"⚠️ Weight auto-corrected from grams: {weight}kg")
+                print(f"⚠️ Weight auto-corrected from grams: {weight} kg")
             print(f"🏋️ Using weight: {weight} kg from scraper")
             if include_packaging:
                 weight *= 1.05
@@ -1187,6 +1214,18 @@ def create_app(config_name='production'):
                                     conformal_sets[_cov_label] = _ps
                         except Exception as _ce:
                             print(f"⚠️ Conformal prediction failed: {_ce}")
+
+                    # Origin is one of the primary model features.  When the
+                    # origin was inferred from a weak heuristic (brand default,
+                    # title keywords, etc.) rather than from an explicit spec
+                    # table entry, the feature value fed to the model may be
+                    # wrong.  We penalise the reported confidence accordingly so
+                    # the UI can surface an honest uncertainty signal without
+                    # requiring a model retrain.
+                    if final_origin_confidence == "low":
+                        confidence = max(5.0, round(confidence * 0.82, 1))
+                    elif final_origin_confidence in ("unknown", None, ""):
+                        confidence = max(5.0, round(confidence * 0.90, 1))
 
                     print(f"✅ ML prediction: {eco_score_ml} ({confidence}%)")
 

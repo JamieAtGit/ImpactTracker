@@ -421,15 +421,24 @@ class RequestsScraper:
             '#priceblock_dealprice',
             '#corePriceDisplay_desktop_feature_div .a-offscreen',
         ]
+        # Price selectors are tried in priority order; the first value in a
+        # realistic range wins.  The regex `[\d]+\.?\d*` is intentionally
+        # broad, so we guard against false positives (star ratings, % values,
+        # etc.) by requiring the extracted figure to sit within a plausible
+        # retail price band.
+        _PRICE_MIN = 0.50    # below this is almost certainly noise
+        _PRICE_MAX = 10_000  # above this is almost certainly not a product price
         for _sel in price_selectors:
             _el = soup.select_one(_sel)
             if _el:
                 _raw = _el.get_text().strip().replace(',', '')
-                _m = re.search(r'[\d]+\.?\d*', _raw)
+                # Match the *first* decimal number that looks like a price
+                _m = re.search(r'\d+(?:\.\d{1,2})?', _raw)
                 if _m:
                     try:
-                        price = float(_m.group())
-                        if price > 0:
+                        _candidate = float(_m.group())
+                        if _PRICE_MIN <= _candidate <= _PRICE_MAX:
+                            price = _candidate
                             break
                     except Exception:
                         pass
@@ -738,6 +747,37 @@ class RequestsScraper:
         }
         # Maximum plausible product weight in kg (skip clear garbage)
         _MAX_KG = 500.0
+
+        # ── Range "500g–600g" / "1.5–2 kg" / "1–2 lbs" → midpoint ────────
+        # Must run after compound handler but before single-value scan.
+        # Maps any unit string the regex can capture to a _TO_KG key.
+        _UNIT_NORM = {
+            'kg': 'kg', 'kilograms': 'kg', 'kilogram': 'kg',
+            'g': 'g', 'grams': 'g', 'gram': 'g',
+            'mg': 'mg', 'milligrams': 'mg', 'milligram': 'mg',
+            'lb': 'lb', 'lbs': 'lb', 'pound': 'lb', 'pounds': 'lb',
+            'oz': 'oz', 'ounces': 'oz', 'ounce': 'oz',
+            'stone': 'st', 'st': 'st',
+        }
+        range_match = re.search(
+            r'\b(\d+(?:\.\d+)?)\s*[-\u2013\u2014]\s*(\d+(?:\.\d+)?)\s*'
+            r'(kg|kilograms?|g(?!ram)|grams?|mg|milligrams?|lb|lbs|pounds?|oz|ounces?|stone|st)\b',
+            text_lower
+        )
+        if range_match:
+            try:
+                lo  = float(range_match.group(1))
+                hi  = float(range_match.group(2))
+                raw_unit = range_match.group(3).rstrip('s')  # 'gram' → 'gram' etc.
+                unit_key = _UNIT_NORM.get(raw_unit, _UNIT_NORM.get(raw_unit.rstrip('s')))
+                if unit_key and lo < hi:
+                    mid = (lo + hi) / 2
+                    if mid >= _MIN.get(unit_key, 0):
+                        kg = mid * _TO_KG[unit_key]
+                        if 0 < kg <= _MAX_KG:
+                            return round(kg, 4)
+            except Exception:
+                pass
 
         for pattern, unit in priority_patterns:
             matches = re.findall(pattern, text_lower)

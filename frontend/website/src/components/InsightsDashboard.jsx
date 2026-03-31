@@ -76,19 +76,17 @@ export default function InsightsDashboard({ refreshKey = 0 }) {
     total_predictions: 0,
     recent_activity: 0
   });
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
 
-  
   useEffect(() => {
-    // Use the new enhanced dashboard metrics endpoint
-    fetch(`${BASE_URL}/api/dashboard-metrics`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.error) {
-          console.error("Dashboard metrics error:", data.error);
-          return;
-        }
+    setLoading(true);
+    setLoadError(null);
 
-        // Update stats with real data instead of placeholders
+    fetch(`${BASE_URL}/api/dashboard-metrics`)
+      .then((res) => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); })
+      .then((data) => {
+        if (data.error) throw new Error(data.error);
         setStats(data.stats || {});
         setScoreData(data.score_distribution || []);
         setMaterialData(data.material_distribution || []);
@@ -96,31 +94,24 @@ export default function InsightsDashboard({ refreshKey = 0 }) {
       .catch((err) => {
         console.error("Failed to load dashboard metrics:", err);
         // Fallback to eco-data endpoint with metadata
-        fetch(`${BASE_URL}/api/eco-data?limit=5000`)
-          .then((res) => res.json())
+        return fetch(`${BASE_URL}/api/eco-data?limit=5000`)
+          .then((res) => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); })
           .then((response) => {
-            // Handle new response format with metadata
             const data = response.products || response;
             const metadata = response.metadata || {};
-            
-            if (!Array.isArray(data)) return;
+            if (!Array.isArray(data)) throw new Error("Unexpected response shape");
 
             const scores = data.map((d) => d.true_eco_score).filter(Boolean);
             const materials = data.map((d) => d.material).filter(Boolean);
 
-            // ✅ Score breakdown
             const scoreCounts = scores.reduce((acc, score) => {
               acc[score] = (acc[score] || 0) + 1;
               return acc;
             }, {});
             setScoreData(
-              Object.entries(scoreCounts).map(([score, count]) => ({
-                name: score,
-                value: count,
-              }))
+              Object.entries(scoreCounts).map(([score, count]) => ({ name: score, value: count }))
             );
 
-            // ✅ Top materials (deduped + sorted)
             const deduped = materials.reduce((acc, curr) => {
               const existing = acc.find((item) => item.name === curr);
               if (existing) existing.value += 1;
@@ -128,20 +119,56 @@ export default function InsightsDashboard({ refreshKey = 0 }) {
               return acc;
             }, []);
             setMaterialData(deduped.sort((a, b) => b.value - a.value).slice(0, 10));
-            
-            // Use metadata for accurate total count
             setStats({
               total_products: metadata.total_products_in_dataset || data.length,
               total_materials: deduped.length,
               total_predictions: 0,
               recent_activity: 0
             });
-            
-            console.log(`📊 Dashboard loaded: ${metadata.products_returned || data.length} of ${metadata.total_products_in_dataset || 'unknown'} total products`);
-          })
-          .catch(() => console.error("All dashboard endpoints failed"));
-      });
+          });
+      })
+      .catch((err) => {
+        console.error("All dashboard endpoints failed:", err);
+        setLoadError("Could not load dashboard data.");
+      })
+      .finally(() => setLoading(false));
   }, [refreshKey]);
+
+  if (loading) {
+    return (
+      <div className="space-y-8 animate-pulse">
+        {/* Stat card skeletons */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="glass-card p-4 flex flex-col items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-slate-700" />
+              <div className="h-3 w-24 bg-slate-700 rounded" />
+              <div className="h-2 w-16 bg-slate-800 rounded" />
+            </div>
+          ))}
+        </div>
+        {/* Chart skeletons */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="glass-card p-5 h-72 flex items-center justify-center">
+            <div className="w-40 h-40 rounded-full bg-slate-700" />
+          </div>
+          <div className="glass-card p-5 h-72 flex flex-col justify-end gap-2 px-8">
+            {[80, 60, 90, 40, 70, 50, 65].map((w, i) => (
+              <div key={i} className="h-4 rounded bg-slate-700" style={{ width: `${w}%` }} />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="glass-card p-8 text-center text-slate-400">
+        <p className="text-sm">{loadError}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

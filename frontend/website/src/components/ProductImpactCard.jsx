@@ -57,6 +57,17 @@ function Row({ label, value, badge, badgeVariant }) {
 export default function ProductImpactCard({ result, showML, toggleShowML }) {
   const [activeTab, setActiveTab] = React.useState(0);
   const [materialAvg, setMaterialAvg] = React.useState(null);
+  const tabBarRef = React.useRef(null);
+
+  const handleTabChange = React.useCallback((i) => {
+    setActiveTab(i);
+    // After the AnimatePresence transition begins, scroll the tab bar into view
+    // so the user lands at the top of the new tab content rather than wherever
+    // the previous tab's scroll position left them.
+    requestAnimationFrame(() => {
+      tabBarRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+  }, []);
 
   const attr = result.attributes || {};
   const originKm = parseFloat(attr.distance_from_origin_km || 0);
@@ -166,9 +177,9 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
       </div>
 
       {/* ── Tabs ── */}
-      <div className="flex items-center gap-2 mb-5 p-1 bg-slate-800/50 rounded-xl border border-slate-700/40">
+      <div ref={tabBarRef} className="flex items-center gap-2 mb-5 p-1 bg-slate-800/50 rounded-xl border border-slate-700/40">
         {TABS.map((t, i) => (
-          <Tab key={t} label={t} active={activeTab === i} onClick={() => setActiveTab(i)} />
+          <Tab key={t} label={t} active={activeTab === i} onClick={() => handleTabChange(i)} />
         ))}
       </div>
 
