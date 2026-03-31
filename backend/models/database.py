@@ -127,7 +127,8 @@ class ScrapedProduct(db.Model):
             'origin_country': self.origin_country,
             'confidence_score': float(self.confidence_score) if self.confidence_score else None,
             'scraping_status': self.scraping_status,
-            'created_at': self.created_at.isoformat()
+            'created_at': self.created_at.isoformat(),
+            'materials_json': self.materials_json,
         }
 
 class EmissionCalculation(db.Model):

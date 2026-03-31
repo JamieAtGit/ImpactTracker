@@ -10,28 +10,32 @@ export default function EcoLogTable() {
   const [materialFilter, setMaterialFilter] = useState("");
   const [isExpanded, setIsExpanded] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
 
   const [totalInDataset, setTotalInDataset] = useState(null);
 
   useEffect(() => {
+    setLoading(true);
+    setLoadError(null);
     fetch(`${BASE_URL}/api/eco-data?limit=1000`)
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
       .then((response) => {
-        const products = response.products || response;
-        if (Array.isArray(products)) {
-          setData(products);
-        }
+        const products = Array.isArray(response) ? response : (response.products || []);
+        setData(products);
         if (response.metadata?.total_products_in_dataset) {
           setTotalInDataset(response.metadata.total_products_in_dataset);
         }
       })
       .catch((err) => {
         console.error("Error loading eco data:", err);
+        setLoadError("Failed to load product database.");
         setData([]);
-      });
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   // Data is now guaranteed to be an array from the useEffect handler
@@ -73,10 +77,16 @@ export default function EcoLogTable() {
       "co2_emissions",
       "origin",
     ];
+    const toCell = (val) => {
+      if (val === null || val === undefined) return '""';
+      if (typeof val === "object") return `"${JSON.stringify(val).replace(/"/g, '""')}"`;
+      const str = String(val);
+      return str.includes(",") || str.includes('"') || str.includes("\n")
+        ? `"${str.replace(/"/g, '""')}"` : str;
+    };
     const csvRows = [headers.join(",")];
     filteredData.forEach((row) => {
-      const values = headers.map((h) => JSON.stringify(row[h] || ""));
-      csvRows.push(values.join(","));
+      csvRows.push(headers.map((h) => toCell(row[h])).join(","));
     });
     const csvData = new Blob([csvRows.join("\n")], { type: "text/csv" });
     const url = URL.createObjectURL(csvData);
@@ -84,6 +94,7 @@ export default function EcoLogTable() {
     link.href = url;
     link.download = "eco_dataset.csv";
     link.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -91,7 +102,7 @@ export default function EcoLogTable() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 mb-6">
         <div className="flex items-center gap-3">
-          <div className="status-indicator status-success"></div>
+          <div className={`status-indicator ${loading ? "status-warning" : loadError ? "status-error" : "status-success"}`}></div>
           <h2 className="text-xl font-display text-slate-200">
             Product Impact Database ({totalInDataset !== null ? totalInDataset.toLocaleString() : data.length} products)
           </h2>
@@ -100,13 +111,26 @@ export default function EcoLogTable() {
           variant="secondary"
           size="sm"
           onClick={downloadCSV}
+          disabled={loading || data.length === 0}
           icon="💾"
         >
           Download CSV
         </ModernButton>
       </div>
 
-      {/* Filters */}
+      {/* Loading / error states */}
+      {loading && (
+        <div className="flex items-center justify-center gap-3 py-10 text-slate-400">
+          <div className="w-5 h-5 border-2 border-slate-600 border-t-cyan-500 rounded-full animate-spin" />
+          <span className="text-sm">Loading product database…</span>
+        </div>
+      )}
+      {!loading && loadError && (
+        <div className="text-center py-8 text-red-400 text-sm">{loadError}</div>
+      )}
+
+      {/* Filters + table — only show once data is loaded */}
+      {!loading && !loadError && <>
       <motion.div
         className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6"
         initial={{ opacity: 0, y: 20 }}
@@ -274,6 +298,7 @@ export default function EcoLogTable() {
           </motion.div>
         )}
       </AnimatePresence>
+      </>}
 
     </ModernCard>
   );

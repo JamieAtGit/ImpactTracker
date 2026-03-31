@@ -573,6 +573,9 @@ def create_app(config_name='production'):
             if not url or not postcode:
                 return jsonify({"error": "Missing URL or postcode"}), 400
 
+            if 'amazon.' not in url.lower():
+                return jsonify({"error": "Please enter a valid Amazon product URL (e.g. amazon.co.uk or amazon.com)"}), 400
+
             asin_key = extract_asin_from_amazon_url(url)
             cached_calc = find_cached_emission_calculation(asin=asin_key, amazon_url=url, postcode=postcode)
             _BAD_TITLES = {'amazon product', 'unknown product', 'unknown', '', 'consumer product'}
@@ -1823,7 +1826,7 @@ def create_app(config_name='production'):
             })
         except Exception as e:
             print(f"Error in eco-data endpoint: {e}")
-            return jsonify([]), 200
+            return jsonify({"error": str(e)}), 500
 
     @app.route('/api/alternatives', methods=['GET'])
     def get_alternatives():
