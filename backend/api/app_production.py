@@ -769,7 +769,6 @@ def create_app(config_name='production'):
                     "image_url":    None,
                     "manufacturer": "Not found",
                     "category":     "Not found",
-                    "dimensions_cm": "Not found",
                     "certifications": [],
                     "transport_breakdown": _build_transport_breakdown(
                         weight_kg=cached_weight,
@@ -781,7 +780,7 @@ def create_app(config_name='production'):
                 }
                 cached_attributes = standardize_attributes(cached_attributes, [
                     "origin", "country_of_origin", "facility_origin",
-                    "origin_source", "origin_confidence", "dimensions_cm",
+                    "origin_source", "origin_confidence",
                     "material_type", "brand", "price", "asin",
                     "image_url", "manufacturer", "category",
                 ])
@@ -1374,7 +1373,6 @@ def create_app(config_name='production'):
                 "distance_from_uk_hub_km": uk_distance_km,
 
                 # Product features
-                "dimensions_cm": product.get("dimensions_cm"),
                 "material_type": product.get("material_type", "Not found"),
                 "materials": materials_result,
                 "recyclability": recyclability_label,
@@ -1470,7 +1468,6 @@ def create_app(config_name='production'):
                 "facility_origin",
                 "origin_source",
                 "origin_confidence",
-                "dimensions_cm",
                 "material_type",
                 "brand",
                 "price",
@@ -1480,32 +1477,6 @@ def create_app(config_name='production'):
                 "category",
             ])
 
-            # Packaging efficiency: kg/litre density (higher = better use of space)
-            _dims = product.get("dimensions_cm")
-            _pkg_efficiency = None
-            _pkg_label = None
-            if _dims and len(_dims) == 3:
-                try:
-                    _vol_l = (_dims[0] * _dims[1] * _dims[2]) / 1000.0
-                    if _vol_l > 0:
-                        _density = weight / _vol_l  # kg per litre
-                        _pkg_efficiency = round(_density, 3)
-                        # Label: compare to typical product density ranges
-                        # < 0.05 kg/L = very low density (oversized packaging)
-                        # 0.05–0.3 = low density (some wasted space)
-                        # 0.3–1.0 = medium (reasonable)
-                        # > 1.0 = high density (compact, efficient)
-                        if _density < 0.05:
-                            _pkg_label = "Poor"
-                        elif _density < 0.3:
-                            _pkg_label = "Average"
-                        elif _density < 1.0:
-                            _pkg_label = "Good"
-                        else:
-                            _pkg_label = "Excellent"
-                except Exception:
-                    pass
-
             response_data = {
                 "title": product.get("title", "Unknown Product"),
                 "data": {
@@ -1514,11 +1485,10 @@ def create_app(config_name='production'):
                         "carbon_footprint": round(total_co2, 2),
                         "recyclability_score": recyclability_pct,
                         "eco_score": eco_score_ml,
-                        "efficiency": _pkg_efficiency,
-                        "efficiency_label": _pkg_label,
+                        "efficiency": None,
+                        "efficiency_label": None,
                         "efficiency_description": (
-                            f"{_pkg_efficiency:.3f} kg/L — {_pkg_label.lower()} packaging density"
-                            if _pkg_efficiency else None
+                            None
                         ),
                     },
                     "recommendations": [

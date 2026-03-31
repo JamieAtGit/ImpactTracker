@@ -206,8 +206,7 @@ class RequestsScraper:
                     print("🚫 Bot detection — Amazon is blocking this IP. Set SCRAPERAPI_KEY env var to fix.")
                     return {"title": "blocked", "origin": "Unknown", "weight_kg": 1.0,
                             "material_type": "Unknown", "recyclability": "Medium",
-                            "eco_score_ml": "C", "brand": "Unknown", "asin": asin,
-                            "dimensions_cm": [15, 10, 8]}
+                            "eco_score_ml": "C", "brand": "Unknown", "asin": asin}
                 
                 # Extract data
                 return self.extract_from_soup(soup, asin, clean_url)
@@ -488,9 +487,6 @@ class RequestsScraper:
             if _label not in certifications and re.search(_pattern, _cert_scan_text):
                 certifications.append(_label)
 
-        # === Product dimensions ===
-        dimensions_cm = self.extract_dimensions_from_text(all_text)
-
         # === Product image URL ===
         # Strategy 1: #landingImage is Amazon's dedicated main product image element
         image_url = None
@@ -590,7 +586,6 @@ class RequestsScraper:
             "origin_source": origin_source,
             "origin_confidence": origin_confidence,
             "weight_kg": weight,
-            "dimensions_cm": dimensions_cm or [20, 15, 10],
             "material_type": material,
             "amazon_materials_extracted": amazon_materials_extracted,
             "recyclability": "Medium",
@@ -660,7 +655,6 @@ class RequestsScraper:
             "title": title,
             "origin": "UK",
             "weight_kg": weight,
-            "dimensions_cm": [15, 10, 8],
             "material_type": material,
             "recyclability": "Medium",
             "eco_score_ml": "C",
@@ -794,86 +788,6 @@ class RequestsScraper:
                     continue
 
         return 1.0  # Default weight
-
-    def extract_dimensions_from_text(self, text: str):
-        """Extract product dimensions [L, W, H] in cm from page text.
-
-        Handles 3D and 2D formats, letter-suffixed Amazon values (72L x 45W),
-        cm / centimetres / mm / inches, and Amazon's unicode-separated tech tables.
-        Returns [float, float, float] (H=0 for 2D) or None if not found.
-        """
-        # Strip Unicode format characters (U+200E, U+200F, etc.) which appear
-        # throughout Amazon's tech-spec tables and break \s* matching before
-        # unit words like "Centimetres".
-        import unicodedata as _ucd
-        text_clean = ''.join(ch for ch in text if _ucd.category(ch) != 'Cf')
-        text_lower = text_clean.lower()
-
-        _NUM = r'(\d+(?:\.\d+)?)'   # capture group: number
-        _SF  = r'[lwhdLWHD]?'       # optional letter suffix (L, W, H, D)
-        _SEP = r'\s*[x×]\s*'        # separator: x or ×
-        # _D matches the field label.  Amazon UK sometimes includes an
-        # "L x W x H" or "LxWxH" qualifier inside the label itself, e.g.
-        # "Item Dimensions L x W x H : 24.5 x 8.1 x 7.4 Centimetres".
-        # The optional sub-label group consumes that so numbers are next.
-        _SUB = r'(?:\s*l\s*[x×]\s*w\s*[x×]\s*h\s*)?'  # optional LxWxH sub-label
-        _D   = r'(?:product|item|package|parcel)?\s*dimensions?\s*' + _SUB + r'[\s:]*'
-
-        patterns_3d = [
-            # "Product Dimensions : 30L x 20W x 10H cm"  (field label + letter suffixes)
-            _D + _NUM + _SF + _SEP + _NUM + _SF + _SEP + _NUM + _SF + r'\s*(?:centimetres?|cm\b)',
-            # "Product Dimensions : 30 x 20 x 10 inches"
-            _D + _NUM + _SF + _SEP + _NUM + _SF + _SEP + _NUM + _SF + r'\s*(?:inches?|in\b)',
-            # "Product Dimensions : 300 x 200 x 100 mm"
-            _D + _NUM + _SF + _SEP + _NUM + _SF + _SEP + _NUM + _SF + r'\s*mm\b',
-            # Plain "30 x 20 x 10 cm" anywhere
-            r'\b' + _NUM + _SF + _SEP + _NUM + _SF + _SEP + _NUM + _SF + r'\s*(?:centimetres?|cm\b)',
-            r'\b' + _NUM + _SF + _SEP + _NUM + _SF + _SEP + _NUM + _SF + r'\s*(?:inches?|in\b)',
-        ]
-        patterns_2d = [
-            # "72L x 45W centimetres"  or  "45 x 66 cm"
-            _D + _NUM + _SF + _SEP + _NUM + _SF + r'\s*(?:centimetres?|cm\b)',
-            _D + _NUM + _SF + _SEP + _NUM + _SF + r'\s*(?:inches?|in\b)',
-            r'\b' + _NUM + _SF + _SEP + _NUM + _SF + r'\s*(?:centimetres?|cm\b)',
-            r'\b' + _NUM + _SF + _SEP + _NUM + _SF + r'\s*(?:inches?|in\b)',
-        ]
-
-        def _unit_scale(unit_str):
-            if 'in' in unit_str or 'inch' in unit_str:
-                return 2.54
-            elif 'mm' in unit_str:
-                return 0.1
-            return 1.0
-
-        # Try 3D first
-        for pat in patterns_3d:
-            m = re.search(pat, text_lower)
-            if m:
-                try:
-                    v1, v2, v3 = float(m.group(1)), float(m.group(2)), float(m.group(3))
-                    # Detect unit from text after match
-                    after = text_lower[m.end():m.end()+15]
-                    scale = _unit_scale(m.group(0))
-                    vals = [round(v * scale, 1) for v in (v1, v2, v3)]
-                    if all(0.5 <= v <= 500 for v in vals):
-                        return vals
-                except Exception:
-                    continue
-
-        # Fall back to 2D (store H as 0)
-        for pat in patterns_2d:
-            m = re.search(pat, text_lower)
-            if m:
-                try:
-                    v1, v2 = float(m.group(1)), float(m.group(2))
-                    scale = _unit_scale(m.group(0))
-                    vals = [round(v * scale, 1) for v in (v1, v2)]
-                    if all(0.5 <= v <= 500 for v in vals):
-                        return [vals[0], vals[1], 0.0]
-                except Exception:
-                    continue
-
-        return None
 
     def detect_material(self, title: str, text: str) -> str:
         """Detect material type — checks title first to avoid false positives from page text."""
@@ -1840,7 +1754,6 @@ def scrape_with_requests(url: str) -> Optional[Dict]:
                 'brand': result.get('brand', 'Unknown'),
                 'material_type': result.get('material_type', 'Unknown'),
                 'asin': result.get('asin', 'Unknown'),
-                'dimensions_cm': [15, 10, 8],  # Default dimensions
                 'recyclability': 'Medium'      # Default recyclability
             }
     except Exception as e:

@@ -199,15 +199,9 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
 
               {/* Weights */}
               <div className="glass-card rounded-xl p-4">
-                <h4 className="text-slate-300 font-semibold text-sm mb-3">⚖️ Weight & Dimensions</h4>
+                <h4 className="text-slate-300 font-semibold text-sm mb-3">⚖️ Weight</h4>
                 <Row label="Product weight" value={`${attr.raw_product_weight_kg} kg`} />
                 <Row label="Weight incl. packaging" value={`${attr.weight_kg} kg`} />
-                {Array.isArray(attr.dimensions_cm) && attr.dimensions_cm.length === 3 && (
-                  <Row
-                    label="Dimensions"
-                    value={`${attr.dimensions_cm[0]} × ${attr.dimensions_cm[1]} × ${attr.dimensions_cm[2]} cm`}
-                  />
-                )}
                 {(() => {
                   const env = result?.data?.environmental_metrics;
                   if (!env?.efficiency || !env?.efficiency_label) return null;
