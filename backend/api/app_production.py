@@ -534,8 +534,8 @@ def create_app(config_name='production'):
             'mode': config_name
         }), 200
     
-    @app.route('/estimate_emissions', methods=['POST', 'OPTIONS'])
-    @limiter.limit("10 per minute", exempt_when=lambda: request.method == 'OPTIONS')
+    @app.route('/estimate_emissions', methods=['POST'])
+    @limiter.limit("10 per minute")
     def estimate_emissions():
         """Main endpoint for estimating product emissions - matches localhost functionality"""
         print("🔔 Route hit: /estimate_emissions")
@@ -557,14 +557,6 @@ def create_app(config_name='production'):
         extract_asin_from_amazon_url = deps['extract_asin_from_amazon_url']
         standardize_attributes = deps['standardize_attributes']
         calculate_eco_score = deps['calculate_eco_score']
-        
-        # Handle preflight OPTIONS request
-        if request.method == "OPTIONS":
-            response = jsonify({})
-            response.headers.add('Access-Control-Allow-Origin', '*')
-            response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-            response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-            return response
         
         data = request.get_json()
         if not data:
