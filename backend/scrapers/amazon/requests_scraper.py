@@ -440,6 +440,40 @@ class RequestsScraper:
         if _cpf_el:
             climate_pledge_friendly = True
 
+        # === Eco Certifications ===
+        # Use compound phrases to avoid false positives (e.g. 'organic chemistry')
+        _CERT_PATTERNS = [
+            (r'\bfsc[- ]certified\b|\bfsc[- ](?:wood|paper|label|timber)\b|\bcertified fsc\b', 'FSC Certified'),
+            (r'\bfair ?trade[- ]certified\b|\bcertified fair ?trade\b|\bfairtrade\b', 'Fair Trade'),
+            (r'\beu ecolabel\b|\beuropean ecolabel\b', 'EU Ecolabel'),
+            (r'\bb[\s-]?corp\b|\bb corporation certified\b', 'B Corp'),
+            (r'\brainforest alliance[- ]certified\b|\brainforest alliance\b', 'Rainforest Alliance'),
+            (r'\boeko[- ]?tex\b', 'OEKO-TEX'),
+            (r'\benergy[\s-]?star\b', 'ENERGY STAR'),
+            (r'\bgots[- ]certified\b|\bglobal organic textile standard\b', 'GOTS'),
+            (r'\bbluesign[- ]approved\b|\bbluesign\b', 'bluesign'),
+            (r'\borganic cotton\b|\busda organic\b|\bcertified organic\b|\beu organic\b|\bsol organic\b', 'Organic'),
+            (r'\bresponsible wool standard\b|\brws[- ]certified\b', 'Responsible Wool'),
+            (r'\bcarbon neutral[- ]certified\b|\bnet[\s-]?zero certified\b|\bcarbon zero\b', 'Carbon Neutral'),
+            (r'\bpost[\s-]?consumer recycled\b|\bpcr[\s-]content\b|\brecycled content certified\b', 'Recycled Content'),
+            (r'\bcruelty[\s-]?free\b', 'Cruelty Free'),
+        ]
+        certifications = []
+        # Priority: check the certifications container text first
+        _cert_container = soup.select_one(
+            '.a-section.certifications-label-container, #certifications-label-container, '
+            '[data-feature-name="certifications"], #sustainability-label-container'
+        )
+        _cert_scan_text = (
+            (_cert_container.get_text().lower() if _cert_container else '') + ' ' + _full_text
+        )
+        for _pattern, _label in _CERT_PATTERNS:
+            if _label not in certifications and re.search(_pattern, _cert_scan_text):
+                certifications.append(_label)
+
+        # === Product dimensions ===
+        dimensions_cm = self.extract_dimensions_from_text(all_text)
+
         # === Product image URL ===
         # Strategy 1: #landingImage is Amazon's dedicated main product image element
         image_url = None
@@ -539,7 +573,7 @@ class RequestsScraper:
             "origin_source": origin_source,
             "origin_confidence": origin_confidence,
             "weight_kg": weight,
-            "dimensions_cm": [20, 15, 10],
+            "dimensions_cm": dimensions_cm or [20, 15, 10],
             "material_type": material,
             "amazon_materials_extracted": amazon_materials_extracted,
             "recyclability": "Medium",
@@ -553,6 +587,7 @@ class RequestsScraper:
             "method": "Requests Scraping",
             "price": price,
             "climate_pledge_friendly": climate_pledge_friendly,
+            "certifications": certifications,
             "sold_by": sold_by,
             "dispatched_from": dispatched_from,
             "image_url": image_url,
@@ -711,7 +746,45 @@ class RequestsScraper:
                     continue
 
         return 1.0  # Default weight
-    
+
+    def extract_dimensions_from_text(self, text: str):
+        """Extract product dimensions [L, W, H] in cm from page text.
+
+        Handles: cm, centimetres, mm, inches/in, and Amazon's unicode-separated
+        tech-table format. Returns [float, float, float] or None if not found.
+        """
+        text_lower = text.lower()
+
+        # Dimension field labels (Amazon UK uses unicode separators)
+        _D = r'(?:product|item|package|parcel)?\s*dimensions?[\s\u200e\u200f]*[:\s\u200e\u200f]*'
+
+        patterns = [
+            # "Product Dimensions : 30 x 20 x 10 cm" (with unicode separators)
+            (_D + r'(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*cm', 'cm'),
+            (_D + r'(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*(?:in|inches?)', 'in'),
+            (_D + r'(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*mm', 'mm'),
+            # Plain "30 x 20 x 10 cm" anywhere in page
+            (r'\b(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*cm\b', 'cm'),
+            (r'\b(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*(?:in|inches?)\b', 'in'),
+        ]
+
+        for pattern, unit in patterns:
+            m = re.search(pattern, text_lower)
+            if m:
+                try:
+                    vals = [float(m.group(i)) for i in (1, 2, 3)]
+                    if unit == 'in':
+                        vals = [round(v * 2.54, 1) for v in vals]
+                    elif unit == 'mm':
+                        vals = [round(v / 10, 1) for v in vals]
+                    # Sanity: each dimension must be between 0.5 cm and 300 cm
+                    if all(0.5 <= v <= 300 for v in vals):
+                        return vals
+                except Exception:
+                    continue
+
+        return None
+
     def detect_material(self, title: str, text: str) -> str:
         """Detect material type — checks title first to avoid false positives from page text."""
         title_lower = title.lower()

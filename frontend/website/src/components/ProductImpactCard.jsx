@@ -188,9 +188,33 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
 
               {/* Weights */}
               <div className="glass-card rounded-xl p-4">
-                <h4 className="text-slate-300 font-semibold text-sm mb-3">⚖️ Weight</h4>
+                <h4 className="text-slate-300 font-semibold text-sm mb-3">⚖️ Weight & Dimensions</h4>
                 <Row label="Product weight" value={`${attr.raw_product_weight_kg} kg`} />
                 <Row label="Weight incl. packaging" value={`${attr.weight_kg} kg`} />
+                {Array.isArray(attr.dimensions_cm) && attr.dimensions_cm.length === 3 && (
+                  <Row
+                    label="Dimensions"
+                    value={`${attr.dimensions_cm[0]} × ${attr.dimensions_cm[1]} × ${attr.dimensions_cm[2]} cm`}
+                  />
+                )}
+                {(() => {
+                  const env = result?.data?.environmental_metrics;
+                  if (!env?.efficiency || !env?.efficiency_label) return null;
+                  const variantMap = { Excellent: "success", Good: "success", Average: "warning", Poor: "error" };
+                  return (
+                    <>
+                      <Row
+                        label="Packaging density"
+                        value={`${env.efficiency_label} · ${env.efficiency} kg/L`}
+                        badge
+                        badgeVariant={variantMap[env.efficiency_label] || "default"}
+                      />
+                      <p className="text-slate-600 text-xs mt-1 leading-relaxed">
+                        How efficiently the product fills its box. Lower density = more empty space in packaging.
+                      </p>
+                    </>
+                  );
+                })()}
               </div>
 
               {/* Origin & manufacturing — grouped */}
@@ -322,6 +346,38 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
                   <p className="text-slate-500 text-xs mt-2 leading-relaxed">{attr.recyclability_description}</p>
                 )}
               </div>
+
+              {/* Eco Certifications */}
+              {attr.certifications?.length > 0 && (
+                <div className="glass-card rounded-xl p-4">
+                  <h4 className="text-slate-300 font-semibold text-sm mb-3">🏅 Certifications</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {attr.certifications.map((cert) => {
+                      const style =
+                        cert === "FSC Certified" || cert === "Organic" || cert === "Rainforest Alliance"
+                          ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-300"
+                          : cert === "Fair Trade" || cert === "B Corp" || cert === "GOTS"
+                          ? "bg-cyan-500/15 border-cyan-500/40 text-cyan-300"
+                          : cert === "ENERGY STAR"
+                          ? "bg-blue-500/15 border-blue-500/40 text-blue-300"
+                          : cert === "Carbon Neutral"
+                          ? "bg-violet-500/15 border-violet-500/40 text-violet-300"
+                          : "bg-slate-700/50 border-slate-600/60 text-slate-300";
+                      return (
+                        <span
+                          key={cert}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-medium border ${style}`}
+                        >
+                          {cert}
+                        </span>
+                      );
+                    })}
+                  </div>
+                  <p className="text-slate-600 text-xs mt-2 leading-relaxed">
+                    Detected from Amazon product listing — verify on product page.
+                  </p>
+                </div>
+              )}
 
               {/* Seller info */}
               {(attr.sold_by || attr.dispatched_from || price) && (

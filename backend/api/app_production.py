@@ -313,6 +313,38 @@ def _seed_products_from_csv():
         traceback.print_exc()
 
 
+def _build_transport_breakdown(weight_kg: float, origin_km: float, uk_hub_km: float, mode: str) -> dict:
+    """Compute CO₂ for each delivery leg using DEFRA 2023 freight factors.
+
+    Returns a dict with per-leg kg CO₂ and distances, ready to surface in the API.
+    Mode factors (kg CO₂ per tonne-km → convert: ÷ 1000 for kg CO₂ per kg per km):
+        Air   = 0.234  kg CO₂/tonne-km  → 0.000234 per kg per km  (conservative mid-haul)
+        Ship  = 0.016  kg CO₂/tonne-km  → 0.000016 per kg per km
+        Truck = 0.096  kg CO₂/tonne-km  → 0.000096 per kg per km
+    UK distribution: HGV leg ~200 km domestic route at truck factor.
+    Last-mile: courier van (0.21 kg CO₂/km) shared across ~40 stops over ~60 km route.
+    """
+    _FACTORS = {'Air': 0.000234, 'Ship': 0.000016, 'Truck': 0.000096}
+    factor = _FACTORS.get(mode, _FACTORS['Ship'])
+
+    intl_kg      = round(weight_kg * origin_km * factor, 3)
+    uk_dist_kg   = round(weight_kg * 0.000096 * 200 + 0.03, 3)   # HGV 200 km + fixed warehouse
+    last_mile_kg = round(60 * 0.21 / 40 + weight_kg * 0.005, 3)   # van shared route + weight premium
+    total_kg     = round(intl_kg + uk_dist_kg + last_mile_kg, 3)
+
+    return {
+        "international_kg":      intl_kg,
+        "uk_distribution_kg":    uk_dist_kg,
+        "last_mile_kg":          last_mile_kg,
+        "total_transport_kg":    total_kg,
+        "international_distance_km": round(origin_km, 0),
+        "uk_hub_distance_km":    round(uk_hub_km, 0),
+        "transport_mode":        mode,
+        "mode_factor_per_kg_km": factor,
+        "source":                "DEFRA 2023 freight emission factors",
+    }
+
+
 def create_app(config_name='production'):
     """Application factory pattern"""
     app = Flask(__name__)
@@ -675,6 +707,14 @@ def create_app(config_name='production'):
                     "manufacturer": "Not found",
                     "category":     "Not found",
                     "dimensions_cm": "Not found",
+                    "certifications": [],
+                    "transport_breakdown": _build_transport_breakdown(
+                        weight_kg=cached_weight,
+                        origin_km=cached_distance,
+                        uk_hub_km=3.2,
+                        mode=cached_transport,
+                    ),
+                    "co2_source": "rule_based_formula",
                 }
                 cached_attributes = standardize_attributes(cached_attributes, [
                     "origin", "country_of_origin", "facility_origin",
@@ -1326,8 +1366,17 @@ def create_app(config_name='production'):
                 "manufacturer": product.get("manufacturer"),
                 "category": product.get("category"),
                 "climate_pledge_friendly": product.get("climate_pledge_friendly", False),
+                "certifications": product.get("certifications") or [],
                 "sold_by": product.get("sold_by"),
                 "dispatched_from": product.get("dispatched_from"),
+
+                # Transport CO₂ breakdown (international + UK hub + last-mile)
+                "transport_breakdown": _build_transport_breakdown(
+                    weight_kg=weight,
+                    origin_km=origin_distance_km,
+                    uk_hub_km=uk_distance_km,
+                    mode=mode_name,
+                ),
             }
 
             attributes = standardize_attributes(attributes, [
@@ -1346,6 +1395,32 @@ def create_app(config_name='production'):
                 "category",
             ])
 
+            # Packaging efficiency: kg/litre density (higher = better use of space)
+            _dims = product.get("dimensions_cm")
+            _pkg_efficiency = None
+            _pkg_label = None
+            if _dims and len(_dims) == 3:
+                try:
+                    _vol_l = (_dims[0] * _dims[1] * _dims[2]) / 1000.0
+                    if _vol_l > 0:
+                        _density = weight / _vol_l  # kg per litre
+                        _pkg_efficiency = round(_density, 3)
+                        # Label: compare to typical product density ranges
+                        # < 0.05 kg/L = very low density (oversized packaging)
+                        # 0.05–0.3 = low density (some wasted space)
+                        # 0.3–1.0 = medium (reasonable)
+                        # > 1.0 = high density (compact, efficient)
+                        if _density < 0.05:
+                            _pkg_label = "Poor"
+                        elif _density < 0.3:
+                            _pkg_label = "Average"
+                        elif _density < 1.0:
+                            _pkg_label = "Good"
+                        else:
+                            _pkg_label = "Excellent"
+                except Exception:
+                    pass
+
             response_data = {
                 "title": product.get("title", "Unknown Product"),
                 "data": {
@@ -1354,7 +1429,12 @@ def create_app(config_name='production'):
                         "carbon_footprint": round(total_co2, 2),
                         "recyclability_score": recyclability_pct,
                         "eco_score": eco_score_ml,
-                        "efficiency": None
+                        "efficiency": _pkg_efficiency,
+                        "efficiency_label": _pkg_label,
+                        "efficiency_description": (
+                            f"{_pkg_efficiency:.3f} kg/L — {_pkg_label.lower()} packaging density"
+                            if _pkg_efficiency else None
+                        ),
                     },
                     "recommendations": [
                         "Consider products made from recycled materials",

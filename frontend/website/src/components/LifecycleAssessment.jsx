@@ -148,6 +148,58 @@ function calcStages(attr) {
   ];
 }
 
+// ─── Transport sub-breakdown ──────────────────────────────────────────────────
+function TransportBreakdown({ tb }) {
+  if (!tb) return null;
+  const { international_kg, uk_distribution_kg, last_mile_kg, total_transport_kg,
+          international_distance_km, transport_mode } = tb;
+  const total = total_transport_kg || 0.001;
+  const segments = [
+    { label: "International", kg: international_kg, color: "bg-blue-400", textColor: "text-blue-400",
+      detail: `${transport_mode} · ${Number(international_distance_km).toLocaleString()} km` },
+    { label: "UK Distribution", kg: uk_distribution_kg, color: "bg-violet-400", textColor: "text-violet-400",
+      detail: "HGV hub → warehouse (~200 km)" },
+    { label: "Last-Mile", kg: last_mile_kg, color: "bg-cyan-400", textColor: "text-cyan-400",
+      detail: "Courier van to your door" },
+  ];
+  return (
+    <div className="mt-3 p-3 bg-slate-900/40 rounded-lg border border-slate-700/40">
+      <p className="text-slate-400 text-xs font-semibold mb-2 flex items-center gap-1.5">
+        <span>🚚</span> Delivery CO₂ Breakdown
+        <span className="ml-auto text-slate-300 font-mono">{total_transport_kg.toFixed(3)} kg total</span>
+      </p>
+      {/* Stacked bar */}
+      <div className="flex h-2.5 w-full rounded-full overflow-hidden gap-px mb-3">
+        {segments.map((s, i) => (
+          <div
+            key={i}
+            className={`${s.color} transition-all`}
+            style={{ width: `${(s.kg / total) * 100}%` }}
+            title={`${s.label}: ${s.kg} kg CO₂`}
+          />
+        ))}
+      </div>
+      {/* Rows */}
+      <div className="space-y-1.5">
+        {segments.map((s, i) => (
+          <div key={i} className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className={`w-2 h-2 rounded-full ${s.color} flex-shrink-0`} />
+              <span className="text-slate-400 text-xs truncate">{s.label}</span>
+              <span className="text-slate-600 text-xs hidden sm:inline">· {s.detail}</span>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className={`${s.textColor} text-xs font-mono font-semibold`}>{s.kg.toFixed(3)} kg</span>
+              <span className="text-slate-600 text-xs w-8 text-right">{((s.kg / total) * 100).toFixed(0)}%</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <p className="text-slate-700 text-xs mt-2 leading-relaxed">Source: {tb.source}</p>
+    </div>
+  );
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function LifecycleAssessment({ attr }) {
   const [open, setOpen] = React.useState(false);
@@ -274,6 +326,9 @@ export default function LifecycleAssessment({ attr }) {
                   </div>
                 );
               })}
+
+              {/* Transport sub-breakdown — uses backend-computed values if available */}
+              <TransportBreakdown tb={attr.transport_breakdown} />
 
               {/* Total + ML comparison */}
               <div className="mt-2 p-3 rounded-lg bg-slate-900/50 border border-slate-700/50">
