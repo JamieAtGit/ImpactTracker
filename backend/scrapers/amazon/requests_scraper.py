@@ -372,36 +372,11 @@ class RequestsScraper:
             if weight < 0.5:  # Protein powder should be at least 500g
                 print(f"⚠️ Protein powder weight seems low ({weight}kg), trying enhanced extraction...")
 
-                # Look for common protein powder weights in title/text
-                protein_weight_patterns = [
-                    r'(\d+(?:\.\d+)?)\s*kg\b',  # "1kg", "2.5kg"
-                    r'(\d+(?:\.\d+)?)\s*g\b',   # "900g", "1000g"
-                    r'(\d+(?:\.\d+)?)\s*lbs?\b', # "5lb", "2.2lbs"
-                ]
-
-                for pattern in protein_weight_patterns:
-                    matches = re.findall(pattern, title.lower())
-                    if matches:
-                        try:
-                            weight_val = float(matches[0])
-                            if pattern.endswith('g\\b'):  # Grams
-                                if weight_val >= 500:  # At least 500g
-                                    weight = weight_val / 1000
-                                    print(f"⚖️ Found better protein weight in title: {weight}kg")
-                                    break
-                            elif pattern.endswith('kg\\b'):  # Kilograms
-                                if 0.5 <= weight_val <= 5:  # Reasonable protein weight
-                                    weight = weight_val
-                                    print(f"⚖️ Found better protein weight in title: {weight}kg")
-                                    break
-                            elif pattern.endswith('lbs?\\b'):  # Pounds
-                                weight_kg = weight_val * 0.453592
-                                if 0.5 <= weight_kg <= 5:  # Reasonable protein weight
-                                    weight = weight_kg
-                                    print(f"⚖️ Found better protein weight in title: {weight}kg")
-                                    break
-                        except:
-                            continue
+                # Re-run extract_weight on just the title for better precision
+                title_weight = self.extract_weight(title)
+                if title_weight != 1.0 and 0.5 <= title_weight <= 10:
+                    weight = title_weight
+                    print(f"⚖️ Found better protein weight in title: {weight}kg")
         else:
             # First try spec table — explicit "Material: X" row is the most reliable source
             spec_material = self.extract_material_from_spec_table(soup)
@@ -647,69 +622,94 @@ class RequestsScraper:
         }
     
     def extract_weight(self, text: str) -> float:
-        """Extract weight from text with improved precision"""
+        """Extract weight from text and convert to kg.
+
+        Handles: kg, g, mg, lb/lbs/pounds, oz/ounces, stone/st,
+        compound 'X lb Y oz', and Amazon's unicode-separated tech tables.
+        """
         text_lower = text.lower()
 
-        # Priority patterns - look for specific weight fields first
+        # ── Compound "X lb Y oz" (e.g. "1 lb 4 oz", "2 lbs 3 oz") ──────────
+        compound = re.search(
+            r'(\d+(?:\.\d+)?)\s*(?:lb|lbs|pounds?)\s+(\d+(?:\.\d+)?)\s*(?:oz|ounces?)',
+            text_lower
+        )
+        if compound:
+            try:
+                lbs = float(compound.group(1))
+                oz  = float(compound.group(2))
+                return round(lbs * 0.453592 + oz * 0.0283495, 4)
+            except Exception:
+                pass
+
+        # ── Priority patterns (most specific first) ──────────────────────────
         # Amazon UK uses \u200e (left-to-right mark) as separators in tech tables,
-        # e.g. "Item Weight \u200e : \u200e 5.94 kg" — patterns must include these.
+        # e.g. "Item Weight \u200e : \u200e 5.94 kg"
+        _W = r'(?:item|package|net|gross|product)?\s*weight[\s\u200e\u200f]*:[\s\u200e\u200f]*'
         priority_patterns = [
-            # Amazon-style "Item Weight" / "Package Weight" with unicode separators
-            (r'(?:item|package|net|gross)?\s*weight[\s\u200e\u200f]*:[\s\u200e\u200f]*(\d+(?:\.\d+)?)\s*(kg|kilograms?)', 'kg'),
-            (r'(?:item|package|net|gross)?\s*weight[\s\u200e\u200f]*:[\s\u200e\u200f]*(\d+(?:\.\d+)?)\s*(g|grams?)', 'g'),
-            # Plain weight field (no unicode)
-            (r'weight[:\s]+(\d+(?:\.\d+)?)\s*(kg|kilograms?)', 'kg'),
-            (r'weight[:\s]+(\d+(?:\.\d+)?)\s*(g|grams?)', 'g'),
-            # Product dimensions trailing weight (e.g., "11 x 7 x 27 cm; 600 g")
-            (r';\s*(\d+(?:\.\d+)?)\s*(kg)\b', 'kg'),
-            (r';\s*(\d+(?:\.\d+)?)\s*(g)\b', 'g'),
-            # Units field patterns (e.g., "Units: 600.0 gram")
-            (r'units[:\s]+(\d+(?:\.\d+)?)\s*(g|gram)', 'g'),
-            # Standalone kg/g in title (lower priority — broad match)
-            (r'\b(\d+(?:\.\d+)?)\s*kg\b', 'kg'),
-            (r'\b(\d+(?:\.\d+)?)\s*g\b(?!ram)', 'g'),  # Avoid "program"
+            # Amazon-style "Item Weight : X <unit>" with unicode separators
+            (_W + r'(\d+(?:\.\d+)?)\s*(?:kg|kilograms?)',          'kg'),
+            (_W + r'(\d+(?:\.\d+)?)\s*(?:g|grams?)',               'g'),
+            (_W + r'(\d+(?:\.\d+)?)\s*(?:mg|milligrams?)',         'mg'),
+            (_W + r'(\d+(?:\.\d+)?)\s*(?:lb|lbs|pounds?)',         'lb'),
+            (_W + r'(\d+(?:\.\d+)?)\s*(?:oz|ounces?)',             'oz'),
+            (_W + r'(\d+(?:\.\d+)?)\s*(?:stone|st)\b',            'st'),
+            # Plain "weight: X <unit>"
+            (r'weight[:\s]+(\d+(?:\.\d+)?)\s*(?:kg|kilograms?)',   'kg'),
+            (r'weight[:\s]+(\d+(?:\.\d+)?)\s*(?:g|grams?)',        'g'),
+            (r'weight[:\s]+(\d+(?:\.\d+)?)\s*(?:mg|milligrams?)',  'mg'),
+            (r'weight[:\s]+(\d+(?:\.\d+)?)\s*(?:lb|lbs|pounds?)',  'lb'),
+            (r'weight[:\s]+(\d+(?:\.\d+)?)\s*(?:oz|ounces?)',      'oz'),
+            (r'weight[:\s]+(\d+(?:\.\d+)?)\s*(?:stone|st)\b',     'st'),
+            # Dimensions trailing weight (e.g. "11 x 7 x 27 cm; 600 g")
+            (r';\s*(\d+(?:\.\d+)?)\s*(?:kg)\b',                    'kg'),
+            (r';\s*(\d+(?:\.\d+)?)\s*(?:g)\b',                     'g'),
+            (r';\s*(\d+(?:\.\d+)?)\s*(?:lb|lbs)\b',               'lb'),
+            (r';\s*(\d+(?:\.\d+)?)\s*(?:oz)\b',                    'oz'),
+            # Units field (e.g. "Units: 600.0 gram")
+            (r'units[:\s]+(\d+(?:\.\d+)?)\s*(?:g|gram)',           'g'),
+            # Standalone values in title (broad — lowest priority)
+            (r'\b(\d+(?:\.\d+)?)\s*kg\b',                          'kg'),
+            (r'\b(\d+(?:\.\d+)?)\s*g\b(?!ram)',                    'g'),   # avoid "program"
+            (r'\b(\d+(?:\.\d+)?)\s*(?:lb|lbs|pounds?)\b',         'lb'),
+            (r'\b(\d+(?:\.\d+)?)\s*(?:oz|ounces?)\b',             'oz'),
         ]
-        
-        # Check each pattern in priority order
-        for pattern, unit_type in priority_patterns:
+
+        # Conversion factors → kg
+        _TO_KG = {
+            'kg': 1.0,
+            'g':  1e-3,
+            'mg': 1e-6,
+            'lb': 0.453592,
+            'oz': 0.0283495,
+            'st': 6.35029,
+        }
+        # Minimum plausible value per unit (filters obvious noise)
+        _MIN = {
+            'kg': 0.01,
+            'g':  10.0,
+            'mg': 100.0,
+            'lb': 0.05,
+            'oz': 0.5,
+            'st': 0.1,
+        }
+        # Maximum plausible product weight in kg (skip clear garbage)
+        _MAX_KG = 500.0
+
+        for pattern, unit in priority_patterns:
             matches = re.findall(pattern, text_lower)
-            if matches:
-                for match in matches:
-                    try:
-                        if isinstance(match, tuple):
-                            weight_val = float(match[0])
-                        else:
-                            weight_val = float(match)
-                        
-                        # Skip very small values that are likely errors
-                        if weight_val < 0.01 and unit_type == 'kg':
-                            continue
-                        if weight_val < 10 and unit_type == 'g':
-                            continue
-                            
-                        # Convert to kg
-                        if unit_type == 'kg':
-                            return weight_val
-                        elif unit_type == 'g':
-                            return weight_val / 1000
-                    except:
-                        continue
-        
-        # Pound patterns as fallback
-        lb_patterns = [
-            r'(\d+(?:\.\d+)?)\s*(?:lb|lbs|pounds?)',
-            r'weight[:\s]+(\d+(?:\.\d+)?)\s*(?:lb|lbs|pounds?)'
-        ]
-        
-        for pattern in lb_patterns:
-            matches = re.findall(pattern, text_lower)
-            if matches:
+            for match in matches:
                 try:
-                    weight = float(matches[0])
-                    return weight * 0.453592  # Convert lbs to kg
-                except:
+                    val = float(match[0] if isinstance(match, tuple) else match)
+                    if val < _MIN.get(unit, 0):
+                        continue
+                    kg = val * _TO_KG[unit]
+                    if kg > _MAX_KG:
+                        continue
+                    return round(kg, 4)
+                except Exception:
                     continue
-        
+
         return 1.0  # Default weight
     
     def detect_material(self, title: str, text: str) -> str:
