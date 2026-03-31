@@ -852,13 +852,7 @@ def create_app(config_name='production'):
                 return jsonify({"error": "Amazon is blocking requests from this server. The SCRAPERAPI_KEY environment variable may be missing or expired."}), 503
                 
             print(f"✅ Scraper success: {product.get('title', '')[:50]}...")
-            
-            # Debug what the scraper returned
-            print("🔍 DEBUG: Scraper returned:")
-            for key, value in product.items():
-                print(f"  {key}: {value}")
-            print("🔍 END DEBUG")
-            
+
             # Material detection priority:
             # 1. Title-based guess (smart_guess_material on title) — most reliable for naming
             #    the primary product material (e.g. "Velvet Footstool" → Velvet)

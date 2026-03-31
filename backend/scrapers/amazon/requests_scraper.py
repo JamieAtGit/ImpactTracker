@@ -1730,36 +1730,7 @@ class RequestsScraper:
 
 def scrape_with_requests(url: str) -> Optional[Dict]:
     """Enhanced scraping with anti-bot strategies"""
-    
-    # Try enhanced scraper first
-    try:
-        import sys
-        import os
-        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-        sys.path.insert(0, project_root)
-        
-        from enhanced_scraper_fix import EnhancedAmazonScraper
-        
-        scraper = EnhancedAmazonScraper()
-        result = scraper.scrape_product_enhanced(url)
-        
-        if result and result.get('title', 'Unknown Product') != 'Unknown Product':
-            print(f"✅ Enhanced scraper success: {result.get('title', '')[:50]}...")
-            # Convert to expected format
-            return {
-                'title': result.get('title', 'Unknown Product'),
-                'origin': result.get('origin', 'Unknown'), 
-                'weight_kg': result.get('weight_kg', 1.0),
-                'brand': result.get('brand', 'Unknown'),
-                'material_type': result.get('material_type', 'Unknown'),
-                'asin': result.get('asin', 'Unknown'),
-                'recyclability': 'Medium'      # Default recyclability
-            }
-    except Exception as e:
-        print(f"🔧 Enhanced scraper failed, using fallback: {e}")
-    
-    # Fallback to original method
-    print("🔄 Falling back to original RequestsScraper...")
+
     scraper = RequestsScraper()
     return scraper.scrape_product(url)
 
