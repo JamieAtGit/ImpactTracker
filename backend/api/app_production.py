@@ -702,15 +702,17 @@ def create_app(config_name='production'):
                 cached_distance = float(cached_calc.transport_distance or 0.0)
                 cached_weight   = float(cached_product.weight) if cached_product.weight else estimate_default_weight(cached_product.title, cached_product.category)
                 # Sanity-check: if stored weight >150 kg it was likely saved in
-                # grams by an older scraper — auto-correct, but only for
-                # categories where a >150 kg consumer product is implausible.
-                _HEAVY_CATEGORIES = {
-                    'furniture', 'appliance', 'appliances', 'garden', 'outdoor',
-                    'industrial', 'sports equipment', 'gym', 'fitness', 'tools',
-                    'power tools', 'home improvement', 'plumbing', 'heating',
+                # grams by an older scraper — auto-correct.
+                # ScrapedProduct has no category column, so infer from the title.
+                _HEAVY_TITLE_WORDS = {
+                    'sofa', 'wardrobe', 'cabinet', 'fridge', 'freezer', 'washer',
+                    'dryer', 'dishwasher', 'oven', 'cooker', 'barbecue', 'bbq',
+                    'treadmill', 'rowing machine', 'elliptical', 'weight bench',
+                    'squat rack', 'barbell', 'dumbbell rack', 'weight rack',
+                    'lawnmower', 'generator', 'compressor', 'workbench',
                 }
-                _cached_cat_lower = (cached_product.category or '').lower()
-                _cached_legitimately_heavy = any(hc in _cached_cat_lower for hc in _HEAVY_CATEGORIES)
+                _cached_title_lower = (cached_product.title or '').lower()
+                _cached_legitimately_heavy = any(w in _cached_title_lower for w in _HEAVY_TITLE_WORDS)
                 if cached_weight > 150 and not _cached_legitimately_heavy:
                     cached_weight /= 1000
                 cached_raw_wt   = round(cached_weight / 1.05, 3)

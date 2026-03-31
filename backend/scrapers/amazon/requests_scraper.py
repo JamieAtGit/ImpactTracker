@@ -1516,12 +1516,21 @@ class RequestsScraper:
             n = raw.strip().strip('‎').strip()
             n = _QUAL_PREFIX.sub('', n).strip()
             n = _QUAL_SUFFIX.sub('', n).strip()
+            # Strip parenthetical abbreviation suffixes like "(PP)", "(PVC)", "(PP-R)".
+            # e.g. "Polypropylene (PP)" → "Polypropylene", "Polyvinyl Chloride (PVC)" → handled by _ABBREV
+            n_no_paren = re.sub(r'\s*\([^)]{1,10}\)\s*$', '', n).strip()
             n_lower = n.lower()
+            n_no_paren_lower = n_no_paren.lower()
             if n_lower in _BRAND_MATERIALS:
                 return _BRAND_MATERIALS[n_lower]
             if n_lower in _ABBREV:
                 return _ABBREV[n_lower]
-            return n
+            # Try the version without the parenthetical suffix
+            if n_no_paren_lower in _BRAND_MATERIALS:
+                return _BRAND_MATERIALS[n_no_paren_lower]
+            if n_no_paren_lower in _ABBREV:
+                return _ABBREV[n_no_paren_lower]
+            return n_no_paren if n_no_paren else n
 
         # ── Percentage composition parser ───────────────────────────────────
         # Handles "95% Cotton, 5% Elastane" and "Cotton 95%, Elastane 5%"
