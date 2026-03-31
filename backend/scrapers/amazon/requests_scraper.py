@@ -1549,7 +1549,6 @@ class RequestsScraper:
           - "Made in Germany", "Made in USA", "Italian Made" etc.
         Returns a normalised country name or 'Unknown'.
         """
-        from backend.services.prediction_consistency import normalize_country_name
         t = title.lower()
 
         # Pattern 1: "<country> Made" or "<country> Manufactured"
