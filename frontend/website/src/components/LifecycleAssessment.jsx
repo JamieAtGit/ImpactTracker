@@ -2,7 +2,7 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // ─── Published LCA reference data ────────────────────────────────────────────
-// Sources: ecoinvent v3, PE International, CES EduPack, IPCC AR6
+// Sources: ecoinvent v3.9, PE International, CES EduPack 2023, IPCC AR6
 
 const MATERIAL_CO2_KG_PER_KG = {
   // Metals
@@ -60,92 +60,220 @@ const GRID_INTENSITY_KG_CO2_PER_KWH = {
 
 const TRANSPORT_FACTOR = { air: 0.00234, truck: 0.000096, ship: 0.000016 };
 
-// ─── Stage colours ────────────────────────────────────────────────────────────
-const STAGE_COLORS = [
-  { bar: "bg-amber-400",   text: "text-amber-400",   hex: "#fbbf24" },
-  { bar: "bg-orange-500",  text: "text-orange-400",  hex: "#f97316" },
-  { bar: "bg-blue-400",    text: "text-blue-400",    hex: "#60a5fa" },
-  { bar: "bg-violet-400",  text: "text-violet-400",  hex: "#a78bfa" },
-  { bar: "bg-cyan-400",    text: "text-cyan-400",    hex: "#22d3ee" },
-  { bar: "bg-emerald-400", text: "text-emerald-400", hex: "#34d399" },
+// ─── Use-phase data ───────────────────────────────────────────────────────────
+// Source: IEA Tracking Clean Energy Progress 2023; ENERGY STAR 2023;
+//         Carbon Trust "Introducing the Carbon Footprint of Laptops" 2021
+// annual_kwh: typical annual electricity consumption (kWh/year)
+// lifetime_yr: expected product lifetime (years)
+const USE_PHASE_DEVICES = [
+  { keywords: ["smart tv", "television", " tv "],       label: "Television",        annual_kwh: 150, lifetime_yr: 7  },
+  { keywords: ["laptop", "notebook", "macbook", "chromebook"], label: "Laptop",     annual_kwh: 45,  lifetime_yr: 3.5 },
+  { keywords: ["desktop", "pc tower", "imac"],          label: "Desktop PC",        annual_kwh: 200, lifetime_yr: 5  },
+  { keywords: ["tablet", "ipad", "kindle"],             label: "Tablet / e-Reader", annual_kwh: 12,  lifetime_yr: 3  },
+  { keywords: ["monitor", "display", "screen"],         label: "Monitor",           annual_kwh: 50,  lifetime_yr: 6  },
+  { keywords: ["gaming console", "playstation", "xbox", "nintendo switch"], label: "Gaming Console", annual_kwh: 100, lifetime_yr: 6 },
+  { keywords: ["router", "wifi", "mesh network"],       label: "Router (always-on)",annual_kwh: 80,  lifetime_yr: 4  },
+  { keywords: ["printer", "scanner"],                   label: "Printer",           annual_kwh: 20,  lifetime_yr: 5  },
+  { keywords: ["smart speaker", "echo", "google home", "homepod"], label: "Smart Speaker", annual_kwh: 15, lifetime_yr: 4 },
+  { keywords: ["speaker", "soundbar", "subwoofer"],     label: "Speaker",           annual_kwh: 20,  lifetime_yr: 5  },
+  { keywords: ["smartphone", "iphone", "android phone", "mobile phone"], label: "Smartphone", annual_kwh: 4, lifetime_yr: 2.5 },
+  { keywords: ["phone", "pixel"],                       label: "Smartphone",        annual_kwh: 4,   lifetime_yr: 2.5 },
+  { keywords: ["headphone", "earphone", "earbud", "airpod"], label: "Headphones",  annual_kwh: 3,   lifetime_yr: 3  },
+  { keywords: ["smartwatch", "fitness tracker", "apple watch", "fitbit"], label: "Smartwatch", annual_kwh: 4, lifetime_yr: 2 },
+  { keywords: ["camera", "dslr", "mirrorless"],         label: "Camera",            annual_kwh: 8,   lifetime_yr: 5  },
+  { keywords: ["keyboard"],                             label: "Keyboard",          annual_kwh: 2,   lifetime_yr: 5  },
+  { keywords: ["graphics card", "gpu", "ssd", "hard drive"], label: "PC Component", annual_kwh: 50, lifetime_yr: 5 },
+  { keywords: ["charger", "power bank"],                label: "Charger",           annual_kwh: 5,   lifetime_yr: 3  },
 ];
+const USE_PHASE_DEFAULT_ELECTRONICS = { label: "Electronics (general)", annual_kwh: 30, lifetime_yr: 3 };
+const UK_GRID = 0.233; // kg CO₂/kWh — DESNZ/DEFRA 2023
+
+function detectDeviceType(title) {
+  const t = (title || "").toLowerCase();
+  for (const device of USE_PHASE_DEVICES) {
+    if (device.keywords.some(kw => t.includes(kw))) return device;
+  }
+  return null;
+}
+
+// ─── Stage colours (8 slots for all possible stages) ─────────────────────────
+const STAGE_COLORS = [
+  { bar: "bg-amber-400",   text: "text-amber-400",   hex: "#fbbf24" }, // raw material
+  { bar: "bg-orange-500",  text: "text-orange-400",  hex: "#f97316" }, // manufacturing
+  { bar: "bg-yellow-600",  text: "text-yellow-500",  hex: "#ca8a04" }, // packaging
+  { bar: "bg-blue-400",    text: "text-blue-400",    hex: "#60a5fa" }, // intl shipping
+  { bar: "bg-violet-400",  text: "text-violet-400",  hex: "#a78bfa" }, // uk distribution
+  { bar: "bg-cyan-400",    text: "text-cyan-400",    hex: "#22d3ee" }, // last mile
+  { bar: "bg-rose-400",    text: "text-rose-400",    hex: "#fb7185" }, // use phase
+  { bar: "bg-emerald-400", text: "text-emerald-400", hex: "#34d399" }, // end-of-life
+];
+
+// ─── Multi-material weighted intensity ───────────────────────────────────────
+function weightedMaterialIntensity(materialsAttr, fallbackMaterial) {
+  const primary = materialsAttr?.primary_material;
+  const primaryPct = parseFloat(materialsAttr?.primary_percentage) || 0;
+  const secondaries = materialsAttr?.secondary_materials || [];
+
+  // Need at least a primary with a percentage, plus at least one secondary, to do weighting
+  const hasComposition = primary && primaryPct > 0 && secondaries.length > 0;
+
+  if (!hasComposition) {
+    const mat = (fallbackMaterial || "plastics").toLowerCase();
+    return {
+      matIntensity: MATERIAL_CO2_KG_PER_KG[mat] ?? 3.0,
+      mfgEnergy: MFG_ENERGY_KWH_PER_KG[mat] ?? 10,
+      compositionLabel: null,
+    };
+  }
+
+  // Build composition list: [{name, pct}]
+  const allComponents = [
+    { name: primary.toLowerCase(), pct: primaryPct },
+    ...secondaries
+      .filter(s => s.name && parseFloat(s.percentage) > 0)
+      .map(s => ({ name: s.name.toLowerCase(), pct: parseFloat(s.percentage) })),
+  ];
+
+  // Normalise to 100% in case percentages don't sum exactly
+  const totalPct = allComponents.reduce((s, c) => s + c.pct, 0) || 100;
+
+  let matIntensity = 0;
+  let mfgEnergy = 0;
+  for (const c of allComponents) {
+    const share = c.pct / totalPct;
+    matIntensity += (MATERIAL_CO2_KG_PER_KG[c.name] ?? 3.0) * share;
+    mfgEnergy    += (MFG_ENERGY_KWH_PER_KG[c.name]    ?? 10)  * share;
+  }
+
+  const compositionLabel = allComponents
+    .map(c => `${c.name.charAt(0).toUpperCase() + c.name.slice(1)} ${Math.round((c.pct / totalPct) * 100)}%`)
+    .join(" · ");
+
+  return { matIntensity, mfgEnergy, compositionLabel };
+}
+
+// ─── Packaging CO₂ ────────────────────────────────────────────────────────────
+// Based on McKinnon & Edwards (2014) e-commerce packaging study.
+// Packaging material mix: ~70% corrugated cardboard (0.92 kg CO₂/kg),
+// ~30% protective plastic/foam (2.53 kg CO₂/kg) → blended factor ≈ 1.40 kg CO₂/kg.
+// Packaging weight scales with product weight; minimum ~80 g for small items.
+function calcPackagingCo2(weight) {
+  const packagingWeight = Math.max(0.08, Math.min(0.5, weight * 0.12));
+  return +((packagingWeight * 1.40).toFixed(3));
+}
 
 // ─── LCA calculation ──────────────────────────────────────────────────────────
 function calcStages(attr) {
-  const weight     = parseFloat(attr.raw_product_weight_kg || attr.weight_kg || 0.5);
-  const material   = (attr.material_type || "plastics").toLowerCase();
-  const country    = (attr.country_of_origin || attr.origin || "china").toLowerCase();
-  const mode       = (attr.transport_mode || "ship").toLowerCase();
-  const originKm   = parseFloat(attr.distance_from_origin_km || 8000);
-  const ukHubKm    = parseFloat(attr.distance_from_uk_hub_km || 50);
+  const weight       = parseFloat(attr.raw_product_weight_kg || attr.weight_kg || 0.5);
+  const material     = (attr.material_type || "plastics").toLowerCase();
+  const country      = (attr.country_of_origin || attr.origin || "china").toLowerCase();
+  const mode         = (attr.transport_mode || "ship").toLowerCase();
+  const originKm     = parseFloat(attr.distance_from_origin_km || 8000);
   const recyclability = (attr.recyclability || "medium").toLowerCase();
+  const category     = (attr.category || "").toLowerCase();
+  const title        = attr.title || "";
 
-  const matIntensity = MATERIAL_CO2_KG_PER_KG[material] ?? 3.0;
-  const mfgEnergy    = MFG_ENERGY_KWH_PER_KG[material] ?? 10;
+  const { matIntensity, mfgEnergy, compositionLabel } =
+    weightedMaterialIntensity(attr.materials, material);
+
   const gridIntensity = GRID_INTENSITY_KG_CO2_PER_KWH[country] ?? 0.5;
-  const transFactor  = TRANSPORT_FACTOR[mode] ?? TRANSPORT_FACTOR.ship;
+  const transFactor   = TRANSPORT_FACTOR[mode] ?? TRANSPORT_FACTOR.ship;
+  const countryLabel  = attr.country_of_origin || attr.origin || "Unknown";
 
-  // All transport stages multiply by weight (kg) × distance (km) × emission factor (kg CO₂/kg/km)
-  // DEFRA 2023 freight factors: air 2.34, road 0.096, sea 0.016 (all ÷1000 for per-kg)
+  // ── Stage values ────────────────────────────────────────────────────────────
   const rawMaterial   = +(weight * matIntensity).toFixed(3);
   const manufacturing = +(weight * mfgEnergy * gridIntensity).toFixed(3);
+  const packaging     = calcPackagingCo2(weight);
   const intlShipping  = +(weight * originKm * transFactor).toFixed(3);
-  // UK distribution: weight-scaled warehousing + domestic HGV leg (~200 km avg)
-  const ukDist        = +(weight * 0.096 * 200 / 1000 + 0.03).toFixed(3);
-  // Last-mile: van (0.21 kg CO₂/km) doing ~40 stops over ~60 km route → per parcel + weight premium
+  // UK distribution: HGV domestic leg ~200 km + fixed warehousing overhead
+  const ukDist        = +(weight * 0.000096 * 200 + 0.03).toFixed(3);
+  // Last-mile: shared-van route (~60 km, 40 stops) + weight surcharge
   const lastMile      = +(60 * 0.21 / 40 + weight * 0.005).toFixed(3);
-  const eol = recyclability === "high"  ? +(weight * 0.02).toFixed(3)
+  const eol = recyclability === "high"   ? +(weight * 0.02).toFixed(3)
             : recyclability === "medium" ? +(weight * 0.08).toFixed(3)
             :                              +(weight * 0.18).toFixed(3);
 
-  const countryLabel = attr.country_of_origin || attr.origin || "Unknown";
+  // ── Raw material detail ─────────────────────────────────────────────────────
+  const rawDetail = compositionLabel
+    ? `Weighted mix: ${compositionLabel} · ${weight.toFixed(2)} kg`
+    : `${material.charAt(0).toUpperCase() + material.slice(1)} · ${weight.toFixed(2)} kg`;
 
-  return [
+  // ── Use phase (Electronics only) ────────────────────────────────────────────
+  let usePhaseStage = null;
+  const isElectronics = category.includes("electronic") || category.includes("tech") ||
+    category.includes("computer") || category.includes("camera") ||
+    ["electronics", "computers", "cameras", "phones"].some(kw => category.includes(kw));
+
+  if (isElectronics) {
+    const device = detectDeviceType(title) || USE_PHASE_DEFAULT_ELECTRONICS;
+    const totalKwh = device.annual_kwh * device.lifetime_yr;
+    const useCo2   = +(totalKwh * UK_GRID).toFixed(3);
+    usePhaseStage = {
+      name: "Use Phase (Electricity)",
+      icon: "⚡",
+      co2: useCo2,
+      detail: `${device.label} · ${device.annual_kwh} kWh/yr × ${device.lifetime_yr} yr @ UK grid (${Math.round(UK_GRID * 1000)} g CO₂/kWh)`,
+      source: "IEA Tracking Clean Energy Progress 2023; ENERGY STAR 2023",
+    };
+  }
+
+  // ── Assemble stage list ─────────────────────────────────────────────────────
+  const stages = [
     {
       name: "Raw Material Extraction",
       icon: "⛏️",
       co2: rawMaterial,
-      detail: `${material.charAt(0).toUpperCase() + material.slice(1)} · ${weight.toFixed(2)} kg product`,
-      source: "ecoinvent v3 / CES EduPack",
+      detail: rawDetail,
+      source: "ecoinvent v3.9 / CES EduPack 2023",
     },
     {
       name: "Manufacturing & Processing",
       icon: "🏭",
       co2: manufacturing,
       detail: `Production in ${countryLabel} (grid: ${(gridIntensity * 1000).toFixed(0)} g CO₂/kWh)`,
-      source: "IEA 2023 grid intensity data",
+      source: "IEA World Energy Outlook 2023 — country grid intensity",
+    },
+    {
+      name: "Packaging",
+      icon: "📦",
+      co2: packaging,
+      detail: `~${Math.max(0.08, Math.min(0.5, weight * 0.12)).toFixed(2)} kg packaging (cardboard + protective wrap)`,
+      source: "McKinnon & Edwards (2014); WRAP Packaging CO₂ Data 2023",
     },
     {
       name: "International Shipping",
       icon: mode === "air" ? "✈️" : mode === "truck" ? "🚚" : "🚢",
       co2: intlShipping,
       detail: `${mode.charAt(0).toUpperCase() + mode.slice(1)} freight · ${originKm.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")} km`,
-      source: "DEFRA 2023 transport factors",
+      source: "DEFRA GHG Conversion Factors 2023 — freight transport",
     },
     {
       name: "UK Warehousing & Distribution",
       icon: "🏪",
       co2: ukDist,
-      detail: "Storage, sorting & domestic freight",
-      source: "Amazon UK logistics estimate",
+      detail: "HGV hub-to-warehouse domestic leg (~200 km) + storage",
+      source: "McKinnon (2016) Logistics & Sustainability; BEIS 2023",
     },
     {
       name: "Last-Mile Delivery",
       icon: "🚐",
       co2: lastMile,
-      detail: "Van delivery to your door",
-      source: "BEIS delivery emissions estimate",
+      detail: "Shared courier van to your door (~60 km route, 40 stops)",
+      source: "BEIS/DEFRA GHG Conversion Factors 2023 — vans",
     },
+    ...(usePhaseStage ? [usePhaseStage] : []),
     {
       name: "End-of-Life Disposal",
       icon: "♻️",
       co2: eol,
-      detail: recyclability === "high" ? "High recyclability — mostly diverted from landfill"
+      detail: recyclability === "high"   ? "High recyclability — mostly diverted from landfill"
             : recyclability === "medium" ? "Partial recycling — some landfill"
-            : "Low recyclability — primarily landfill",
-      source: "WRAP UK waste data",
+            :                              "Low recyclability — primarily landfill",
+      source: "WRAP UK Waste and Resources Action Programme 2023",
     },
   ];
+
+  return stages;
 }
 
 // ─── Transport sub-breakdown ──────────────────────────────────────────────────
@@ -206,9 +334,10 @@ export default function LifecycleAssessment({ attr }) {
 
   if (!attr) return null;
 
-  const stages  = calcStages(attr);
+  const stages   = calcStages(attr);
   const lcaTotal = stages.reduce((s, st) => s + st.co2, 0);
   const mlTotal  = parseFloat(attr.carbon_kg || 0);
+  const hasUsePhase = stages.some(s => s.name.startsWith("Use Phase"));
 
   return (
     <motion.div
@@ -229,7 +358,8 @@ export default function LifecycleAssessment({ attr }) {
               Lifecycle Assessment (LCA)
             </p>
             <p className="text-slate-500 text-xs mt-0.5">
-              6-stage end-to-end carbon breakdown
+              {stages.length}-stage end-to-end carbon breakdown
+              {hasUsePhase && <span className="text-rose-400 ml-1">· incl. use phase</span>}
             </p>
           </div>
         </div>
@@ -240,7 +370,7 @@ export default function LifecycleAssessment({ attr }) {
             {stages.map((st, i) => (
               <div
                 key={i}
-                className={`${STAGE_COLORS[i].bar} transition-all`}
+                className={`${STAGE_COLORS[i % STAGE_COLORS.length].bar} transition-all`}
                 style={{ width: `${(st.co2 / lcaTotal) * 100}%` }}
               />
             ))}
@@ -273,7 +403,7 @@ export default function LifecycleAssessment({ attr }) {
                 {stages.map((st, i) => (
                   <div
                     key={i}
-                    className={`${STAGE_COLORS[i].bar} transition-all`}
+                    className={`${STAGE_COLORS[i % STAGE_COLORS.length].bar} transition-all`}
                     style={{ width: `${(st.co2 / lcaTotal) * 100}%` }}
                     title={`${st.name}: ${st.co2} kg CO₂`}
                   />
@@ -284,8 +414,8 @@ export default function LifecycleAssessment({ attr }) {
               <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3">
                 {stages.map((st, i) => (
                   <div key={i} className="flex items-center gap-1.5">
-                    <div className={`w-2 h-2 rounded-full ${STAGE_COLORS[i].bar} flex-shrink-0`} />
-                    <span className="text-slate-500 text-xs">{st.name.split(" ")[0]} {st.name.split(" ")[1] || ""}</span>
+                    <div className={`w-2 h-2 rounded-full ${STAGE_COLORS[i % STAGE_COLORS.length].bar} flex-shrink-0`} />
+                    <span className="text-slate-500 text-xs">{st.icon} {st.name.split(" ").slice(0, 2).join(" ")}</span>
                   </div>
                 ))}
               </div>
@@ -293,17 +423,21 @@ export default function LifecycleAssessment({ attr }) {
               {/* Stage rows */}
               {stages.map((st, i) => {
                 const pct = lcaTotal > 0 ? (st.co2 / lcaTotal) * 100 : 0;
+                const color = STAGE_COLORS[i % STAGE_COLORS.length];
                 return (
-                  <div key={i} className="bg-slate-800/50 rounded-lg p-3">
+                  <div key={i} className={`bg-slate-800/50 rounded-lg p-3 ${st.name.startsWith("Use Phase") ? "ring-1 ring-rose-500/30" : ""}`}>
                     <div className="flex items-center justify-between mb-2 gap-2">
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="text-base flex-shrink-0">{st.icon}</span>
                         <span className="text-slate-200 text-sm font-medium truncate">
                           {st.name}
                         </span>
+                        {st.name.startsWith("Use Phase") && (
+                          <span className="text-rose-400 text-xs bg-rose-500/10 px-1.5 py-0.5 rounded flex-shrink-0">ISO 14040</span>
+                        )}
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className={`${STAGE_COLORS[i].text} font-mono text-sm font-bold`}>
+                        <span className={`${color.text} font-mono text-sm font-bold`}>
                           {st.co2.toFixed(3)} kg
                         </span>
                         <span className="text-slate-600 text-xs">
@@ -315,20 +449,35 @@ export default function LifecycleAssessment({ attr }) {
                     {/* Progress bar */}
                     <div className="h-1.5 w-full bg-slate-700 rounded-full overflow-hidden mb-2">
                       <motion.div
-                        className={`h-full ${STAGE_COLORS[i].bar} rounded-full`}
+                        className={`h-full ${color.bar} rounded-full`}
                         initial={{ width: 0 }}
                         animate={{ width: `${pct}%` }}
-                        transition={{ duration: 0.6, delay: i * 0.08 }}
+                        transition={{ duration: 0.6, delay: i * 0.07 }}
                       />
                     </div>
 
                     <p className="text-slate-500 text-xs">{st.detail}</p>
+                    <p className="text-slate-700 text-xs mt-1">Source: {st.source}</p>
                   </div>
                 );
               })}
 
-              {/* Transport sub-breakdown — uses backend-computed values if available */}
+              {/* Transport sub-breakdown */}
               <TransportBreakdown tb={attr.transport_breakdown} />
+
+              {/* Use-phase callout (shown when present) */}
+              {hasUsePhase && (
+                <div className="p-3 bg-rose-500/5 rounded-lg border border-rose-500/20">
+                  <p className="text-rose-300 text-xs font-semibold mb-1">⚡ Why use phase matters for electronics</p>
+                  <p className="text-slate-500 text-xs leading-relaxed">
+                    For electronic devices, cumulative electricity consumption during the product's
+                    lifetime is often the <span className="text-slate-300">largest single lifecycle stage</span> —
+                    sometimes exceeding manufacturing CO₂ by 2–5×. This stage is required under
+                    ISO 14040 cradle-to-grave LCA but is frequently omitted in simplified analyses.
+                    Values use the UK grid intensity of {Math.round(UK_GRID * 1000)} g CO₂/kWh (DESNZ/DEFRA 2023).
+                  </p>
+                </div>
+              )}
 
               {/* Total + ML comparison */}
               <div className="mt-2 p-3 rounded-lg bg-slate-900/50 border border-slate-700/50">
@@ -340,13 +489,16 @@ export default function LifecycleAssessment({ attr }) {
                 </div>
                 {mlTotal > 0 && (
                   <div className="flex justify-between items-center mt-1.5">
-                    <span className="text-slate-500 text-xs">Our ML model total</span>
+                    <span className="text-slate-500 text-xs">
+                      Our ML model total
+                      {hasUsePhase && <span className="text-slate-600"> (excl. use phase)</span>}
+                    </span>
                     <span className="text-cyan-400 font-mono text-xs">
                       {mlTotal.toFixed(3)} kg CO₂
                     </span>
                   </div>
                 )}
-                {mlTotal > 0 && (
+                {mlTotal > 0 && !hasUsePhase && (
                   <div className="mt-2 text-xs text-slate-600 leading-relaxed">
                     {Math.abs(lcaTotal - mlTotal) / mlTotal < 0.25
                       ? "✅ LCA estimate is consistent with our ML model output."
@@ -355,10 +507,16 @@ export default function LifecycleAssessment({ attr }) {
                       : "ℹ️ LCA estimate is lower — ML model may be accounting for additional factors."}
                   </div>
                 )}
+                {mlTotal > 0 && hasUsePhase && (
+                  <div className="mt-2 text-xs text-slate-600 leading-relaxed">
+                    ℹ️ The ML model estimates cradle-to-delivery CO₂. The LCA total above
+                    includes the use phase, so direct comparison is not applicable.
+                  </div>
+                )}
               </div>
 
-              {/* ML vs LCA variance explanation */}
-              {mlTotal > 0 && Math.abs(lcaTotal - mlTotal) / mlTotal > 0.15 && (
+              {/* ML vs LCA variance explanation (non-electronics only) */}
+              {mlTotal > 0 && !hasUsePhase && Math.abs(lcaTotal - mlTotal) / mlTotal > 0.15 && (
                 <div className="p-3 bg-slate-800/40 rounded-lg border border-slate-600/30">
                   <p className="text-slate-300 text-xs font-semibold mb-1.5">
                     💡 Why do the LCA and ML estimates differ?
@@ -380,10 +538,11 @@ export default function LifecycleAssessment({ attr }) {
               <div className="flex gap-2 p-3 bg-slate-800/30 rounded-lg border border-slate-700/30">
                 <span className="text-slate-500 text-xs flex-shrink-0">📚</span>
                 <p className="text-slate-600 text-xs leading-relaxed">
-                  Stage estimates use published LCA reference data (ecoinvent v3, DEFRA 2023, IEA 2023).
-                  Transport emissions scale with product weight × distance × mode emission factor.
-                  Actual values vary by manufacturer, product design, and logistics route.
-                  This breakdown is indicative and intended for comparison, not certification.
+                  Stage estimates use published LCA reference data (ecoinvent v3.9, DEFRA 2023, IEA 2023,
+                  WRAP 2023). Multi-material products use composition-weighted emission factors where
+                  material breakdown data is available. Transport emissions scale with product weight ×
+                  distance × mode emission factor. Actual values vary by manufacturer, product design,
+                  and logistics route. This breakdown is indicative and intended for comparison, not certification.
                 </p>
               </div>
             </div>
