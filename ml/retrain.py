@@ -23,7 +23,7 @@ Output:
   ml/evaluation_results.json      (updated evaluation metrics)
 """
 
-import os, json, warnings
+import os, sys, json, warnings, subprocess
 import numpy as np
 import pandas as pd
 import joblib
@@ -415,3 +415,12 @@ print(f"   McNemar p:            {mcnemar_p:.5f}")
 print(f"   Model saved:          {MODEL_OUT}")
 print(f"   Evaluation saved:     {EVAL_OUT}")
 print("=" * 60)
+
+# ── Post-hoc calibration ───────────────────────────────────────────────────────
+# Re-run calibrate_model.py so calibrated_model.pkl stays in sync with the
+# freshly trained xgb_model.json.  Without this step the production app would
+# serve stale probability estimates after every retrain.
+print("\n  Running post-hoc isotonic calibration…")
+calibrate_script = os.path.join(BASE, "calibrate_model.py")
+result = subprocess.run([sys.executable, calibrate_script], check=True)
+print("  ✅ calibrated_model.pkl updated")

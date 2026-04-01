@@ -904,7 +904,7 @@ class RequestsScraper:
             ('Clothing',        ['t-shirt', 'shirt', 'hoodie', 'jacket', 'coat', 'dress',
                                   'jeans', 'trousers', 'socks', 'underwear', 'leggings',
                                   'shorts', 'boots', 'shoes', 'trainers', 'sneakers',
-                                  'sandals', 'hat', 'cap', 'scarf', 'gloves', 'swimwear',
+                                  'sandals', 'hat', 'baseball cap', 'scarf', 'gloves', 'swimwear',
                                   'pyjamas', 'lingerie', 'bra', 'sportswear']),
             ('Home & Kitchen',  ['mug', 'cup', 'plate', 'bowl', 'pan', 'pot', 'knife',
                                   'cutting board', 'kettle', 'toaster', 'blender', 'coffee maker',
@@ -932,8 +932,9 @@ class RequestsScraper:
             ('Food & Drink',    ['coffee beans', 'tea bags', 'chocolate', 'protein bar',
                                   'olive oil', 'pasta', 'cereal', 'biscuit', 'energy drink']),
         ]
+        import re as _re
         for category, keywords in _CATEGORIES:
-            if any(kw in t for kw in keywords):
+            if any(_re.search(r'\b' + _re.escape(kw), t) for kw in keywords):
                 return category
         return 'Other'
 

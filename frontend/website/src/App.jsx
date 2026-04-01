@@ -13,6 +13,7 @@ import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import EnterprisePage from "./pages/EnterprisePage";
 import HistoryPage from "./pages/HistoryPage";
+import NotFoundPage from "./pages/NotFoundPage";
 import CarbonBasket from "./components/CarbonBasket";
 import ErrorBoundary from "./components/ErrorBoundary";
 
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/enterprise" element={<EnterprisePage />} />
           <Route path="/history" element={<HistoryPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
         <CarbonBasket />
       </Router>

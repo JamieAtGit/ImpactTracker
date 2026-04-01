@@ -78,6 +78,7 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
   const ruleScore       = attr.eco_score_rule_based || "N/A";
   const methodAgreement = attr.method_agreement || "No";
   const co2UncertaintyPct = attr.co2_uncertainty_pct ?? null;
+  const dataQuality = attr.data_quality || null;
 
   const carbonKg    = parseFloat(attr.carbon_kg || 0);
   const _treesExact = carbonKg / 21;
@@ -322,6 +323,17 @@ export default function ProductImpactCard({ result, showML, toggleShowML }) {
                   )}
                   {attr.materials?.environmental_impact_score && (
                     <Row label="Material impact score" value={`${attr.materials.environmental_impact_score} kg CO₂/kg`} />
+                  )}
+                  {dataQuality && (
+                    <div className="flex justify-between items-center py-2.5 border-b border-slate-700/40 last:border-0">
+                      <span className="text-slate-400 text-sm">Overall data quality</span>
+                      <ModernBadge
+                        variant={dataQuality === "high" ? "success" : dataQuality === "medium" ? "warning" : "error"}
+                        size="sm"
+                      >
+                        {dataQuality.charAt(0).toUpperCase() + dataQuality.slice(1)}
+                      </ModernBadge>
+                    </div>
                   )}
                 </div>
               </div>

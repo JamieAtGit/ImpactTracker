@@ -975,6 +975,43 @@ export default function LearnPage() {
             </ModernSection>
             )}
 
+            {/* Conformal Prediction */}
+            {activeTab === 'methodology' && (
+            <ModernSection title="Uncertainty Quantification — Conformal Prediction" icon delay={0.72}>
+              <ModernCard solid className="p-8">
+                <div className="space-y-5 text-sm text-slate-300 leading-relaxed">
+                  <p>
+                    Point predictions (e.g., grade <span className="font-mono text-cyan-300">B</span>) give no
+                    indication of how certain the model is. To address this, the system uses{" "}
+                    <strong className="text-slate-100">split-conformal prediction</strong> (Vovk et al., 2005;
+                    Angelopoulos & Bates, 2021) to produce <em>prediction sets</em> — sets of grades that are
+                    guaranteed to contain the true label with a specified probability.
+                  </p>
+                  <div className="bg-slate-700/40 rounded-lg p-4 space-y-2">
+                    <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">How it works</p>
+                    <ol className="list-decimal list-inside space-y-1.5 text-slate-300 text-sm">
+                      <li>A held-out <em>calibration set</em> (12,500 samples, not seen during training) is used to compute non-conformity scores — the softmax probability assigned to the <em>true</em> class.</li>
+                      <li>For a target coverage level α (e.g., 90%), the quantile <span className="font-mono text-cyan-300">q̂</span> of calibration scores is computed: the threshold below which α% of calibration examples fall.</li>
+                      <li>At inference time, the prediction set is all grades whose softmax probability exceeds <span className="font-mono text-cyan-300">1 − q̂</span>.</li>
+                      <li>By construction, the true label is included in this set with at least α% probability — a <strong className="text-slate-100">marginal coverage guarantee</strong> that holds without distributional assumptions.</li>
+                    </ol>
+                  </div>
+                  <p>
+                    The system computes prediction sets at both 90% and 95% coverage levels. A narrow set
+                    (e.g., just <span className="font-mono text-cyan-300">{"{B}"}</span>) indicates high confidence;
+                    a wide set (e.g., <span className="font-mono text-cyan-300">{"{A, B, C}"}</span>) signals
+                    genuine ambiguity. These are displayed on every product result card alongside the point
+                    prediction, providing honest uncertainty disclosure.
+                  </p>
+                  <p className="text-xs text-slate-500 pt-2 border-t border-slate-700/50">
+                    Vovk, V., Gammerman, A., &amp; Shafer, G. (2005). <em>Algorithmic Learning in a Random World.</em> Springer. ·
+                    Angelopoulos, A., &amp; Bates, S. (2021). A gentle introduction to conformal prediction and distribution-free uncertainty quantification. <em>arXiv:2107.07511.</em>
+                  </p>
+                </div>
+              </ModernCard>
+            </ModernSection>
+            )}
+
             {/* Technology Stack */}
             {activeTab === 'methodology' && (
             <ModernSection title="Technology Stack" icon delay={0.75}>

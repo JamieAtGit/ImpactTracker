@@ -32,17 +32,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     
     if (request.type === "FETCH_ECO_INSIGHT") {
       const { href } = request.payload;
-  
-      fetch("http://localhost:5000/estimate_emissions", {
+      const API_BASE = "https://impacttracker-production.up.railway.app";
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+      fetch(`${API_BASE}/estimate_emissions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amazon_url: href,
           include_packaging: true
-        })
+        }),
+        signal: controller.signal
       })
         .then((res) => res.json())
         .then((json) => {
+          clearTimeout(timeoutId);
           const a = json.data?.attributes || {};
           sendResponse({
             impact: a.eco_score_ml || "Unknown",
@@ -55,14 +61,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           });
         })
         .catch((err) => {
-          console.error("API fetch error:", err);
+          clearTimeout(timeoutId);
+          const isTimeout = err.name === "AbortError";
+          console.error(isTimeout ? "API request timed out" : "API fetch error:", err);
           sendResponse({
             impact: "Unknown",
-            summary: "No insight found.",
+            summary: isTimeout ? "Request timed out — API may be busy." : "Could not reach the API.",
             recyclable: null
           });
         });
-  
+
       return true; // keep message channel open for async reply
     }
   });

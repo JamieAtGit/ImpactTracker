@@ -139,7 +139,7 @@ class ProductionAmazonScraper:
                 if min(len(normalized_brand), len(known_brand)) >= 4:
                     return country
 
-        close = difflib.get_close_matches(normalized_brand, list(self.brand_origin_index.keys()), n=1, cutoff=0.88)
+        close = difflib.get_close_matches(normalized_brand, list(self.brand_origin_index.keys()), n=1, cutoff=0.95)
         if close:
             return self.brand_origin_index[close[0]]
 

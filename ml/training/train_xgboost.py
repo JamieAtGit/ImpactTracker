@@ -22,6 +22,9 @@ encoders_dir = os.path.join(ML_ASSETS_DIR, "xgb_encoders")
 os.makedirs(model_dir, exist_ok=True)
 os.makedirs(encoders_dir, exist_ok=True)
 
+# CSV path — override via environment variable or falls back to the primary dataset
+csv_path = os.environ.get("TRAINING_CSV", os.path.join(ML_ASSETS_DIR, "eco_dataset.csv"))
+
 # === Load and preprocess enhanced dataset ===
 df = pd.read_csv(csv_path)  # Load with headers
 print(f"📊 Loaded enhanced dataset with {len(df)} rows and {len(df.columns)} columns")

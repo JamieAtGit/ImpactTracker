@@ -444,6 +444,7 @@ export default function PredictPage() {
   const [config, setConfig]         = useState(DEFAULT_CONFIG);
   const [result, setResult]         = useState(null);
   const [loading, setLoading]       = useState(true);
+  const [apiError, setApiError]     = useState(false);
   const [insights, setInsights]     = useState([]);
   const [insightsLoading, setInsightsLoading] = useState(false);
   const [activePreset, setActivePreset]       = useState(PRESETS[0].name);
@@ -457,11 +458,13 @@ export default function PredictPage() {
   // ── Auto-predict on config change ──
   const predict = useCallback(async (cfg, setRes, setLoad) => {
     setLoad(true);
+    setApiError(false);
     try {
       const data = await fetchGrade(cfg);
       setRes(data);
     } catch (e) {
       console.error("predict error", e);
+      setApiError(true);
     } finally {
       setLoad(false);
     }
@@ -598,6 +601,11 @@ export default function PredictPage() {
 
                 {/* Right: results (sticky) */}
                 <div className="lg:col-span-2 lg:sticky lg:top-28 space-y-4">
+                  {apiError && (
+                    <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-3 text-red-300 text-xs">
+                      Could not reach the prediction API. Check your connection or try again.
+                    </div>
+                  )}
                   <ModernCard solid>
                     <div className="space-y-5">
                       <GradeDisplay grade={currentGrade} confidence={result?.confidence != null ? parseFloat(result.confidence) : null} loading={loading} />

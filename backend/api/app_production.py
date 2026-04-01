@@ -25,6 +25,26 @@ load_dotenv()
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.append(BASE_DIR)
 
+# ── Transport emission factors ─────────────────────────────────────────────────
+# Units: kg CO₂e per kg-product per 1000 km (i.e. the formula is
+#   transport_co2 = weight_kg × FACTOR × distance_km / 1000)
+#
+# Sources:
+#   Truck: 0.15 kg CO₂/kg/1000km  ≈ DEFRA 2023 HGV average (0.165 kg CO₂e/tonne-km)
+#          after rounding. Ref: DEFRA/BEIS GHG Conversion Factors 2023, "Freighting goods".
+#   Ship:  0.03 kg CO₂/kg/1000km  ≈ IMO/ECTA Ro-Ro ferry / general cargo average.
+#          DEFRA gives 0.011 kg CO₂e/tonne-km for container ships; 0.03 is a conservative
+#          estimate covering larger-volume consumer goods vessels.
+#   Air:   0.50 kg CO₂/kg/1000km  ≈ DEFRA 2023 air freight average including RFI
+#          (0.602 kg CO₂e/tonne-km economy, 0.500 rounded for simplicity).
+TRANSPORT_CO2_FACTOR = {
+    "Truck": 0.15,
+    "Land":  0.15,
+    "Ship":  0.03,
+    "Air":   0.50,
+}
+
+# ── Material CO₂ intensities ────────────────────────────────────────────────────
 # Single source of truth for material CO₂ intensities (kg CO₂ per kg of material).
 # Used in both the main rule-based calculation and counterfactual explanations.
 # Update here and both places stay in sync automatically.
@@ -255,9 +275,12 @@ def _load_estimation_dependencies():
         from backend.services.response_standardizer import standardize_attributes
         from backend.routes.api import calculate_eco_score
         from backend.services.materials_service_enhanced import EnhancedMaterialsIntelligenceService
+        from backend.scrapers.amazon.requests_scraper import RequestsScraper as _RequestsScraper
 
+        _scraper_instance = _RequestsScraper()
         _ESTIMATION_DEPS = {
             'materials_service': EnhancedMaterialsIntelligenceService(),
+            'detect_category': _scraper_instance.detect_category_from_title,
             'scrape_amazon_product_page': scrape_amazon_product_page,
             'estimate_origin_country': estimate_origin_country,
             'resolve_brand_origin': resolve_brand_origin,
@@ -422,9 +445,14 @@ def create_app(config_name='production'):
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         _secret = os.getenv('FLASK_SECRET_KEY')
         if not _secret:
+            import sys as _sys
+            _sys.stderr.write(
+                "\n🚨  FLASK_SECRET_KEY is not set.\n"
+                "    All user sessions will be invalidated on every restart.\n"
+                "    Set this environment variable in your deployment dashboard.\n\n"
+            )
             import secrets
             _secret = secrets.token_hex(32)
-            print("⚠️  FLASK_SECRET_KEY not set — generated ephemeral key (sessions will not survive restart)")
         app.config['SECRET_KEY'] = _secret
         app.config['DEBUG'] = False
         app.config['SESSION_COOKIE_HTTPONLY'] = True
@@ -441,7 +469,12 @@ def create_app(config_name='production'):
     
     # Initialize extensions
     db.init_app(app)
-    limiter = Limiter(get_remote_address, app=app, default_limits=[], storage_uri="memory://")
+    _rate_limit_enabled = config_name == 'production'
+    app.limiter = Limiter(
+        get_remote_address, app=app, default_limits=[],
+        storage_uri="memory://", enabled=_rate_limit_enabled,
+    )
+    limiter = app.limiter
     enable_migrations = os.getenv('ENABLE_DB_MIGRATIONS', '').strip().lower() in {'1', 'true', 'yes'}
     if config_name != 'production' or enable_migrations:
         migrate = Migrate(app, db)
@@ -473,6 +506,8 @@ def create_app(config_name='production'):
         response.headers['X-Frame-Options'] = 'DENY'
         response.headers['X-XSS-Protection'] = '1; mode=block'
         response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        # Deny all resource loading from API responses (pure JSON API — no HTML assets served)
+        response.headers['Content-Security-Policy'] = "default-src 'none'; frame-ancestors 'none'"
         if config_name == 'production':
             response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
         return response
@@ -490,6 +525,7 @@ def create_app(config_name='production'):
                     ("ALTER TABLE users ADD COLUMN last_login TIMESTAMP", "users.last_login"),
                     ("ALTER TABLE emission_calculations ADD COLUMN eco_grade_ml VARCHAR(5)", "emission_calculations.eco_grade_ml"),
                     ("ALTER TABLE emission_calculations ADD COLUMN ml_confidence DECIMAL(5,2)", "emission_calculations.ml_confidence"),
+                    ("ALTER TABLE emission_calculations ADD COLUMN data_quality VARCHAR(10)", "emission_calculations.data_quality"),
                     ("ALTER TABLE admin_reviews ADD COLUMN corrected_grade VARCHAR(5)", "admin_reviews.corrected_grade"),
                     ("ALTER TABLE scraped_products ADD COLUMN materials_json TEXT", "scraped_products.materials_json"),
                 ]
@@ -580,6 +616,11 @@ def create_app(config_name='production'):
                     encoder_name = encoder_file.replace('.pkl', '')
                     encoders[encoder_name] = joblib.load(encoder_path)
 
+            # Alias: estimation endpoint uses 'recycle_encoder' key; file is named
+            # 'recyclability_encoder.pkl'.  Register under both names so both paths work.
+            if 'recyclability_encoder' in encoders and 'recycle_encoder' not in encoders:
+                encoders['recycle_encoder'] = encoders['recyclability_encoder']
+
             app.encoders = encoders
             print(f"✅ Loaded {len(encoders)} encoders successfully")
 
@@ -652,6 +693,11 @@ def create_app(config_name='production'):
             # Validate inputs
             if not url or not postcode:
                 return jsonify({"error": "Missing URL or postcode"}), 400
+
+            import re as _re
+            _postcode_clean = postcode.replace(" ", "").upper()
+            if not _re.match(r'^[A-Z]{1,2}\d[A-Z\d]?\d[A-Z]{2}$', _postcode_clean):
+                return jsonify({"error": "Please enter a valid UK postcode (e.g. SW1A 1AA)"}), 400
 
             if 'amazon.' not in url.lower():
                 return jsonify({"error": "Please enter a valid Amazon product URL (e.g. amazon.co.uk or amazon.com)"}), 400
@@ -771,8 +817,8 @@ def create_app(config_name='production'):
                     "price":        float(cached_product.price) if cached_product.price else None,
                     "asin":         cached_product.asin,
                     "image_url":    None,
-                    "manufacturer": "Not found",
-                    "category":     "Not found",
+                    "manufacturer": cached_product.brand or "Not found",
+                    "category":     deps['detect_category'](cached_product.title or ''),
                     "certifications": [],
                     "transport_breakdown": _build_transport_breakdown(
                         weight_kg=cached_weight,
@@ -1067,29 +1113,29 @@ def create_app(config_name='production'):
             
             # Transport mode logic
             def determine_transport_mode(distance_km, origin_country="Unknown"):
-                water_crossing_countries = ["Ireland", "France", "Germany", "Netherlands", "Belgium", "Denmark", 
-                                          "Sweden", "Norway", "Finland", "Spain", "Italy", "Poland"]
-                
+                water_crossing_countries = ["Ireland", "France", "Germany", "Netherlands", "Belgium", "Denmark",
+                                            "Sweden", "Norway", "Finland", "Spain", "Italy", "Poland"]
+                _f = TRANSPORT_CO2_FACTOR
                 if origin_country in water_crossing_countries:
                     if distance_km < 500:
-                        return "Truck", 0.15
+                        return "Truck", _f["Truck"]
                     elif distance_km < 3000:
-                        return "Ship", 0.03
+                        return "Ship",  _f["Ship"]
                     else:
-                        return "Air", 0.5
-                        
+                        return "Air",   _f["Air"]
+
                 if distance_km < 1500:
-                    return "Truck", 0.15
+                    return "Truck", _f["Truck"]
                 elif distance_km < 20000:
-                    return "Ship", 0.03
+                    return "Ship",  _f["Ship"]
                 else:
-                    return "Air", 0.5
-            
+                    return "Air",   _f["Air"]
+
             # Determine transport mode
             mode_name, mode_factor = determine_transport_mode(origin_distance_km, origin_country)
             if override_mode:
-                mode_name = override_mode
-                mode_factor = {"Truck": 0.15, "Ship": 0.03, "Air": 0.5}.get(override_mode, mode_factor)
+                mode_name   = override_mode
+                mode_factor = TRANSPORT_CO2_FACTOR.get(override_mode, mode_factor)
             
             print(f"🚚 Transport: {mode_name} (factor: {mode_factor})")
             
@@ -1155,7 +1201,7 @@ def create_app(config_name='production'):
                 for _enc_name, _filename in [
                     ('material_encoder', 'material_encoder.pkl'),
                     ('transport_encoder', 'transport_encoder.pkl'),
-                    ('recycle_encoder', 'recycle_encoder.pkl'),
+                    ('recycle_encoder', 'recyclability_encoder.pkl'),
                     ('origin_encoder', 'origin_encoder.pkl'),
                 ]:
                     try:
@@ -1166,8 +1212,10 @@ def create_app(config_name='production'):
             def _safe_enc(val, enc, default):
                 if enc is None:
                     return 0
+                # Normalise to title-case to match training data encoding
+                normalised = str(val).strip().title() if val is not None else default
                 try:
-                    return enc.transform([val])[0]
+                    return enc.transform([normalised])[0]
                 except Exception:
                     try:
                         return enc.transform([default])[0]
@@ -1399,9 +1447,8 @@ def create_app(config_name='production'):
                 "default_transport_mode": mode_name,
                 "selected_transport_mode": override_mode or None,
                 "emission_factors": {
-                    "Truck": {"factor": 0.15, "co2_kg": transport_co2 if mode_name == "Truck" else 0},
-                    "Ship": {"factor": 0.03, "co2_kg": transport_co2 if mode_name == "Ship" else 0},
-                    "Air": {"factor": 0.5, "co2_kg": transport_co2 if mode_name == "Air" else 0}
+                    m: {"factor": TRANSPORT_CO2_FACTOR[m], "co2_kg": transport_co2 if mode_name == m else 0}
+                    for m in ("Truck", "Ship", "Air")
                 },
 
                 # Scoring - BOTH Methods for Comparison
@@ -1457,6 +1504,16 @@ def create_app(config_name='production'):
 
                 # CO₂ uncertainty range (±%) based on material detection confidence
                 "co2_uncertainty_pct": co2_uncertainty_pct,
+
+                # Aggregated data quality signal.
+                # "high"   — spec table origin + spec table material (both tier ≤ 2)
+                # "medium" — at least one input inferred from title/brand heuristics
+                # "low"    — both origin and material are fallback guesses
+                "data_quality": (
+                    "high"   if final_origin_confidence == "high"   and _mat_conf_tier == "high"
+                    else "low" if final_origin_confidence in ("low", "unknown") and _mat_conf_tier == "low"
+                    else "medium"
+                ),
 
                 # Additional product info
                 "brand": product.get("brand"),
@@ -1560,6 +1617,11 @@ def create_app(config_name='production'):
                     'calculation_method': 'combined',
                     'eco_grade_ml': eco_score_ml,
                     'ml_confidence': confidence,
+                    'data_quality': (
+                        "high"   if final_origin_confidence == "high"   and _mat_conf_tier == "high"
+                        else "low" if final_origin_confidence in ("low", "unknown") and _mat_conf_tier == "low"
+                        else "medium"
+                    ),
                 })
 
                 # Add to products table — count grows permanently in PostgreSQL
@@ -1663,16 +1725,28 @@ def create_app(config_name='production'):
             import joblib
 
             # === Lazy load model if not already loaded ===
+            # Priority: calibrated_model.pkl > xgb_model.json > eco_model.pkl (RF fallback)
+            # This matches the startup loading order so both endpoints use the same model.
             if not (hasattr(app, 'xgb_model') and app.xgb_model):
-                try:
-                    app.xgb_model = joblib.load(os.path.join(model_dir, "eco_model.pkl"))
-                    print("✅ Lazy-loaded eco_model.pkl for /predict")
-                except Exception:
+                _loaded = False
+                for _path, _label in [
+                    (os.path.join(model_dir, "calibrated_model.pkl"), "calibrated_model.pkl"),
+                    (os.path.join(model_dir, "eco_model.pkl"),        "eco_model.pkl"),
+                ]:
+                    if os.path.exists(_path):
+                        try:
+                            app.xgb_model = joblib.load(_path)
+                            print(f"✅ Lazy-loaded {_label} for /predict")
+                            _loaded = True
+                            break
+                        except Exception:
+                            pass
+                if not _loaded:
                     try:
                         import xgboost as xgb
-                        m = xgb.XGBClassifier()
-                        m.load_model(os.path.join(model_dir, "xgb_model.json"))
-                        app.xgb_model = m
+                        _m = xgb.XGBClassifier()
+                        _m.load_model(os.path.join(model_dir, "xgb_model.json"))
+                        app.xgb_model = _m
                         print("✅ Lazy-loaded xgb_model.json for /predict")
                     except Exception as e:
                         return jsonify({'error': f'Failed to load ML model: {str(e)}'}), 500
@@ -1694,7 +1768,7 @@ def create_app(config_name='production'):
                 for enc_name, filename in [
                     ('material_encoder', 'material_encoder.pkl'),
                     ('transport_encoder', 'transport_encoder.pkl'),
-                    ('recycle_encoder', 'recycle_encoder.pkl'),
+                    ('recycle_encoder', 'recyclability_encoder.pkl'),
                     ('origin_encoder', 'origin_encoder.pkl'),
                 ]:
                     try:
@@ -1712,8 +1786,10 @@ def create_app(config_name='production'):
             def safe_encode(value, encoder, default):
                 if encoder is None:
                     return 0
+                # Normalise to title-case to match training data encoding
+                normalised = str(value).strip().title() if value is not None else default
                 try:
-                    return encoder.transform([value])[0]
+                    return encoder.transform([normalised])[0]
                 except Exception:
                     try:
                         return encoder.transform([default])[0]
@@ -3303,6 +3379,7 @@ def create_app(config_name='production'):
                     'co2_kg': float(calc.final_emission) if calc and calc.final_emission else None,
                     'confidence': float(calc.ml_confidence) if calc and calc.ml_confidence else None,
                     'transport_mode': calc.transport_mode if calc else None,
+                    'data_quality': calc.data_quality if calc else None,
                     'scanned_at': p.created_at.isoformat() if p.created_at else None,
                 })
             return jsonify(result)

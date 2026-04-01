@@ -73,6 +73,18 @@ export default function AblationStudyChart() {
         </p>
       </div>
 
+      {/* Dataset note */}
+      <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg px-4 py-3">
+        <p className="text-amber-300/80 text-xs leading-relaxed">
+          <strong className="text-amber-300">Dataset note:</strong> The {(data.baseline_accuracy * 100).toFixed(1)}% baseline
+          is measured on a held-out 20% split of the 50,000-row expanded training dataset (same synthetic
+          distribution). The independently-evaluated held-out test accuracy is{" "}
+          <strong className="text-amber-200">86.6%</strong> (see Per-Class Performance above). The ablation
+          figures here are valid for <em>relative</em> feature importance — the drops show how much each
+          feature contributes — not as an absolute accuracy claim.
+        </p>
+      </div>
+
       {/* Toggle */}
       <div className="flex gap-2">
         <button

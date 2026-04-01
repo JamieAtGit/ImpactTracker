@@ -44,6 +44,7 @@ export default function HistoryPage() {
   const [stats, setStats]       = useState(null);
   const [timeline, setTimeline] = useState([]);
   const [loading, setLoading]   = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [search, setSearch]     = useState("");
 
   useEffect(() => {
@@ -57,7 +58,7 @@ export default function HistoryPage() {
       setStats(s);
       setTimeline(t?.timeline ?? []);
       setLoading(false);
-    }).catch(() => setLoading(false));
+    }).catch(() => { setFetchError(true); setLoading(false); });
   }, [user]);
 
   const filtered = history.filter(item =>
@@ -120,6 +121,15 @@ export default function HistoryPage() {
               </motion.div>
             </ModernSection>
 
+            {fetchError && (
+              <ModernCard>
+                <div className="flex items-center gap-3 text-red-400 text-sm py-2">
+                  <span>⚠️</span>
+                  <span>Could not load your history. Check your connection and refresh.</span>
+                </div>
+              </ModernCard>
+            )}
+
             {loading ? (
               <ModernCard>
                 <div className="flex items-center justify-center h-40 gap-3 text-slate-500">
@@ -127,7 +137,7 @@ export default function HistoryPage() {
                   Loading your history…
                 </div>
               </ModernCard>
-            ) : (
+            ) : fetchError ? null : (
               <>
                 {/* ── Stats grid ── */}
                 {stats && stats.total_scans > 0 && (
@@ -258,6 +268,7 @@ export default function HistoryPage() {
                                 <th className="text-left px-4 py-3 text-slate-400 font-medium hidden sm:table-cell">Origin</th>
                                 <th className="text-left px-4 py-3 text-slate-400 font-medium hidden md:table-cell">Transport</th>
                                 <th className="text-left px-4 py-3 text-slate-400 font-medium hidden md:table-cell">Date</th>
+                                <th className="text-left px-4 py-3 text-slate-400 font-medium hidden lg:table-cell">Quality</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -302,11 +313,23 @@ export default function HistoryPage() {
                                       ? new Date(item.scanned_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
                                       : "—"}
                                   </td>
+                                  <td className="px-4 py-3 hidden lg:table-cell">
+                                    {item.data_quality ? (
+                                      <ModernBadge
+                                        variant={item.data_quality === "high" ? "success" : item.data_quality === "medium" ? "warning" : "error"}
+                                        size="sm"
+                                      >
+                                        {item.data_quality}
+                                      </ModernBadge>
+                                    ) : (
+                                      <span className="text-slate-600 text-xs">—</span>
+                                    )}
+                                  </td>
                                 </motion.tr>
                               ))}
                               {filtered.length === 0 && (
                                 <tr>
-                                  <td colSpan={6} className="text-center py-8 text-slate-500">
+                                  <td colSpan={7} className="text-center py-8 text-slate-500">
                                     No results match "{search}"
                                   </td>
                                 </tr>

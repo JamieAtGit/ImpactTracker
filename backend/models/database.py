@@ -147,6 +147,9 @@ class EmissionCalculation(db.Model):
     calculation_method = db.Column(db.String(100))
     eco_grade_ml = db.Column(db.String(5), nullable=True)
     ml_confidence = db.Column(db.Numeric(5, 2), nullable=True)
+    # Aggregated signal: 'high' | 'medium' | 'low' — combines origin + material confidence tiers.
+    # Saved at prediction time; used to surface data quality in the scan history UI.
+    data_quality = db.Column(db.String(10), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Indexes
@@ -242,6 +245,7 @@ def save_emission_calculation(calculation_data):
         calculation_method=calculation_data.get('calculation_method'),
         eco_grade_ml=calculation_data.get('eco_grade_ml'),
         ml_confidence=calculation_data.get('ml_confidence'),
+        data_quality=calculation_data.get('data_quality'),
     )
     
     db.session.add(emission)

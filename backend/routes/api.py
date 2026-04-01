@@ -1,10 +1,16 @@
 """
-Core emissions estimation route logic.
+Core emissions estimation helper functions.
 
-Purpose:
-- Accepts product URL + postcode requests.
-- Scrapes Amazon product data and infers missing attributes.
-- Calculates transport/material impact and returns eco scoring output.
+NOTE: The standalone Flask `app` and `/estimate_emissions` route defined in
+this file are legacy and are NOT served in production.  The live endpoint is
+registered inside `backend/api/app_production.py::create_app()`.
+
+Only the following helper functions are imported and used by `app_production.py`:
+  - calculate_eco_score()  — converts CO₂ kg to an A–F eco grade
+  - calculate_eco_score_local_only()  — variant without transport distance
+  - map_score_to_grade()  — maps numeric score to letter grade
+
+Do NOT remove this file — its imports and helper functions are still active.
 """
 
 from flask import Flask, request, jsonify

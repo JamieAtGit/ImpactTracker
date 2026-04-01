@@ -12,6 +12,7 @@
 
   "host_permissions": [
     "http://localhost:5000/*",
+    "https://impacttracker-production.up.railway.app/*",
     "https://www.amazon.co.uk/*",
     "https://www.amazon.com/*"
   ],

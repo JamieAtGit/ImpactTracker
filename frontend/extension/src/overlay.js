@@ -141,7 +141,12 @@
       showError('Please enter an Amazon product URL.');
       return;
     }
-    
+
+    if (postcode && !/^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i.test(postcode)) {
+      showError('Please enter a valid UK postcode (e.g. SW1A 1AA).');
+      return;
+    }
+
     // Show loading state
     buttonText.style.display = 'none';
     spinner.style.display = 'block';
@@ -150,7 +155,9 @@
     
     // Use production API
     const BASE_URL = 'https://impacttracker-production.up.railway.app';
-    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
     try {
       const res = await fetch(`${BASE_URL}/estimate_emissions`, {
         method: 'POST',
@@ -159,15 +166,17 @@
           amazon_url: url,
           postcode: postcode || 'SW1A 1AA',
           include_packaging: true
-        })
+        }),
+        signal: controller.signal
       });
-      
+
+      clearTimeout(timeoutId);
       const json = await res.json();
-      
+
       if (!res.ok) {
         throw new Error(json.error || 'Failed to analyze product');
       }
-      
+
       if (json?.data) {
         displayResults(json);
         // Save results
@@ -182,8 +191,13 @@
         showError('No data received from the server.');
       }
     } catch (err) {
-      console.error('Fetch error:', err);
-      showError('Error contacting API. Please try again.');
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        showError('Request timed out. The API is taking too long — please try again.');
+      } else {
+        console.error('Fetch error:', err);
+        showError('Could not reach the API. Check your connection and try again.');
+      }
     } finally {
       buttonText.style.display = 'inline';
       spinner.style.display = 'none';
