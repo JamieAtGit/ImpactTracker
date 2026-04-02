@@ -2105,6 +2105,13 @@ def create_app(config_name='production'):
                 # Product spec noise
                 'comfy','cozy','comfortable','adaptive','dynamic','wide','narrow',
                 'flip','tilt','lock','swivel','rotate','height','depth','weight',
+                # Shape / geometry (e.g. "round wall clock", "square storage box")
+                'round','square','oval','rectangular','circular','flat','curved',
+                'shaped','slim','thin','thick','long','short','tall',
+                # Motion / mechanism descriptors
+                'rolling','sliding','folding','collapsible','retractable','extendable',
+                # Salon / spa / wellness context (not product types)
+                'massage','salon','spa','beauty','hydraulic','pneumatic','padded',
             }
 
             def extract_keywords(raw, n=6):
@@ -2263,9 +2270,11 @@ def create_app(config_name='production'):
 
             inferred = infer_product_type(title_param, category)
             if inferred:
-                # Prepend inferred product-type terms so they anchor the search,
-                # then add any non-overlapping title-derived specific keywords.
-                specific_kws = inferred + [k for k in specific_kws if k not in inferred]
+                # When the product type is confidently inferred, use ONLY those
+                # terms as specific keywords.  Mixing in title-derived extras like
+                # "round", "rolling", or "massage" causes unrelated products to be
+                # returned when no exact match exists.
+                specific_kws = inferred
                 print(f"🔍 Product type inferred: {inferred} (category={category!r})")
 
             from sqlalchemy import or_ as sql_or, and_ as sql_and
