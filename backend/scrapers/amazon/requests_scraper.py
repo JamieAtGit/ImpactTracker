@@ -1592,6 +1592,13 @@ class RequestsScraper:
             'soft', 'smooth', 'stretchy', 'flexible', 'rigid', 'transparent',
             'insulated', 'padded', 'reinforced', 'recycled', 'sustainable',
             'machine washable', 'washable', 'dry clean', 'hand wash',
+            # Eco-attribute words (not materials)
+            'biodegradable', 'natural', 'recyclable', 'organic', 'compostable',
+            'plant-based', 'plant based', 'cruelty-free', 'cruelty free', 'vegan',
+            # Product-type / technology words
+            'bluetooth', 'bluetooth speaker', 'speaker', 'wireless', 'wifi', 'wi-fi',
+            'usb', 'usb-c', 'led', 'lcd', 'oled', 'amoled', 'hdmi', 'nfc',
+            'rechargeable', 'battery', 'electric', 'electronic',
         }
         parsed = [m for m in parsed if m['name'].lower() not in _NON_MATERIAL_WORDS]
 

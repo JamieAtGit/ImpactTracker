@@ -273,7 +273,7 @@ def _load_estimation_dependencies():
             extract_asin_from_amazon_url,
         )
         from backend.services.response_standardizer import standardize_attributes
-        from backend.routes.api import calculate_eco_score
+        from backend.routes.api import calculate_eco_score, co2_to_grade
         from backend.services.materials_service_enhanced import EnhancedMaterialsIntelligenceService
         from backend.scrapers.amazon.requests_scraper import RequestsScraper as _RequestsScraper
 
@@ -294,6 +294,7 @@ def _load_estimation_dependencies():
             'extract_asin_from_amazon_url': extract_asin_from_amazon_url,
             'standardize_attributes': standardize_attributes,
             'calculate_eco_score': calculate_eco_score,
+            'co2_to_grade': co2_to_grade,
         }
     return _ESTIMATION_DEPS
 
@@ -678,7 +679,8 @@ def create_app(config_name='production'):
         extract_asin_from_amazon_url = deps['extract_asin_from_amazon_url']
         standardize_attributes = deps['standardize_attributes']
         calculate_eco_score = deps['calculate_eco_score']
-        
+        co2_to_grade = deps['co2_to_grade']
+
         data = request.get_json()
         if not data:
             return jsonify({"error": "Missing JSON in request"}), 400
@@ -772,8 +774,8 @@ def create_app(config_name='production'):
                 rec_pct   = get_recyclability_pct(cached_material)
                 rec_label = 'High' if rec_pct >= 70 else ('Medium' if rec_pct >= 40 else 'Low')
 
-                cached_grade_ml   = calculate_eco_score(cached_ml_co2,   rec_label, cached_distance, cached_weight)
-                cached_grade_rule = calculate_eco_score(cached_rule_co2, rec_label, cached_distance, cached_weight)
+                cached_grade_ml   = co2_to_grade(cached_ml_co2)
+                cached_grade_rule = co2_to_grade(cached_rule_co2)
                 cached_ml_conf    = round(cached_confidence_numeric * 100, 1)
 
                 cached_attributes = {
@@ -1147,18 +1149,18 @@ def create_app(config_name='production'):
             rule_co2 = transport_co2 + material_co2
             total_co2 = rule_co2
 
-            # Rule-based eco grade from CO2
-            if rule_co2 < 0.5:
+            # Rule-based eco grade from CO2 — DEFRA 2023 thresholds (must match ML training labels)
+            if rule_co2 <= 0.05:
                 eco_score_rule_based = "A+"
-            elif rule_co2 < 1.0:
+            elif rule_co2 <= 0.15:
                 eco_score_rule_based = "A"
-            elif rule_co2 < 2.5:
+            elif rule_co2 <= 0.40:
                 eco_score_rule_based = "B"
-            elif rule_co2 < 5.0:
+            elif rule_co2 <= 1.00:
                 eco_score_rule_based = "C"
-            elif rule_co2 < 10.0:
+            elif rule_co2 <= 2.50:
                 eco_score_rule_based = "D"
-            elif rule_co2 < 20.0:
+            elif rule_co2 <= 5.00:
                 eco_score_rule_based = "E"
             else:
                 eco_score_rule_based = "F"
@@ -2342,7 +2344,7 @@ def create_app(config_name='production'):
 
             for grade in better_grades[:4]:
                 product, matched_by = _query_for_grade(grade, specific_kws, modifier_kws, category)
-                if not product or product.id in seen_ids:
+                if not product or product.id in seen_ids or matched_by == 'fallback':
                     continue
                 prefix = (product.title or '')[:40].lower()
                 if prefix in seen_prefixes:
@@ -2381,8 +2383,7 @@ def create_app(config_name='production'):
             
         try:
             deps = _load_estimation_dependencies()
-            _calc_eco_score = deps['calculate_eco_score']
-
+            _co2_to_grade = deps['co2_to_grade']
 
             submissions = ScrapedProduct.query.order_by(ScrapedProduct.id.desc()).limit(100).all()
             sub_ids = [s.id for s in submissions]
@@ -2401,18 +2402,14 @@ def create_app(config_name='production'):
                 calc   = calc_map.get(sub.id)
                 review = review_map.get(sub.id)
 
-                rec_pct   = get_recyclability_pct(sub.material or '')
-                rec_label = 'High' if rec_pct >= 70 else ('Medium' if rec_pct >= 40 else 'Low')
-                dist      = float(calc.transport_distance or 0) if calc else 0
-                weight    = float(sub.weight or 0.5)
+                dist   = float(calc.transport_distance or 0) if calc else 0
+                weight = float(sub.weight or 0.5)
 
                 # Derive rule-based grade from stored rule_based_prediction
                 rule_grade = None
                 if calc and calc.rule_based_prediction:
                     try:
-                        rule_grade = _calc_eco_score(
-                            float(calc.rule_based_prediction), rec_label, dist, weight
-                        )
+                        rule_grade = _co2_to_grade(float(calc.rule_based_prediction))
                     except Exception:
                         pass
 
@@ -2421,9 +2418,7 @@ def create_app(config_name='production'):
                 ml_grade = calc.eco_grade_ml if calc and calc.eco_grade_ml else None
                 if not ml_grade and calc and calc.ml_prediction:
                     try:
-                        ml_grade = _calc_eco_score(
-                            float(calc.ml_prediction), rec_label, dist, weight
-                        )
+                        ml_grade = _co2_to_grade(float(calc.ml_prediction))
                     except Exception:
                         pass
 
@@ -2463,7 +2458,7 @@ def create_app(config_name='production'):
 
         try:
             deps = _load_estimation_dependencies()
-            _calc_eco_score = deps['calculate_eco_score']
+            _co2_to_grade = deps['co2_to_grade']
 
             submissions = ScrapedProduct.query.order_by(ScrapedProduct.id.desc()).limit(100).all()
             sub_ids = [s.id for s in submissions]
@@ -2489,16 +2484,11 @@ def create_app(config_name='production'):
                     skipped += 1
                     continue
 
-                rec_pct   = get_recyclability_pct(sub.material or '')
-                rec_label = 'High' if rec_pct >= 70 else ('Medium' if rec_pct >= 40 else 'Low')
-                dist      = float(calc.transport_distance or 0)
-                weight    = float(sub.weight or 0.5)
-
                 # Derive ML grade (stored or calculated from ml_prediction)
                 ml_grade = calc.eco_grade_ml or None
                 if not ml_grade and calc.ml_prediction:
                     try:
-                        ml_grade = _calc_eco_score(float(calc.ml_prediction), rec_label, dist, weight)
+                        ml_grade = _co2_to_grade(float(calc.ml_prediction))
                     except Exception:
                         pass
 
@@ -2506,7 +2496,7 @@ def create_app(config_name='production'):
                 rule_grade = None
                 if calc.rule_based_prediction:
                     try:
-                        rule_grade = _calc_eco_score(float(calc.rule_based_prediction), rec_label, dist, weight)
+                        rule_grade = _co2_to_grade(float(calc.rule_based_prediction))
                     except Exception:
                         pass
 
@@ -2555,7 +2545,7 @@ def create_app(config_name='production'):
 
         try:
             deps = _load_estimation_dependencies()
-            _calc_eco_score = deps['calculate_eco_score']
+            _co2_to_grade = deps['co2_to_grade']
             submissions = ScrapedProduct.query.order_by(ScrapedProduct.id.desc()).limit(100).all()
             sub_ids = [s.id for s in submissions]
             _all_calcs   = EmissionCalculation.query.filter(EmissionCalculation.scraped_product_id.in_(sub_ids)).order_by(EmissionCalculation.id.desc()).all()
@@ -2578,23 +2568,18 @@ def create_app(config_name='production'):
                     skipped += 1
                     continue
 
-                rec_pct   = get_recyclability_pct(sub.material or '')
-                rec_label = 'High' if rec_pct >= 70 else ('Medium' if rec_pct >= 40 else 'Low')
-                dist      = float(calc.transport_distance or 0)
-                weight    = float(sub.weight or 0.5)
-
                 grade = None
                 if source == 'ml':
                     grade = calc.eco_grade_ml or None
                     if not grade and calc.ml_prediction:
                         try:
-                            grade = _calc_eco_score(float(calc.ml_prediction), rec_label, dist, weight)
+                            grade = _co2_to_grade(float(calc.ml_prediction))
                         except Exception:
                             pass
                 else:  # rule
                     if calc.rule_based_prediction:
                         try:
-                            grade = _calc_eco_score(float(calc.rule_based_prediction), rec_label, dist, weight)
+                            grade = _co2_to_grade(float(calc.rule_based_prediction))
                         except Exception:
                             pass
 

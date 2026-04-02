@@ -49,6 +49,19 @@ def determine_transport_mode(distance_km):
         return "Air", 0.5     # 500g per tonne-km
    
     
+def co2_to_grade(co2_kg: float) -> str:
+    """Convert a CO₂ value (kg CO₂e) to an eco grade using DEFRA 2023 thresholds.
+    These must match the labels used to train the ML model (ml/retrain.py::co2_to_grade).
+    """
+    if co2_kg <= 0.05:  return "A+"
+    if co2_kg <= 0.15:  return "A"
+    if co2_kg <= 0.40:  return "B"
+    if co2_kg <= 1.00:  return "C"
+    if co2_kg <= 2.50:  return "D"
+    if co2_kg <= 5.00:  return "E"
+    return "F"
+
+
 def calculate_eco_score(carbon_kg, recyclability, distance_km, weight_kg):
     carbon_score = max(0, 10 - carbon_kg * 5)
     weight_score = max(0, 10 - weight_kg * 2)
