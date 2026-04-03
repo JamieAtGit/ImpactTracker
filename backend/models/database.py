@@ -283,9 +283,18 @@ def get_or_create_scraped_product(product_data, user_id=None):
         existing.origin_country = product_data.get('origin_country') or existing.origin_country
         existing.confidence_score = product_data.get('confidence_score') if product_data.get('confidence_score') is not None else existing.confidence_score
         existing.scraping_status = product_data.get('scraping_status', existing.scraping_status)
-        # Always overwrite materials_json when a fresh scrape provides it
+        # Only overwrite materials_json if the new data is richer (more materials) than stored.
+        # Amazon product pages change frequently; we don't want a sparse re-scrape to
+        # permanently discard multi-material data captured on an earlier, richer scrape.
         if product_data.get('materials_json') is not None:
-            existing.materials_json = product_data.get('materials_json')
+            import json as _json
+            try:
+                new_count = len(_json.loads(product_data['materials_json']).get('materials', []))
+                old_count = len(_json.loads(existing.materials_json).get('materials', [])) if existing.materials_json else 0
+                if new_count >= old_count:
+                    existing.materials_json = product_data['materials_json']
+            except Exception:
+                existing.materials_json = product_data['materials_json']
         if amazon_url:
             existing.amazon_url = amazon_url
         if asin:

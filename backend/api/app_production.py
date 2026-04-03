@@ -2277,6 +2277,41 @@ def create_app(config_name='production'):
                 specific_kws = inferred
                 print(f"🔍 Product type inferred: {inferred} (category={category!r})")
 
+            # Map Amazon's verbose category breadcrumb to one of the 6 DB categories.
+            # The DB training dataset uses these exact strings: health_beauty, books_media,
+            # sports_outdoors, electronics, home_kitchen, clothing.
+            _AMAZON_CAT_MAP = [
+                (['health', 'beauty', 'personal care', 'massage', 'medical', 'pharmacy',
+                  'nutrition', 'supplement', 'vitamin', 'baby', 'hygiene', 'wellbeing',
+                  'wellness', 'dental', 'skincare', 'haircare'],       'health_beauty'),
+                (['book', 'kindle', 'music', 'cd', 'dvd', 'blu-ray', 'film', 'movie',
+                  'video', 'magazine', 'newspaper', 'audio', 'podcast'],  'books_media'),
+                (['sport', 'outdoor', 'fitness', 'gym', 'exercise', 'cycling', 'running',
+                  'hiking', 'camping', 'football', 'tennis', 'golf', 'swimming',
+                  'yoga', 'garden', 'gardening', 'patio', 'automotive', 'car', 'diy',
+                  'tools', 'hardware'],                                   'sports_outdoors'),
+                (['electronic', 'computer', 'laptop', 'phone', 'camera', 'tv',
+                  'television', 'audio', 'speaker', 'headphone', 'tablet', 'printer',
+                  'monitor', 'keyboard', 'gaming', 'console', 'software'],  'electronics'),
+                (['home', 'kitchen', 'furniture', 'lamp', 'lighting', 'bedding',
+                  'bathroom', 'storage', 'cleaning', 'pet', 'office', 'stationery',
+                  'craft', 'art', 'food', 'drink', 'grocery'],            'home_kitchen'),
+                (['clothing', 'fashion', 'apparel', 'shoe', 'boot', 'trainer',
+                  'jacket', 'coat', 'dress', 'shirt', 'trouser', 'underwear',
+                  'accessory', 'jewellery', 'watch', 'bag', 'luggage', 'handbag'],
+                                                                           'clothing'),
+            ]
+
+            def _resolve_db_category(amazon_cat_raw: str) -> str:
+                """Map an Amazon category breadcrumb to one of the 6 DB category values."""
+                c = (amazon_cat_raw or '').lower()
+                for keywords, db_cat in _AMAZON_CAT_MAP:
+                    if any(kw in c for kw in keywords):
+                        return db_cat
+                return ''
+
+            db_category = _resolve_db_category(category)
+
             from sqlalchemy import or_ as sql_or, and_ as sql_and
 
             def _title_and(*words):
@@ -2338,14 +2373,14 @@ def create_app(config_name='production'):
                         p = _run(Product.title.ilike(f'%{kw}%'))
                         if p: return p, 'keyword'
 
-                # 5. Category
-                if cat:
-                    p = _run(Product.category.ilike(f'%{cat}%'))
+                # 5. DB category (mapped from Amazon's verbose breadcrumb to one of
+                #    the 6 coarse training-data categories: home_kitchen, electronics, etc.)
+                if db_category:
+                    p = _run(Product.category.ilike(f'%{db_category}%'))
                     if p: return p, 'category'
 
-                # 6. Any product of this grade
-                p = _run()
-                return (p, 'fallback') if p else (None, None)
+                # 6. Any product of this grade — suppressed (returns irrelevant products)
+                return (None, None)
 
             results       = []
             seen_ids      = set()
