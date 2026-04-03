@@ -1,7 +1,7 @@
 {
   "_metadata": {
-    "total_brands": "10210",
-    "last_updated": "2026-02-06",
+    "total_brands": "10710",
+    "last_updated": "2026-04-03",
     "source_files": [
       "/Users/jamie/Documents/University/ImpactTracker/common/data/json/brand_locations.json",
       "/Users/jamie/Documents/University/ImpactTracker/brand_locations.json",
@@ -1790,11 +1790,6 @@
   "Arket": {
     "origin": {
       "country": "India"
-    }
-  },
-  "Armani": {
-    "origin": {
-      "country": "Italy"
     }
   },
   "Arri": {
@@ -39738,11 +39733,6 @@
       "country": "USA"
     }
   },
-  "Russell": {
-    "origin": {
-      "country": "USA"
-    }
-  },
   "Russell Hobbs": {
     "origin": {
       "country": "China"
@@ -53227,5 +53217,2445 @@
     "market_presence": [
       "Global"
     ]
+  },
+  "multigot": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "homcom": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "costway": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "yaheetech": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "songmics": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "vasagle": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "homfa": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "sobuy": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "tectake": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "vonhaus": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "furniturebox": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "living and home": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "walker edison": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "sauder": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "zinus": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "ashley": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "dorel": {
+    "origin": {
+      "country": "Canada"
+    }
+  },
+  "teamson": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "novosolo": {
+    "origin": {
+      "country": "Denmark"
+    }
+  },
+  "dhp": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "keter": {
+    "origin": {
+      "country": "Israel"
+    }
+  },
+  "lifetime": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "better homes & gardens": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "we furniture": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "tvilum": {
+    "origin": {
+      "country": "Denmark"
+    }
+  },
+  "birlea": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "argos home": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "julian bowen": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "seconique": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "vida designs": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "lloyd pascal": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "dams": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "teknik": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "alphason": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "afc": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "harrier sport": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "homestyle4u": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "flair furniture": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "habitat": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "heal's": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "heal": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "made.com": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "made": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "dunelm": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "next home": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "oak furnitureland": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "dwell": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "victorinox": {
+    "origin": {
+      "country": "Switzerland"
+    }
+  },
+  "wüsthof": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "wusthof": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "zwilling": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "j.a. henckels": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "henckels": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "global knives": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "global": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "mac knife": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "mac": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "kai": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "shun": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "miyabi": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "messermeister": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "mercer culinary": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "mercer": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "dexter-russell": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "f. dick": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "opinel": {
+    "origin": {
+      "country": "France"
+    }
+  },
+  "sabatier": {
+    "origin": {
+      "country": "France"
+    }
+  },
+  "sabatier professional": {
+    "origin": {
+      "country": "France"
+    }
+  },
+  "ka-bar": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "buck knives": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "gerber": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "benchmade": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "spyderco": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "kershaw": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "crkt": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "ontario": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "mora": {
+    "origin": {
+      "country": "Sweden"
+    }
+  },
+  "morakniv": {
+    "origin": {
+      "country": "Sweden"
+    }
+  },
+  "fiskars": {
+    "origin": {
+      "country": "Finland"
+    }
+  },
+  "tramontina": {
+    "origin": {
+      "country": "Brazil"
+    }
+  },
+  "scanpan": {
+    "origin": {
+      "country": "Denmark"
+    }
+  },
+  "cangshan": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "dalstrong": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "zelite infinity": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "misen": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "babish": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "seki edge": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "richardson sheffield": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "prestige": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "stellar": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "raymond blanc": {
+    "origin": {
+      "country": "France"
+    }
+  },
+  "philips hue": {
+    "origin": {
+      "country": "Netherlands"
+    }
+  },
+  "lifx": {
+    "origin": {
+      "country": "Australia"
+    }
+  },
+  "govee": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "wiz": {
+    "origin": {
+      "country": "Belgium"
+    }
+  },
+  "tp-link": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "tapo": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "nanoleaf": {
+    "origin": {
+      "country": "Canada"
+    }
+  },
+  "sengled": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "elgato": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "cree lighting": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "ge lighting": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "osram": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "lutron": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "leviton": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "eve systems": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "hue": {
+    "origin": {
+      "country": "Netherlands"
+    }
+  },
+  "yeelight": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "kasa": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "meross": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "treatlife": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "lohas": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "lepro": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "lumary": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "ledvance": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "sylvania": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "energizer": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "auraglow": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "bayco": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "livarno": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "brilliant smart": {
+    "origin": {
+      "country": "Australia"
+    }
+  },
+  "lexi lighting": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "nordlux": {
+    "origin": {
+      "country": "Denmark"
+    }
+  },
+  "astro lighting": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "dar lighting": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "endon": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "saxby": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "lucide": {
+    "origin": {
+      "country": "Belgium"
+    }
+  },
+  "trio leuchten": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "paulmann": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "eglo": {
+    "origin": {
+      "country": "Austria"
+    }
+  },
+  "searchlight": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "firstlight": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "hydro flask": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "nalgene": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "camelbak": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "klean kanteen": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "s'well": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "swell": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "lifestraw": {
+    "origin": {
+      "country": "Switzerland"
+    }
+  },
+  "chilly's": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "chillys": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "thermos": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "tiger": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "contigo": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "takeya": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "simple modern": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "blenderbottle": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "embrava": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "iron flask": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "mira": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "reduce": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "ello": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "manna": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "avex": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "ozark trail": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "greens steel": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "elemental": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "peak": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "bobble": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "built ny": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "built": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "joyjolt": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "glasstic": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "bkr": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "memobottle": {
+    "origin": {
+      "country": "Australia"
+    }
+  },
+  "soma": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "brita": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "de'longhi": {
+    "origin": {
+      "country": "Italy"
+    }
+  },
+  "delonghi": {
+    "origin": {
+      "country": "Italy"
+    }
+  },
+  "kitchenaid": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "russell hobbs": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "morphy richards": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "dualit": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "smeg": {
+    "origin": {
+      "country": "Italy"
+    }
+  },
+  "balmuda": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "ninja": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "hamilton beach": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "instant pot": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "instant": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "rowenta": {
+    "origin": {
+      "country": "France"
+    }
+  },
+  "moulinex": {
+    "origin": {
+      "country": "France"
+    }
+  },
+  "electrolux": {
+    "origin": {
+      "country": "Sweden"
+    }
+  },
+  "siemens": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "miele": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "aeg": {
+    "origin": {
+      "country": "Sweden"
+    }
+  },
+  "neff": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "philips": {
+    "origin": {
+      "country": "Netherlands"
+    }
+  },
+  "nespresso": {
+    "origin": {
+      "country": "Switzerland"
+    }
+  },
+  "krups": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "melitta": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "jura": {
+    "origin": {
+      "country": "Switzerland"
+    }
+  },
+  "gaggia": {
+    "origin": {
+      "country": "Italy"
+    }
+  },
+  "la marzocco": {
+    "origin": {
+      "country": "Italy"
+    }
+  },
+  "rancilio": {
+    "origin": {
+      "country": "Italy"
+    }
+  },
+  "rocket espresso": {
+    "origin": {
+      "country": "Italy"
+    }
+  },
+  "nutramilk": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "blendjet": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "nutribullet": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "magimix": {
+    "origin": {
+      "country": "France"
+    }
+  },
+  "food network": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "quest": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "daewoo": {
+    "origin": {
+      "country": "South Korea"
+    }
+  },
+  "nikai": {
+    "origin": {
+      "country": "UAE"
+    }
+  },
+  "rolex": {
+    "origin": {
+      "country": "Switzerland"
+    }
+  },
+  "seiko": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "citizen": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "casio": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "fossil": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "timex": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "tag heuer": {
+    "origin": {
+      "country": "Switzerland"
+    }
+  },
+  "omega": {
+    "origin": {
+      "country": "Switzerland"
+    }
+  },
+  "breitling": {
+    "origin": {
+      "country": "Switzerland"
+    }
+  },
+  "longines": {
+    "origin": {
+      "country": "Switzerland"
+    }
+  },
+  "tissot": {
+    "origin": {
+      "country": "Switzerland"
+    }
+  },
+  "hamilton": {
+    "origin": {
+      "country": "Switzerland"
+    }
+  },
+  "swatch": {
+    "origin": {
+      "country": "Switzerland"
+    }
+  },
+  "movado": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "bulova": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "invicta": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "orient": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "skagen": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "daniel wellington": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "mvmt": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "nixon": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "ice-watch": {
+    "origin": {
+      "country": "Belgium"
+    }
+  },
+  "sekonda": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "accurist": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "adidas": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "emporio armani": {
+    "origin": {
+      "country": "Italy"
+    }
+  },
+  "michael kors": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "guess": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "armani exchange": {
+    "origin": {
+      "country": "Italy"
+    }
+  },
+  "vivienne westwood": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "hugo boss": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "tommy hilfiger": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "calvin klein": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "dkny": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "kate spade": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "coach": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "marc jacobs": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "versace": {
+    "origin": {
+      "country": "Italy"
+    }
+  },
+  "diesel": {
+    "origin": {
+      "country": "Italy"
+    }
+  },
+  "gc": {
+    "origin": {
+      "country": "Switzerland"
+    }
+  },
+  "festina": {
+    "origin": {
+      "country": "Spain"
+    }
+  },
+  "lotus": {
+    "origin": {
+      "country": "Spain"
+    }
+  },
+  "lorus": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "pulsar": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "tw steel": {
+    "origin": {
+      "country": "Netherlands"
+    }
+  },
+  "police": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "esprit": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "komono": {
+    "origin": {
+      "country": "Belgium"
+    }
+  },
+  "cluse": {
+    "origin": {
+      "country": "Netherlands"
+    }
+  },
+  "triwa": {
+    "origin": {
+      "country": "Sweden"
+    }
+  },
+  "withings": {
+    "origin": {
+      "country": "France"
+    }
+  },
+  "suunto": {
+    "origin": {
+      "country": "Finland"
+    }
+  },
+  "polar": {
+    "origin": {
+      "country": "Finland"
+    }
+  },
+  "apple": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "samsung": {
+    "origin": {
+      "country": "South Korea"
+    }
+  },
+  "huawei": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "xiaomi": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "amazfit": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "ticwatch": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "mobvoi": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "sony": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "lg": {
+    "origin": {
+      "country": "South Korea"
+    }
+  },
+  "panasonic": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "sharp": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "toshiba": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "hitachi": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "jvc": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "denon": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "marantz": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "yamaha": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "harman kardon": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "skullcandy": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "sennheiser": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "beyerdynamic": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "akg": {
+    "origin": {
+      "country": "Austria"
+    }
+  },
+  "audio-technica": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "shure": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "plantronics": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "jabra": {
+    "origin": {
+      "country": "Denmark"
+    }
+  },
+  "roccat": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "trust": {
+    "origin": {
+      "country": "Netherlands"
+    }
+  },
+  "aukey": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "ravpower": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "baseus": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "ugreen": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "orico": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "inateck": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "sabrent": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "western digital": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "wd": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "kingston": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "samsung electronics": {
+    "origin": {
+      "country": "South Korea"
+    }
+  },
+  "crucial": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "intel": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "nvidia": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "gigabyte": {
+    "origin": {
+      "country": "Taiwan"
+    }
+  },
+  "acer": {
+    "origin": {
+      "country": "Taiwan"
+    }
+  },
+  "lenovo": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "dell": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "hp": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "microsoft": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "amazon": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "google": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "roku": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "hoover": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "bissell": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "irobot": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "roomba": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "karcher": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "nilfisk": {
+    "origin": {
+      "country": "Denmark"
+    }
+  },
+  "vax": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "henry": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "numatic": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "hotpoint": {
+    "origin": {
+      "country": "Italy"
+    }
+  },
+  "indesit": {
+    "origin": {
+      "country": "Italy"
+    }
+  },
+  "whirlpool": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "maytag": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "rangemaster": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "aga": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "falcon": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "beko": {
+    "origin": {
+      "country": "Turkey"
+    }
+  },
+  "hisense": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "haier": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "candy": {
+    "origin": {
+      "country": "Italy"
+    }
+  },
+  "hopoint": {
+    "origin": {
+      "country": "Italy"
+    }
+  },
+  "zanussi": {
+    "origin": {
+      "country": "Sweden"
+    }
+  },
+  "philips sonicare": {
+    "origin": {
+      "country": "Netherlands"
+    }
+  },
+  "oral-b": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "braun": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "remington": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "wahl": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "andis": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "babyliss": {
+    "origin": {
+      "country": "France"
+    }
+  },
+  "ghd": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "cloud nine": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "tigi": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "l'oreal": {
+    "origin": {
+      "country": "France"
+    }
+  },
+  "mac cosmetics": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "charlotte tilbury": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "nars": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "urban decay": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "too faced": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "anastasia beverly hills": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "morphe": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "fenty beauty": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "kylie cosmetics": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "olaplex": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "kerastase": {
+    "origin": {
+      "country": "France"
+    }
+  },
+  "wella": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "schwarzkopf": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "redken": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "paul mitchell": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "dove": {
+    "origin": {
+      "country": "Netherlands"
+    }
+  },
+  "nivea": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "la roche-posay": {
+    "origin": {
+      "country": "France"
+    }
+  },
+  "vichy": {
+    "origin": {
+      "country": "France"
+    }
+  },
+  "the ordinary": {
+    "origin": {
+      "country": "Canada"
+    }
+  },
+  "drunk elephant": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "lush": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "elemis": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "nike": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "puma": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "reebok": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "asics": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "new balance": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "under armour": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "columbia": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "north face": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "arc'teryx": {
+    "origin": {
+      "country": "Canada"
+    }
+  },
+  "arcteryx": {
+    "origin": {
+      "country": "Canada"
+    }
+  },
+  "the north face": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "salomon": {
+    "origin": {
+      "country": "France"
+    }
+  },
+  "merrell": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "keen": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "timberland": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "hi-tec": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "regatta": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "berghaus": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "helly hansen": {
+    "origin": {
+      "country": "Norway"
+    }
+  },
+  "mammut": {
+    "origin": {
+      "country": "Switzerland"
+    }
+  },
+  "black diamond": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "petzl": {
+    "origin": {
+      "country": "France"
+    }
+  },
+  "camp": {
+    "origin": {
+      "country": "Italy"
+    }
+  },
+  "msr": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "primus": {
+    "origin": {
+      "country": "Sweden"
+    }
+  },
+  "jetboil": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "nemo": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "big agnes": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "therm-a-rest": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "exped": {
+    "origin": {
+      "country": "Switzerland"
+    }
+  },
+  "lifesystems": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "cotswold outdoor": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "go outdoors": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "trespass": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "stabilo": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "faber-castell": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "uni-ball": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "mitsubishi pencil": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "pentel": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "staedtler": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "sharpie": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "crayola": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "posca": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "winsor & newton": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "derwent": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "conte": {
+    "origin": {
+      "country": "France"
+    }
+  },
+  "leuchtturm1917": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "rhodia": {
+    "origin": {
+      "country": "France"
+    }
+  },
+  "midori": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "traveler's notebook": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "clairefontaine": {
+    "origin": {
+      "country": "France"
+    }
+  },
+  "paperblanks": {
+    "origin": {
+      "country": "Canada"
+    }
+  },
+  "kikkerland": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "typo": {
+    "origin": {
+      "country": "Australia"
+    }
+  },
+  "fisher-price": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "leapfrog": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "orchard toys": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "clementoni": {
+    "origin": {
+      "country": "Italy"
+    }
+  },
+  "djeco": {
+    "origin": {
+      "country": "France"
+    }
+  },
+  "haba": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "steiff": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "zapf creation": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "barbie": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "hot wheels": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "nerf": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "funko pop": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "funko": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "bosch garden": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "husqvarna": {
+    "origin": {
+      "country": "Sweden"
+    }
+  },
+  "honda": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "ryobi": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "stihl": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "flymo": {
+    "origin": {
+      "country": "Sweden"
+    }
+  },
+  "alm": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "felco": {
+    "origin": {
+      "country": "Switzerland"
+    }
+  },
+  "wolf garten": {
+    "origin": {
+      "country": "Germany"
+    }
+  },
+  "spear & jackson": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "burgon & ball": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "kent & stowe": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "terrain": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "haws": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "whitefurze": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "royal canin": {
+    "origin": {
+      "country": "France"
+    }
+  },
+  "iams": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "whiskas": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "felix": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "pedigree": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "cesar": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "lily's kitchen": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "forthglade": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "naturo": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "harringtons": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "james wellbeloved": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "burns pet nutrition": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "canagan": {
+    "origin": {
+      "country": "UK"
+    }
+  },
+  "orijen": {
+    "origin": {
+      "country": "Canada"
+    }
+  },
+  "acana": {
+    "origin": {
+      "country": "Canada"
+    }
+  },
+  "taste of the wild": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "blue buffalo": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "wellness": {
+    "origin": {
+      "country": "USA"
+    }
+  },
+  "arendo": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "pifco®": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "geepas": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "aigostar": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "ruimen": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "aeac": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "parsonver": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "radley": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "ravel": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "offcup": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "shengke": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "aoosu": {
+    "origin": {
+      "country": "Japan"
+    }
+  },
+  "nuovo": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "cillso": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "oidea": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "armitron": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "cascho": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "mingdaln": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "soundcore": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "oneodio": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "kvidio": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "rorsou": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "jyps": {
+    "origin": {
+      "country": "China"
+    }
+  },
+  "uliptz": {
+    "origin": {
+      "country": "China"
+    }
   }
 }
