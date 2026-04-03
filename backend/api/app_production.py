@@ -714,10 +714,11 @@ def create_app(config_name='production'):
             _cached_material_ok = (
                 cached_calc
                 and cached_calc.scraped_product
-                and (
-                    cached_calc.scraped_product.materials_json is not None
-                    or (cached_calc.scraped_product.material or '').strip().lower() not in _POOR_MATERIALS
-                )
+                # Require materials_json so cache hits always show full multi-material data.
+                # Products without it (scraped before this column existed) are re-scraped
+                # exactly once; after that they have materials_json and hit the cache normally.
+                and cached_calc.scraped_product.materials_json is not None
+                and (cached_calc.scraped_product.material or '').strip().lower() not in _POOR_MATERIALS
             )
             # Cached results older than this are re-scraped so improvements to the
             # material / origin detection pipeline are automatically applied.
@@ -847,6 +848,27 @@ def create_app(config_name='production'):
                         _cached_amazon_mats = json.loads(cached_product.materials_json)
                     except Exception:
                         pass
+
+                # When materials_json is present but contains an empty list (sentinel
+                # written for products whose spec table had no material rows), try to
+                # reconstruct multi-material data from the stored material field.
+                # The material field sometimes holds a comma-separated string like
+                # "Sintered Stone, Metal, Engineered Wood" that the scraper extracted
+                # from the spec table primary key before single-material normalisation.
+                if not (_cached_amazon_mats and _cached_amazon_mats.get('materials')):
+                    _mat_str = (cached_product.material or '').strip()
+                    if _mat_str and _mat_str.lower() not in _POOR_MATERIALS:
+                        _mat_parts = [
+                            p.strip() for p in re.split(r'[,;/]', _mat_str)
+                            if p.strip() and 2 <= len(p.strip()) <= 60
+                        ]
+                        if _mat_parts:
+                            _cached_amazon_mats = {
+                                'materials': [
+                                    {'name': p, 'confidence_score': 0.7}
+                                    for p in _mat_parts
+                                ]
+                            }
 
                 try:
                     _cached_materials = deps['materials_service'].detect_materials(
@@ -1591,7 +1613,11 @@ def create_app(config_name='production'):
                 # Serialise full multi-material spec data so cache hits can
                 # restore Tier 1/2 detection without re-scraping.
                 _amazon_mats = product.get('amazon_materials_extracted')
-                _materials_json = json.dumps(_amazon_mats) if _amazon_mats else None
+                # Always persist something (sentinel or real data) so the cache
+                # bypass logic (materials_json IS NULL → re-scrape) only fires once
+                # per product.  An empty list signals "spec table had no materials"
+                # and falls through to title/category keyword detection on cache hits.
+                _materials_json = json.dumps(_amazon_mats) if _amazon_mats else json.dumps({'materials': []})
 
                 scraped_product = get_or_create_scraped_product({
                     'amazon_url': url,
